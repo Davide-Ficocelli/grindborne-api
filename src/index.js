@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import pool from "./config/db.js";
 
 // Dotenv configuration
 dotenv.config();
@@ -20,6 +21,13 @@ app.use(cors());
 // Sending test data
 app.get("/api/v1", (req, res) => {
   res.send("Hello world");
+});
+
+// Testing POSTGRES connection
+app.get("/", async (req, res) => {
+  console.log("start");
+  const result = await pool.query("SELECT current_database()");
+  res.send(`The database name is: ${result.rows[0].current_database}`);
 });
 
 // Server running
