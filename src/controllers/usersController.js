@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import {
   createUserService,
   deleteUserService,
@@ -16,10 +17,20 @@ const handleResponse = (res, status, message, data = null) => {
 };
 
 export const createUser = async (req, res, next) => {
-  const { name, email, password_hash } = req.body;
   try {
-    const newUser = await createUserService(name, email, password_hash);
+    const { name, email, password } = req.body;
+
+    const saltRounds = 10;
+
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    const newUser = await createUserService(name, email, passwordHash);
     handleResponse(res, 201, "User created successfully", newUser);
+
+    // VERY IMPORTANT: DO NOT return the hashed password in the response
+    if (newUser && newUser.password_hash) {
+      delete newUser.password_hash;
+    }
   } catch (err) {
     next(err);
   }
