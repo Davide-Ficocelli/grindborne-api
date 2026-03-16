@@ -1,7 +1,11 @@
-import { router } from "../index.js";
+import express from "express";
 
-// router.post("/grinds", validateGrind, createGrind);
-// router.get("/grinds", getAllGrinds);
-// router.get("/grinds/:id", getGrindById);
-// router.put("/grinds/:id", validateGrind, updateGrind);
-// router.delete("/grinds/:id", deleteGrind);
+const router = express.Router();
+
+// router.post("/users/:id/grinds", validateGrind, createUserGrind);
+// router.get("/users/:id/grinds", getAllUserGrinds);
+// router.get("/users/:id/grinds/:id", getUserGrindById);
+// router.put("/users/:id/grinds/:id", validateGrind, updateUserGrind);
+// router.delete("/users/:id/grinds/:id", deleteUserGrind);
+
+export default router;

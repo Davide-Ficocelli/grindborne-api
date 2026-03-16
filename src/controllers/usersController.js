@@ -16,9 +16,9 @@ const handleResponse = (res, status, message, data = null) => {
 };
 
 export const createUser = async (req, res, next) => {
-  const { name, email } = req.body;
+  const { name, email, password_hash } = req.body;
   try {
-    const newUser = await createUserService(name, email);
+    const newUser = await createUserService(name, email, password_hash);
     handleResponse(res, 201, "User created successfully", newUser);
   } catch (err) {
     next(err);

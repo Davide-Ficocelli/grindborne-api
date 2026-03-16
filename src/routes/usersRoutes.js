@@ -1,4 +1,4 @@
-import { router } from "../index.js";
+import express from "express";
 import {
   createUser,
   getAllUsers,
@@ -8,8 +8,13 @@ import {
 } from "../controllers/usersController.js";
 import { validateUser } from "../middlewares/inputValidator.js";
 
-router.post("/users", validateUser, createUser);
-router.get("/users", getAllUsers);
-router.get("/users/:id", getUserById);
-router.put("/users/:id", validateUser, updateUser);
-router.delete("/users/:id", deleteUser);
+// Initialize and export express router for users routes
+const router = express.Router();
+
+router.post("/", validateUser, createUser);
+router.get("/", getAllUsers);
+router.get("/:id", getUserById);
+router.put("/:id", validateUser, updateUser);
+router.delete("/:id", deleteUser);
+
+export default router;

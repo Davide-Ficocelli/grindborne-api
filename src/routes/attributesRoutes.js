@@ -1,7 +1,12 @@
-import { router } from "../index.js";
+import express from "express";
 
-// router.post("/attributes", validateAttribute, createAttribute);
-// router.get("/attributes", getAllAttribute);
-// router.get("/attributes/:id", getAttributeById);
-// router.put("/attributes/:id", validateAttribute, updateAttribute);
-// router.delete("/attributes/:id", deleteAttribute);
+// Initialize and export express router for attributes routes
+const router = express.Router();
+
+// router.post("/users/:id/attributes", validateAttribute, createUserAttribute);
+// router.get("/users/:id/attributes", getAllUserAttribute);
+// router.get("/users/:id/attributes/:id", getUserAttributeById);
+// router.put("/users/:id/attributes/:id", validateAttribute, updateUserAttribute);
+// router.delete("/users/:id/attributes/:id", deleteUserAttribute);
+
+export default router;

@@ -1,7 +1,11 @@
-import { router } from "../index.js";
+import express from "express";
 
-// router.post("/users/:id/users/:id/quests", validateQuest, createQuest);
-// router.get("/users/:id/users/:id/quests", getAllQuests);
-// router.get("//users/:idusers/:id/quests/:id", getQuestById);
-// router.put("/users/:id/users/:id/quests/:id", validateQuest, updateQuest);
-// router.delete("/users/:id/users/:id/quests/:id", deleteQuest);
+const router = express.Router();
+
+// router.post("/users/:id/users/:id/quests", validateQuest, createUserQuest);
+// router.get("/users/:id/users/:id/quests", getAllUserQuests);
+// router.get("//users/:idusers/:id/quests/:id", getUserQuestById);
+// router.put("/users/:id/users/:id/quests/:id", validateQuest, updateUserQuest);
+// router.delete("/users/:id/users/:id/quests/:id", deleteUserQuest);
+
+export default router;
