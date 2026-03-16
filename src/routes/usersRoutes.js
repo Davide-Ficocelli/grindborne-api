@@ -5,7 +5,7 @@ import {
   getUserById,
   updateUser,
   deleteUser,
-} from "../controllers/userController.js";
+} from "../controllers/usersController.js";
 import { validateUser } from "../middlewares/inputValidator.js";
 
 router.post("/users", validateUser, createUser);
