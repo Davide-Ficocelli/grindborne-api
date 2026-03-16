@@ -18,6 +18,9 @@ app.use(cors());
 
 // Routes
 
+// Initialize and export expreess router
+export const router = express.Router();
+
 // Sending test data
 app.get("/api/v1", (req, res) => {
   res.send("Hello world");
