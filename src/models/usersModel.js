@@ -16,10 +16,10 @@ export const getUserByIdService = async (id) => {
     data from the previous query.
     For more details check https://www.postgresql.org/docs/current/dml-returning.html
 */
-export const createUserService = async (name, email, password_hash) => {
+export const createUserService = async (name, email, password) => {
   const result = await pool.query(
     "INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING *",
-    [name, email, password_hash],
+    [name, email, password],
   );
   return result.rows[0];
 };
