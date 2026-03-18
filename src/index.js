@@ -18,7 +18,7 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // Defining the base URL API prefix
-const baseUrlPrefix = "/grindborne/v1";
+const baseUrlPrefix = "/grindborne/api/v1";
 
 // Middlewares
 app.use(express.json());
@@ -26,8 +26,6 @@ app.use(cors());
 // app.use(compression());
 
 // Routes
-
-// Each use of app.use() is needed to set "/grindborne/v1/users" as the base URL prefix for all routes mounted here
 
 // Attributes routes
 app.use(baseUrlPrefix, attributesRoutes);

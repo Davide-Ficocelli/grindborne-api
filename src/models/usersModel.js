@@ -10,6 +10,13 @@ export const getUserByIdService = async (id) => {
   return result.rows[0];
 };
 
+export const getUserByEmailService = async (email) => {
+  const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+    email,
+  ]);
+  return result.rows[0];
+};
+
 /*
     RETURNING is a clause you can use after an
     INSERT/UPDATE/DELETE statement, to simply return the
