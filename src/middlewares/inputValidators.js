@@ -21,10 +21,21 @@ const inputSanitizationOptions = {
 };
 
 // Scheme for user creation
-const userScheme = Joi.object({
+const newUserScheme = Joi.object({
   name: Joi.string().min(3).max(50).trim().required(),
   email: Joi.string().email().lowercase().trim().required(),
   password: Joi.string().min(8).max(128).required(),
+}).options(
+  // Inputs sanitization
+  inputSanitizationOptions,
+);
+
+// Scheme fo user update
+const updatedUserScheme = Joi.object({
+  name: Joi.string().min(3).max(50).trim().optional(),
+  email: Joi.string().email().lowercase().trim().optional(),
+  level: Joi.number().optional(),
+  stamina: Joi.number().optional(),
 }).options(
   // Inputs sanitization
   inputSanitizationOptions,
@@ -42,6 +53,8 @@ const userCredentialScheme = Joi.object({
 // Validators
 
 // Validates user upon creation
-export const validateUser = createValidator(userScheme);
+export const validateNewUser = createValidator(newUserScheme);
+// Validates user upon update
+export const validateUpdatedUser = createValidator(updatedUserScheme);
 // Validates user credentials upon attempted login
 export const validateUserCredentials = createValidator(userCredentialScheme);
