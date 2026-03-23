@@ -1,0 +1,202 @@
+{
+  "info": {
+    "_postman_id": "8bc95ae2-3844-4f41-b4ce-dace062573bb",
+    "name": "Grindborne API tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48025073",
+    "_collection_link": "https://go.postman.co/collection/48025073-8bc95ae2-3844-4f41-b4ce-dace062573bb?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Users test",
+      "item": [
+        {
+          "name": "Get all users",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create a new user",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"User creation test\",\r\n    \"email\": \"usercreationtest@gmail.com\",\r\n    \"password\": \"usercreationtestpassword\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update an existing user",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"Davide\",\r\n    \"email\": \"davideficocelli@gmail.com\",\r\n    \"level\": 2,\r\n    \"stamina\": 50\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/users/14",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "users",
+                "14"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login an existing user",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"davideficocelli@gmail.com\",\r\n    \"password\": \"certamente\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/users/14",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "users",
+                "14"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get an existing user",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/users/14",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "users",
+                "14"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a user",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/users/20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "users",
+                "20"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

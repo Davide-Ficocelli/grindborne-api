@@ -4,6 +4,7 @@ import {
   deleteUserService,
   getAllUsersService,
   getUserByIdService,
+  getUserByEmailService,
   updateUserService,
 } from "../models/usersModel.js";
 
@@ -55,10 +56,52 @@ export const getUserById = async (req, res, next) => {
   }
 };
 
-export const updateUser = async (req, res, next) => {
-  const { name, email } = req.body;
+export const loginUser = async (req, res, next) => {
   try {
-    const updatedUser = await updateUserService(req.params.id, name, email);
+    // Fetch users by using the sent email in the request body as the input for the function
+    const user = await getUserByEmailService(req.body.email);
+
+    // If user was not found then stop response and send an error message to the client
+    if (!user) return handleResponse(res, 404, "User not found");
+
+    // Save sent password from the request body
+    const inputPassword = req.body.password;
+
+    // If no password was provided then stop response and send an error message to the client
+    if (!inputPassword)
+      return handleResponse(res, 400, "Credentials not provided");
+
+    // Getting hashed password
+    const hashedPassword = user.password_hash;
+
+    // Comparing input password and hashed password
+    const doPasswordsMatch = await bcrypt.compare(
+      inputPassword,
+      hashedPassword,
+    );
+
+    // Returning an error message if passwords do not match
+    if (!doPasswordsMatch)
+      return handleResponse(res, 401, "Incorrect credentials");
+
+    // Returning a success message if passwords match
+    if (doPasswordsMatch)
+      return handleResponse(res, 200, "Successfully logged in");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateUser = async (req, res, next) => {
+  const { name, email, level, stamina } = req.body;
+  try {
+    const updatedUser = await updateUserService(
+      req.params.id,
+      name,
+      email,
+      level,
+      stamina,
+    );
     if (!updatedUser) return handleResponse(res, 404, "User not found");
     handleResponse(res, 200, "User updated successfully", updatedUser);
   } catch (err) {
