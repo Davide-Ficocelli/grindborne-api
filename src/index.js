@@ -27,7 +27,7 @@ app.use(cors());
 
 // Routes
 
-// Each use of app.use() is needed to set "/grindborne/api/v1/users" as the base URL prefix for all routes mounted here
+// Each use of app.use() is needed to set "/grindborne/api/v1/" as the base URL prefix for all routes mounted here
 
 // Attributes routes
 app.use(baseUrlPrefix, attributesRoutes);
