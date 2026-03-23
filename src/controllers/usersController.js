@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import handleResponse from "../utils/handleResponse.js";
 import {
   createUserService,
   deleteUserService,
@@ -7,15 +8,6 @@ import {
   getUserByEmailService,
   updateUserService,
 } from "../models/usersModel.js";
-
-// Standardized response function
-const handleResponse = (res, status, message, data = null) => {
-  res.status(status).json({
-    status,
-    message,
-    data,
-  });
-};
 
 export const createUser = async (req, res, next) => {
   try {
