@@ -23,6 +23,7 @@ const baseUrlPrefix = "/grindborne/api/v1";
 // Middlewares
 app.use(express.json());
 app.use(cors());
+app.use(express.json());
 // app.use(compression());
 
 // Routes

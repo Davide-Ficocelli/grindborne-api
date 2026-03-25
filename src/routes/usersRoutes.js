@@ -6,6 +6,7 @@ import {
   loginUser,
   updateUser,
   deleteUser,
+  authenticateToken,
 } from "../controllers/usersController.js";
 import {
   validateNewUser,
