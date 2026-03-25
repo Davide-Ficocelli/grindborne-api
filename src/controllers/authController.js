@@ -3,6 +3,11 @@ import { getUserByEmailService } from "../models/usersModel.js";
 import handleResponse from "../utils/handleResponse.js";
 import bcrypt from "bcrypt";
 
+const generateAccessToken = (user) =>
+  jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "1h",
+  });
+
 // Refresh tokens
 // WARNING: refresh tokens must be stored either in a database or in cache, using this variable is for testing purposes only
 
@@ -38,18 +43,16 @@ export const loginUser = async (req, res, next) => {
 
     // === JSON web token implementation ===
 
-    // User object
-    const userObj = {
+    // User data object
+    const userData = {
       id: user.id,
     };
 
     // Generating access token containing user id
-    const accessToken = jwt.sign(userObj, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "1h",
-    });
+    const accessToken = generateAccessToken(userData);
 
     // Generating a refresh token
-    const refreshToken = jwt.sign(userObj, process.env.REFRESH_TOKEN_SECRET);
+    const refreshToken = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET);
 
     // Pushing new refresh token in refresh tokens array
     refreshTokens.push(refreshToken);
@@ -78,11 +81,35 @@ export const authenticateToken = (req, res, next) => {
 
     // Verify token validity
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-      console.log(err);
       // Returning status code if an error exist
       if (err) return handleResponse(res, 403, "Invalid or expired token"); // 403 = Token no longer valid
       req.user = user; // The user parameter passed in the function represents the user object created in the loginUser function
       next();
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const createNewAccessToken = (req, res, next) => {
+  try {
+    // Getting refresh token from the request
+    const refreshToken = req.body.token;
+    // If either no refresh token exists or no refresh codes are available then return an error status code
+    if (!refreshToken) return handleResponse(res, 401);
+    if (!refreshTokens.includes(refreshToken)) return handleResponse(res, 403);
+    // Verifying refresh token validity
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+      // If an error occurs it gets returned alongside the status code
+      if (err) return handleResponse(res, 403);
+      // New access token is created and returned using user's id
+      const accessToken = generateAccessToken({ id: user.id });
+      handleResponse(
+        res,
+        201,
+        "Access token successfully created",
+        accessToken,
+      );
     });
   } catch (err) {
     next(err);

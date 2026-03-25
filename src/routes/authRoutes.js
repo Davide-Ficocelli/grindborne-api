@@ -2,7 +2,7 @@ import express from "express";
 import {
   authenticateToken,
   loginUser,
-  //   verifyRefreshToken,
+  createNewAccessToken,
 } from "../controllers/authController.js";
 import { validateUserCredentials } from "../middlewares/inputValidators.js";
 
@@ -20,7 +20,7 @@ router.get("/posts", authenticateToken, (req, res) => {
   res.json(posts.filter((post) => post.id === req.user.id));
 });
 
-// router.post("/token", verifyRefreshToken);
+router.post("/token", createNewAccessToken);
 
 router.post("/login", validateUserCredentials, loginUser);
 
