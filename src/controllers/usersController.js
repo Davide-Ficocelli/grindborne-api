@@ -1,21 +1,12 @@
 import bcrypt from "bcrypt";
+import handleResponse from "../utils/handleResponse.js";
 import {
   createUserService,
   deleteUserService,
   getAllUsersService,
   getUserByIdService,
-  getUserByEmailService,
   updateUserService,
 } from "../models/usersModel.js";
-
-// Standardized response function
-const handleResponse = (res, status, message, data = null) => {
-  res.status(status).json({
-    status,
-    message,
-    data,
-  });
-};
 
 export const createUser = async (req, res, next) => {
   try {
@@ -51,42 +42,6 @@ export const getUserById = async (req, res, next) => {
     const user = await getUserByIdService(req.params.id);
     if (!user) return handleResponse(res, 404, "User not found");
     handleResponse(res, 200, "User fetched successfully", user);
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const loginUser = async (req, res, next) => {
-  try {
-    // Fetch users by using the sent email in the request body as the input for the function
-    const user = await getUserByEmailService(req.body.email);
-
-    // If user was not found then stop response and send an error message to the client
-    if (!user) return handleResponse(res, 404, "User not found");
-
-    // Save sent password from the request body
-    const inputPassword = req.body.password;
-
-    // If no password was provided then stop response and send an error message to the client
-    if (!inputPassword)
-      return handleResponse(res, 400, "Credentials not provided");
-
-    // Getting hashed password
-    const hashedPassword = user.password_hash;
-
-    // Comparing input password and hashed password
-    const doPasswordsMatch = await bcrypt.compare(
-      inputPassword,
-      hashedPassword,
-    );
-
-    // Returning an error message if passwords do not match
-    if (!doPasswordsMatch)
-      return handleResponse(res, 401, "Incorrect credentials");
-
-    // Returning a success message if passwords match
-    if (doPasswordsMatch)
-      return handleResponse(res, 200, "Successfully logged in");
   } catch (err) {
     next(err);
   }
