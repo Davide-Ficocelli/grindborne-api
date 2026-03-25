@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import pool from "./config/db.js";
 // import compression from "compression";
+import authRoutes from "./routes/authRoutes.js";
 import attributesRoutes from "./routes/attributesRoutes.js";
 import grindsRoutes from "./routes/grindsRoutes.js";
 import questsRoutes from "./routes/questsRoutes.js";
@@ -27,7 +28,10 @@ app.use(cors());
 
 // Routes
 
-// Each use of app.use() is needed to set "/grindborne/api/v1/users" as the base URL prefix for all routes mounted here
+// Each use of app.use() is needed to set "/grindborne/api/v1/" as the base URL prefix for all routes mounted here
+
+// Authentication routes
+app.use(`${baseUrlPrefix}/auth`, authRoutes);
 
 // Attributes routes
 app.use(baseUrlPrefix, attributesRoutes);
