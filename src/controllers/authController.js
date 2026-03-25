@@ -13,7 +13,7 @@ const generateAccessToken = (user) =>
 
 export let refreshTokens = [];
 
-export const loginUser = async (req, res, next) => {
+export const logInUser = async (req, res, next) => {
   try {
     // Fetch users by using the sent email in the request body as the input for the function
     const user = await getUserByEmailService(req.body.email);
@@ -63,6 +63,17 @@ export const loginUser = async (req, res, next) => {
         accessToken,
         refreshToken,
       });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Logs user out
+export const logOutUser = (req, res, next) => {
+  try {
+    // Normally you would delete refresh tokens from the database but since they're currently being stored in a local array they just get filtered out
+    refreshTokens = refreshTokens.filter((token) => token !== req.body.token);
+    handleResponse(res, 204, "Refresh token successfuly deleted");
   } catch (err) {
     next(err);
   }
