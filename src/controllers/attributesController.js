@@ -1,4 +1,7 @@
-import { createNewAttributeService } from "../models/attributesModel.js";
+import {
+  createNewAttributeService,
+  getAttributesByUserIdService,
+} from "../models/attributesModel.js";
 import handleResponse from "../utils/handleResponse.js";
 
 export const createNewAttribute = async (req, res, next) => {
@@ -19,6 +22,31 @@ export const createNewAttribute = async (req, res, next) => {
 
     // Sends back a successfull response, status code and message if the new attribute is created with no issues
     handleResponse(res, 201, "Attribute created successfully", newAttribute);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Returns all of the corrispective user's attributes
+export const getAttributesByUserId = async (req, res, next) => {
+  try {
+    // Gets user id
+    const userId = req.user.id;
+
+    // Retrieves and saves all user's attributes
+    const userAttributes = await getAttributesByUserIdService(userId);
+
+    // If no attributes are returned send back an error message
+    if (!userAttributes)
+      return handleResponse(res, 404, "No attributes were found for this user");
+
+    // Return attributes if no issues occured
+    handleResponse(
+      res,
+      200,
+      "All user attributes successfully retrieved",
+      userAttributes,
+    );
   } catch (err) {
     next(err);
   }

@@ -21,3 +21,12 @@ export const getAttributeByIdService = async (id) => {
   ]);
   return result.rows[0];
 };
+
+// Gets all user attributes by user id
+export const getAttributesByUserIdService = async (userId) => {
+  const result = await pool.query(
+    "SELECT attributes.id, attributes.name, attributes.description, attributes.level, attributes.icon FROM attributes JOIN users ON attributes.users_id = users.id WHERE attributes.users_id = $1;",
+    [userId],
+  );
+  return result.rows;
+};
