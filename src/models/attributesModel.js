@@ -30,3 +30,12 @@ export const getAttributesByUserIdService = async (userId) => {
   );
   return result.rows;
 };
+
+// Deletes a specific attribute by id
+export const deleteAttributeService = async (id) => {
+  const result = await pool.query(
+    "DELETE FROM attributes WHERE id = $1 RETURNING *",
+    [id],
+  );
+  return result.rows[0];
+};

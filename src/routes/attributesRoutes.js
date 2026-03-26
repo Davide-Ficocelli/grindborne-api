@@ -2,6 +2,7 @@ import express from "express";
 import { authenticateToken } from "../controllers/authController.js";
 import {
   createNewAttribute,
+  deleteAttribute,
   getAttributesByUserId,
 } from "../controllers/attributesController.js";
 import { validateNewAttribute } from "../middlewares/inputValidators.js";
@@ -19,5 +20,8 @@ router.post(
   validateNewAttribute,
   createNewAttribute,
 );
+
+// Endpoint for user attribute deletion
+router.delete("/attributes/:id", authenticateToken, deleteAttribute);
 
 export default router;
