@@ -52,7 +52,6 @@ const userCredentialScheme = Joi.object({
 
 // Scheme for attribute creation
 const newAttributeScheme = Joi.object({
-  users_id: Joi.number().required(),
   name: Joi.string().lowercase().trim().required(),
   description: Joi.string().lowercase().trim().optional(),
   icon: Joi.optional(),

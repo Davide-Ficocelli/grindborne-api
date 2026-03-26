@@ -107,12 +107,14 @@ export const createNewAccessToken = (req, res, next) => {
     // Getting refresh token from the request
     const refreshToken = req.body.token;
     // If either no refresh token exists or no refresh codes are available then return an error status code
-    if (!refreshToken) return handleResponse(res, 401);
-    if (!refreshTokens.includes(refreshToken)) return handleResponse(res, 403);
+    if (!refreshToken)
+      return handleResponse(res, 401, "Refresh token not provided");
+    if (!refreshTokens.includes(refreshToken))
+      return handleResponse(res, 404, "Refresh token not found");
     // Verifying refresh token validity
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
       // If an error occurs it gets returned alongside the status code
-      if (err) return handleResponse(res, 403);
+      if (err) return handleResponse(res, 403, "Invalid refresh token");
       // New access token is created and returned using user's id
       const accessToken = generateAccessToken({ id: user.id });
       handleResponse(
