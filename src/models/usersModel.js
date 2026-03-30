@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import updateRow from "../utils/updateRow.js";
 
 export const getAllUsersService = async () => {
   const result = await pool.query("SELECT * FROM users");
@@ -32,10 +33,19 @@ export const createUserService = async (name, email, password) => {
 };
 
 export const updateUserService = async (id, name, email, level, stamina) => {
-  const result = await pool.query(
-    "UPDATE users SET name=$1, email=$2, level=$3, stamina=$4 WHERE id=$5 RETURNING *",
-    [name, email, level, stamina, id],
+  const { query, values } = updateRow(
+    "users",
+    id,
+    {
+      name,
+      email,
+      level,
+      stamina,
+    },
+    "No parameters for user update were provided",
   );
+
+  const result = await pool.query(query, values);
   return result.rows[0];
 };
 
