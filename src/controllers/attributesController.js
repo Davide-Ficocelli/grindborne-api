@@ -2,6 +2,7 @@ import {
   createNewAttributeService,
   getAttributesByUserIdService,
   deleteAttributeService,
+  updateAttributeService,
 } from "../models/attributesModel.js";
 import handleResponse from "../utils/handleResponse.js";
 
@@ -64,6 +65,30 @@ export const deleteAttribute = async (req, res, next) => {
       200,
       "Attribute deleted successfully",
       deletedAttribute,
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Updates an attribute
+export const updateAttribute = async (req, res, next) => {
+  try {
+    const { name, description, level, xp } = req.body;
+    const updatedAttribute = await updateAttributeService(
+      req.params.id,
+      name,
+      description,
+      level,
+      xp,
+    );
+    if (!updatedAttribute)
+      return handleResponse(res, 404, "Attribute not found");
+    handleResponse(
+      res,
+      200,
+      "Attribute updated successfully",
+      updatedAttribute,
     );
   } catch (err) {
     next(err);

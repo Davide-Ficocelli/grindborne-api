@@ -60,6 +60,18 @@ const newAttributeScheme = Joi.object({
   inputSanitizationOptions,
 );
 
+// Scheme for attribute update
+const updatedAttributeScheme = Joi.object({
+  name: Joi.string().lowercase().trim().optional(),
+  description: Joi.string().lowercase().trim().optional(),
+  icon: Joi.optional(),
+  level: Joi.number().optional(),
+  xp: Joi.number().optional(),
+}).options(
+  // Inputs sanitization
+  inputSanitizationOptions,
+);
+
 // Validators
 
 // Validates user upon creation
@@ -70,3 +82,5 @@ export const validateUpdatedUser = createValidator(updatedUserScheme);
 export const validateUserCredentials = createValidator(userCredentialScheme);
 // Validates attribute upon creation
 export const validateNewAttribute = createValidator(newAttributeScheme);
+// Validates attribute upon update
+export const validateUpdatedAttribute = createValidator(updatedAttributeScheme);
