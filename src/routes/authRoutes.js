@@ -5,7 +5,7 @@ import {
   logOutUser,
   createNewAccessToken,
 } from "../controllers/authController.js";
-import { validateUserCredentials } from "../middlewares/inputValidators.js";
+import { validateUserCredentials } from "../middlewares/inputValidators.ts";
 
 // Initialize and export express router for authentication routes
 const router = express.Router();

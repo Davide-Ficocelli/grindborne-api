@@ -1,12 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import pool from "./config/db.js";
+import pool from "./config/db.ts";
 // import compression from "compression";
-import authRoutes from "./routes/authRoutes.js";
-import attributesRoutes from "./routes/attributesRoutes.js";
-import grindsRoutes from "./routes/grindsRoutes.js";
-import questsRoutes from "./routes/questsRoutes.js";
+import authRoutes from "./routes/authRoutes.ts";
+import attributesRoutes from "./routes/attributesRoutes.ts";
+import grindsRoutes from "./routes/grindsRoutes.ts";
+import questsRoutes from "./routes/questsRoutes.ts";
 import usersRoutes from "./routes/usersRoutes.js";
 
 // Importing types for request and response

@@ -9,7 +9,7 @@ import {
 import {
   validateNewAttribute,
   validateUpdatedAttribute,
-} from "../middlewares/inputValidators.js";
+} from "../middlewares/inputValidators.ts";
 
 // Initialize and export express router for attributes routes
 const router = express.Router();
