@@ -9,6 +9,9 @@ import grindsRoutes from "./routes/grindsRoutes.js";
 import questsRoutes from "./routes/questsRoutes.js";
 import usersRoutes from "./routes/usersRoutes.js";
 
+// Importing types for request and response
+import { type Request, type Response } from "express";
+
 // Dotenv configuration
 dotenv.config();
 
@@ -16,10 +19,10 @@ dotenv.config();
 const app = express();
 
 // Define server's port
-const port = process.env.PORT || 3001;
+const port = process.env.PORT ? Number(process.env.PORT) : 3001;
 
 // Defining the base URL API prefix
-const baseUrlPrefix = "/grindborne/api/v1";
+const baseUrlPrefix: string = "/grindborne/api/v1";
 
 // Middlewares
 app.use(express.json());
@@ -46,12 +49,12 @@ app.use(baseUrlPrefix, questsRoutes);
 app.use(`${baseUrlPrefix}/users`, usersRoutes);
 
 // Sending test data
-app.get("/api/v1", (req, res) => {
+app.get("/api/v1", (req: Request, res: Response) => {
   res.send("Hello world");
 });
 
 // Testing POSTGRES connection
-app.get("/", async (req, res) => {
+app.get("/", async (req: Request, res: Response) => {
   console.log("start");
   const result = await pool.query("SELECT current_database()");
   res.send(`The database name is: ${result.rows[0].current_database}`);
