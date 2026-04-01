@@ -1,12 +1,13 @@
-import Joi from "joi";
+import Joi, { type Schema } from "joi";
+import { type Request, type Response, type NextFunction } from "express";
 
-function createValidator(scheme) {
-  return (req, res, next) => {
+function createValidator(scheme: Schema) {
+  return (req: Request, res: Response, next: NextFunction) => {
     const { error, value } = scheme.validate(req.body);
     if (error) {
       return res.status(400).json({
         status: 400,
-        message: error.details[0].message,
+        message: error.details[0]?.message ?? "Invalid input",
       });
     }
     req.body = value; // Use the clean version of Joi

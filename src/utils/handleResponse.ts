@@ -1,5 +1,10 @@
 // Standardized response function
-const handleResponse = (res, status, message, data = null) => {
+const handleResponse = <T>(
+  res: any,
+  status: number,
+  message: string,
+  data?: T,
+) => {
   res.status(status).json({
     status,
     message,

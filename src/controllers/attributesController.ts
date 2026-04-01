@@ -3,10 +3,18 @@ import {
   getAttributesByUserIdService,
   deleteAttributeService,
   updateAttributeService,
-} from "../models/attributesModel.js";
-import handleResponse from "../utils/handleResponse.js";
+} from "../models/attributesModel.ts";
+import handleResponse from "../utils/handleResponse.ts";
 
-export const createNewAttribute = async (req, res, next) => {
+// Importing types
+import { type Request, type Response, type NextFunction } from "express";
+import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
+
+export const createNewAttribute = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     // Gets the input fields which will be inserted in the attributes table for the new record from the request body
     const { name, description, icon } = req.body;
@@ -14,7 +22,7 @@ export const createNewAttribute = async (req, res, next) => {
     // Gets user's id for attributes_id field
     const userId = req.user.id;
 
-    // Starts the attribute creation process with the appropriate async function created in the attributesModel.js file
+    // Starts the attribute creation process with the appropriate async function created in the attributesModel.ts file
     const newAttribute = await createNewAttributeService(
       name,
       description,
@@ -30,7 +38,11 @@ export const createNewAttribute = async (req, res, next) => {
 };
 
 // Returns all of the corrispective user's attributes
-export const getAttributesByUserId = async (req, res, next) => {
+export const getAttributesByUserId = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     // Gets user id
     const userId = req.user.id;
@@ -55,9 +67,15 @@ export const getAttributesByUserId = async (req, res, next) => {
 };
 
 // Deletes an attribute
-export const deleteAttribute = async (req, res, next) => {
+export const deleteAttribute = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const deletedAttribute = await deleteAttributeService(req.params.id);
+    const deletedAttribute = await deleteAttributeService(
+      Number(req.params.id),
+    );
     if (!deletedAttribute)
       return handleResponse(res, 404, "Attribute not found");
     handleResponse(
@@ -72,11 +90,15 @@ export const deleteAttribute = async (req, res, next) => {
 };
 
 // Updates an attribute
-export const updateAttribute = async (req, res, next) => {
+export const updateAttribute = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { name, description, level, xp } = req.body;
     const updatedAttribute = await updateAttributeService(
-      req.params.id,
+      Number(req.params.id),
       name,
       description,
       level,

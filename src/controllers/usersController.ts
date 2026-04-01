@@ -1,16 +1,27 @@
 import bcrypt from "bcrypt";
-import handleResponse from "../utils/handleResponse.js";
+import handleResponse from "../utils/handleResponse.ts";
 import {
   createUserService,
   deleteUserService,
   getAllUsersService,
   getUserByIdService,
   updateUserService,
-} from "../models/usersModel.js";
+} from "../models/usersModel.ts";
 
-export const createUser = async (req, res, next) => {
+// Importing types
+import { type Request, type Response, type NextFunction } from "express";
+
+export const createUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password } = req.body as {
+      name: string;
+      email: string;
+      password: string;
+    };
 
     const saltRounds = 10;
 
@@ -20,26 +31,34 @@ export const createUser = async (req, res, next) => {
     handleResponse(res, 201, "User created successfully", newUser);
 
     // VERY IMPORTANT: DO NOT return the hashed password in the response
-    if (newUser && newUser.password_hash) {
-      delete newUser.password_hash;
+    if (newUser && (newUser as any).password_hash) {
+      delete (newUser as any).password_hash;
     }
   } catch (err) {
     next(err);
   }
 };
 
-export const getAllUsers = async (req, res, next) => {
+export const getAllUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const users = await getAllUsersService();
-    handleResponse(res, 200, "Users fetched successfully", users);
+    handleResponse(res, 200, "Users fetched successfully", users as any);
   } catch (err) {
     next(err);
   }
 };
 
-export const getUserById = async (req, res, next) => {
+export const getUserById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const user = await getUserByIdService(req.params.id);
+    const user = await getUserByIdService(Number(req.params.id));
     if (!user) return handleResponse(res, 404, "User not found");
     handleResponse(res, 200, "User fetched successfully", user);
   } catch (err) {
@@ -47,11 +66,15 @@ export const getUserById = async (req, res, next) => {
   }
 };
 
-export const updateUser = async (req, res, next) => {
+export const updateUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { name, email, level, stamina } = req.body;
   try {
     const updatedUser = await updateUserService(
-      req.params.id,
+      Number(req.params.id),
       name,
       email,
       level,
@@ -64,9 +87,13 @@ export const updateUser = async (req, res, next) => {
   }
 };
 
-export const deleteUser = async (req, res, next) => {
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const deletedUser = await deleteUserService(req.params.id);
+    const deletedUser = await deleteUserService(Number(req.params.id));
     if (!deletedUser) return handleResponse(res, 404, "User not found");
     handleResponse(res, 200, "User deleted successfully", deletedUser);
   } catch (err) {
