@@ -6,7 +6,7 @@ import {
   getAllUsersService,
   getUserByIdService,
   updateUserService,
-} from "../models/usersModel.js";
+} from "../models/usersModel.ts";
 
 // Importing types
 import { type Request, type Response, type NextFunction } from "express";

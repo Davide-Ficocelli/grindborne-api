@@ -1,5 +1,5 @@
-import pool from "../config/db.js";
-import updateRow from "../utils/updateRow.js";
+import pool from "../config/db.ts";
+import updateRow from "../utils/updateRow.ts";
 
 // Importing types
 import type Attribute from "../types/attribute.ts";

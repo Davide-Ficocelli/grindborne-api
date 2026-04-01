@@ -22,7 +22,7 @@ export const createNewAttribute = async (
     // Gets user's id for attributes_id field
     const userId = req.user.id;
 
-    // Starts the attribute creation process with the appropriate async function created in the attributesModel.js file
+    // Starts the attribute creation process with the appropriate async function created in the attributesModel.ts file
     const newAttribute = await createNewAttributeService(
       name,
       description,
