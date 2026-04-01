@@ -5,13 +5,23 @@
   "license": "ISC",
   "author": "Davide Ficocelli",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon ./src/index.js"
+    "test": "newman run \"./tests/Grindborne API tests.postman_collection.json\"",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node ./src/index.ts"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.5.0",
+    "@types/pg": "^8.20.0",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

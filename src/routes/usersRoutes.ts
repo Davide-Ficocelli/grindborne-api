@@ -1,19 +1,18 @@
-import express from "express";
+import { Router } from "express";
 import {
   createUser,
   getAllUsers,
   getUserById,
   updateUser,
   deleteUser,
-} from "../controllers/usersController.js";
+} from "../controllers/usersController.ts";
 import {
   validateNewUser,
   validateUpdatedUser,
-  validateUserCredentials,
-} from "../middlewares/inputValidators.js";
+} from "../middlewares/inputValidators.ts";
 
 // Initialize and export express router for users routes
-const router = express.Router();
+const router: Router = Router();
 
 router.post("/", validateNewUser, createUser);
 router.get("/", getAllUsers);

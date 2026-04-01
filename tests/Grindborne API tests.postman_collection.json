@@ -8,8 +8,39 @@
   },
   "item": [
     {
-      "name": "Users test",
+      "name": "Users tests",
       "item": [
+        {
+          "name": "Create a new user",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"test\",\r\n    \"email\": \"test@gmail.com\",\r\n    \"password\": \"test1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
         {
           "name": "Get all users",
           "protocolProfileBehavior": {
@@ -45,44 +76,13 @@
           "response": []
         },
         {
-          "name": "Create a new user",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"name\": \"User creation test\",\r\n    \"email\": \"usercreationtest@gmail.com\",\r\n    \"password\": \"usercreationtestpassword\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5001/grindborne/api/v1/users",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5001",
-              "path": [
-                "grindborne",
-                "api",
-                "v1",
-                "users"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "Update an existing user",
           "request": {
             "method": "PUT",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"name\": \"Davide\",\r\n    \"email\": \"davideficocelli@gmail.com\",\r\n    \"level\": 2,\r\n    \"stamina\": 50\r\n}",
+              "raw": "{\r\n    \"name\": \"test\",\r\n    \"email\": \"test@gmail.com\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -90,7 +90,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5001/grindborne/api/v1/users/14",
+              "raw": "http://localhost:5001/grindborne/api/v1/users/22",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -101,34 +101,7 @@
                 "api",
                 "v1",
                 "users",
-                "14"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Login an existing user",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"email\": \"davideficocelli@gmail.com\",\r\n    \"password\": \"certamente\"\r\n}"
-            },
-            "url": {
-              "raw": "http://localhost:5001/grindborne/api/v1/users/14",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5001",
-              "path": [
-                "grindborne",
-                "api",
-                "v1",
-                "users",
-                "14"
+                "22"
               ]
             }
           },
@@ -147,7 +120,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "http://localhost:5001/grindborne/api/v1/users/14",
+              "raw": "http://localhost:5001/grindborne/api/v1/users/22",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -158,7 +131,7 @@
                 "api",
                 "v1",
                 "users",
-                "14"
+                "22"
               ]
             }
           },
@@ -193,6 +166,259 @@
                 "20"
               ]
             }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Attributes tests",
+      "item": [
+        {
+          "name": "Add a new attribute",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsImlhdCI6MTc3NTA1NTUyOCwiZXhwIjoxNzc1MDU5MTI4fQ.Bq7p_2EL_fGGwCHm1s1fgdFlxmKAQhC_yd8jZ4lld0A",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"Endurance\",\r\n    \"description\": \"This skill detemines how much you can sustain damage without collapsing\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/attributes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "attributes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all user attribute",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsImlhdCI6MTc3NTA1NTUyOCwiZXhwIjoxNzc1MDU5MTI4fQ.Bq7p_2EL_fGGwCHm1s1fgdFlxmKAQhC_yd8jZ4lld0A",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/attributes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "attributes"
+              ]
+            },
+            "description": "The user whose attributes will be taken depends on the JWT authorization key"
+          },
+          "response": []
+        },
+        {
+          "name": "Update an attribute",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsImlhdCI6MTc3NTA1NTUyOCwiZXhwIjoxNzc1MDU5MTI4fQ.Bq7p_2EL_fGGwCHm1s1fgdFlxmKAQhC_yd8jZ4lld0A",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"Dexterity\",\r\n    \"description\": \"How skillful\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/attributes/18",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "attributes",
+                "18"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete an attribute",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsImlhdCI6MTc3NTA1NTUyOCwiZXhwIjoxNzc1MDU5MTI4fQ.Bq7p_2EL_fGGwCHm1s1fgdFlxmKAQhC_yd8jZ4lld0A",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/attributes/18",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "attributes",
+                "18"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth tests",
+      "item": [
+        {
+          "name": "Log in an existing user",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"test@gmail.com\",\r\n    \"password\": \"test1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create new user access token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsImlhdCI6MTc3NTA1NTc5M30.5NZ3EDUFQ5hN7u-THPq4GyXVj46pZr4BDoxJP6St9rI\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/auth/token",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "auth",
+                "token"
+              ]
+            },
+            "description": "Creates new access token using the refresh token already in user's possess"
+          },
+          "response": []
+        },
+        {
+          "name": "User logout",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsImlhdCI6MTc3NTA1NTc5M30.5NZ3EDUFQ5hN7u-THPq4GyXVj46pZr4BDoxJP6St9rI\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5001/grindborne/api/v1/auth/logout",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5001",
+              "path": [
+                "grindborne",
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Logs out the user by deleting user's refresh token"
           },
           "response": []
         }

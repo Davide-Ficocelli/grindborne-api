@@ -1,4 +1,9 @@
-export default function updateRow(tableName, id, paramsObj, errorMsg) {
+export default function updateRow(
+  tableName: string,
+  id: number,
+  paramsObj: Object,
+  errorMsg: string,
+) {
   // Checking for eventual data flaws
   if (!tableName)
     throw new Error("A table's name to be updated must be specified");
@@ -9,10 +14,10 @@ export default function updateRow(tableName, id, paramsObj, errorMsg) {
       "An error message for no fields to be updated available must be provided",
     );
 
-  const updates = { ...paramsObj };
+  const updates: Object = { ...paramsObj };
 
-  const setClauses = [];
-  const values = [id]; // $1 is ALWAYS id
+  const setClauses: string[] = [];
+  const values: any[] = [id]; // $1 is ALWAYS id
   let paramIndex = 2; // from second position on for updateable fields
 
   // 2. Dynamically build SET and values
@@ -21,7 +26,7 @@ export default function updateRow(tableName, id, paramsObj, errorMsg) {
     if (keyValue === undefined) continue; // skip fields not present
 
     setClauses.push(`${keyName} = $${paramIndex}`);
-    values.push(keyValue);
+    values.push(keyValue as any);
     paramIndex++;
   }
 
@@ -31,7 +36,7 @@ export default function updateRow(tableName, id, paramsObj, errorMsg) {
   }
 
   // 4. Mount the final query
-  const query = `
+  const query: string = `
     UPDATE ${tableName}
     SET ${setClauses.join(", ")}
     WHERE id = $1
