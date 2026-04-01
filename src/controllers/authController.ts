@@ -1,19 +1,27 @@
 import jwt from "jsonwebtoken";
-import { getUserByEmailService } from "../models/usersModel.js";
-import handleResponse from "../utils/handleResponse.js";
+import { getUserByEmailService } from "../models/usersModel.ts";
+import handleResponse from "../utils/handleResponse.ts";
 import bcrypt from "bcrypt";
 
-const generateAccessToken = (user) =>
-  jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+// Importing types
+import { type Request, type Response, type NextFunction } from "express";
+import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
+
+const generateAccessToken = (user: Object) =>
+  jwt.sign(user, process.env.ACCESS_TOKEN_SECRET as string, {
     expiresIn: "1h",
   });
 
 // Refresh tokens
 // WARNING: refresh tokens must be stored either in a database or in cache, using this variable is for testing purposes only
 
-export let refreshTokens = [];
+export let refreshTokens: string[] = [];
 
-export const logInUser = async (req, res, next) => {
+export const logInUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     // Fetch users by using the sent email in the request body as the input for the function
     const user = await getUserByEmailService(req.body.email);
@@ -34,7 +42,7 @@ export const logInUser = async (req, res, next) => {
     // Comparing input password and hashed password
     const doPasswordsMatch = await bcrypt.compare(
       inputPassword,
-      hashedPassword,
+      hashedPassword as string,
     );
 
     // Returning an error message if passwords do not match
@@ -52,7 +60,10 @@ export const logInUser = async (req, res, next) => {
     const accessToken = generateAccessToken(userData);
 
     // Generating a refresh token
-    const refreshToken = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET);
+    const refreshToken = jwt.sign(
+      userData,
+      process.env.REFRESH_TOKEN_SECRET as string,
+    );
 
     // Pushing new refresh token in refresh tokens array
     refreshTokens.push(refreshToken);
@@ -69,7 +80,7 @@ export const logInUser = async (req, res, next) => {
 };
 
 // Logs user out
-export const logOutUser = (req, res, next) => {
+export const logOutUser = (req: Request, res: Response, next: NextFunction) => {
   try {
     // Normally you would delete refresh tokens from the database but since they're currently being stored in a local array they just get filtered out
     refreshTokens = refreshTokens.filter((token) => token !== req.body.token);
@@ -80,7 +91,11 @@ export const logOutUser = (req, res, next) => {
 };
 
 // Function which authenticates the user token containing their id
-export const authenticateToken = (req, res, next) => {
+export const authenticateToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     // Getting the authorization header
     const authHeader = req.headers["authorization"];
@@ -91,18 +106,30 @@ export const authenticateToken = (req, res, next) => {
     if (!token) return handleResponse(res, 401, "Token not provided");
 
     // Verify token validity
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-      // Returning status code if an error exist
-      if (err) return handleResponse(res, 403, "Invalid or expired token"); // 403 = Token no longer valid
-      req.user = user; // The user parameter passed in the function represents the user object created in the loginUser function
-      next();
-    });
+    jwt.verify(
+      token,
+      process.env.ACCESS_TOKEN_SECRET as string,
+      (
+        err: jwt.VerifyErrors | null,
+        user: jwt.JwtPayload | string | undefined,
+      ) => {
+        // Returning status code if an error exist
+        if (err) return handleResponse(res, 403, "Invalid or expired token"); // 403 = Token no longer valid
+        const payload = user as AuthPayload; // We know { id: ... } has been used in sign
+        (req as AuthRequest).user = payload;
+        next();
+      },
+    );
   } catch (err) {
     next(err);
   }
 };
 
-export const createNewAccessToken = (req, res, next) => {
+export const createNewAccessToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     // Getting refresh token from the request
     const refreshToken = req.body.token;
@@ -112,18 +139,28 @@ export const createNewAccessToken = (req, res, next) => {
     if (!refreshTokens.includes(refreshToken))
       return handleResponse(res, 404, "Refresh token not found");
     // Verifying refresh token validity
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-      // If an error occurs it gets returned alongside the status code
-      if (err) return handleResponse(res, 403, "Invalid refresh token");
-      // New access token is created and returned using user's id
-      const accessToken = generateAccessToken({ id: user.id });
-      handleResponse(
-        res,
-        201,
-        "Access token successfully created",
-        accessToken,
-      );
-    });
+    jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET as string,
+      (
+        err: jwt.VerifyErrors | null,
+        user: jwt.JwtPayload | string | undefined,
+      ) => {
+        // If an error occurs it gets returned alongside the status code
+        if (err) return handleResponse(res, 403, "Invalid refresh token");
+
+        const payload = user as AuthPayload;
+
+        // New access token is created and returned using user's id
+        const accessToken = generateAccessToken({ id: payload.id });
+        handleResponse(
+          res,
+          201,
+          "Access token successfully created",
+          accessToken,
+        );
+      },
+    );
   } catch (err) {
     next(err);
   }

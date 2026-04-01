@@ -1,32 +1,40 @@
-import express from "express";
-import { authenticateToken } from "../controllers/authController.js";
+import { Router, type RequestHandler } from "express";
+import { authenticateToken } from "../controllers/authController.ts";
 import {
   createNewAttribute,
   deleteAttribute,
   getAttributesByUserId,
   updateAttribute,
-} from "../controllers/attributesController.js";
+} from "../controllers/attributesController.ts";
 import {
   validateNewAttribute,
   validateUpdatedAttribute,
 } from "../middlewares/inputValidators.ts";
 
 // Initialize and export express router for attributes routes
-const router = express.Router();
+const router = Router();
 
 // // Endpoint for all user attributes retrieval
-router.get("/attributes", authenticateToken, getAttributesByUserId);
+router.get(
+  "/attributes",
+  authenticateToken,
+  getAttributesByUserId as RequestHandler,
+);
 
 // Endpoint for user attribute creation
 router.post(
   "/attributes",
   authenticateToken,
   validateNewAttribute,
-  createNewAttribute,
+  createNewAttribute as RequestHandler,
 );
 
 // Endpoint for user attribute deletion
-router.delete("/attributes/:id", authenticateToken, deleteAttribute);
+router.delete(
+  "/attributes/:id",
+  authenticateToken,
+  deleteAttribute as RequestHandler,
+);
 
 // Endpoint for user attribute update
 // You must think very carefully about which fields the user will be able to update and which ones they won't
@@ -34,7 +42,7 @@ router.put(
   "/attributes/:id",
   authenticateToken,
   validateUpdatedAttribute,
-  updateAttribute,
+  updateAttribute as RequestHandler,
 );
 
 export default router;

@@ -1,25 +1,14 @@
-import express from "express";
+import { Router } from "express";
 import {
   authenticateToken,
   logInUser,
   logOutUser,
   createNewAccessToken,
-} from "../controllers/authController.js";
+} from "../controllers/authController.ts";
 import { validateUserCredentials } from "../middlewares/inputValidators.ts";
 
 // Initialize and export express router for authentication routes
-const router = express.Router();
-
-const posts = [
-  {
-    id: 14,
-    name: "Strength",
-  },
-];
-
-router.get("/posts", authenticateToken, (req, res) => {
-  res.json(posts.filter((post) => post.id === req.user.id));
-});
+const router = Router();
 
 // Logs the user in
 router.post("/login", validateUserCredentials, logInUser);

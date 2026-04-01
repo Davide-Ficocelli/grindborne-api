@@ -7,7 +7,7 @@ import authRoutes from "./routes/authRoutes.ts";
 import attributesRoutes from "./routes/attributesRoutes.ts";
 import grindsRoutes from "./routes/grindsRoutes.ts";
 import questsRoutes from "./routes/questsRoutes.ts";
-import usersRoutes from "./routes/usersRoutes.js";
+import usersRoutes from "./routes/usersRoutes.ts";
 
 // Importing types for request and response
 import { type Request, type Response } from "express";
