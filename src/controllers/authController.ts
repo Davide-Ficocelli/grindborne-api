@@ -8,12 +8,11 @@ import { type Request, type Response, type NextFunction } from "express";
 import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
 
 const generateAccessToken = (user: Object) =>
-  jwt.sign(user, process.env.ACCESS_TOKEN_SECRET as string, {
-    expiresIn: "1h",
-  });
+  jwt.sign(user, process.env.ACCESS_TOKEN_SECRET as string); // Here it's possible to set an expiration time for the token in an object e. g. {expiresIn: "1h"} token doesn't expire in development
 
 // Refresh tokens
 // WARNING: refresh tokens must be stored either in a database or in cache, using this variable is for testing purposes only
+// CHANGE THIS IN PRODUCTION
 
 export let refreshTokens: string[] = [];
 
