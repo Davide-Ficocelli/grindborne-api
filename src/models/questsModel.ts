@@ -3,6 +3,27 @@ import pool from "../config/db.ts";
 // Importing types
 import type Quest from "../types/quest.ts";
 
+// Gets a quest based on its id
+export const getQuestByIdService = async (
+  id: number,
+): Promise<Quest | null> => {
+  const result = await pool.query<Quest>("SELECT * FROM quests WHERE id = $1", [
+    id,
+  ]);
+  return result.rows[0] ?? null;
+};
+
+// Gets all quests based on user's id
+export const getQuestsByUserIdService = async (
+  userId: number,
+): Promise<Quest[] | null> => {
+  const result = await pool.query<Quest>(
+    "SELECT quests.id, quests.name, quests.description, quests.icon, quests.is_rewardable, quests.estimated_time, quests.actual_time, quests.is_tracked, quests.is_completed FROM quests JOIN users ON quests.users_id = users.id WHERE quests.users_id = $1;",
+    [userId],
+  );
+  return result.rows.length ? result.rows : null;
+};
+
 // Creates a quest
 export const createNewQuestService = async (
   questObj: Quest,
