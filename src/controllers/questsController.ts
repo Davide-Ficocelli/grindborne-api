@@ -3,6 +3,7 @@ import {
   createNewQuestService,
   getQuestByIdService,
   getQuestsByUserIdService,
+  updateQuestService,
 } from "../models/questsModel.ts";
 
 // Importing types
@@ -79,7 +80,7 @@ export const createNewQuest = async (
       // Gets user's id for users_id field
       const userId: number = req.user.id;
 
-      // Starts the attribute creation process with the appropriate async function created in the attributesModel.ts file
+      // Starts the quest creation process with the appropriate async function created in the questsModel.ts file
       const newQuest = await createNewQuestService({
         usersId: userId,
         name,
@@ -95,10 +96,57 @@ export const createNewQuest = async (
         actualTime,
       });
 
-      // Sends back a successfull response, status code and message if the new attribute is created with no issues
+      // Sends back a successfull response, status code and message if the new quest is created with no issues
       handleResponse(res, 201, "Quest created successfully", newQuest);
     } catch (err) {
       next(err);
     }
+  }
+};
+
+// Updates a quest
+export const updateQuest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // Extract all data from the request body
+    const {
+      name,
+      description,
+      icon,
+      totalXp,
+      isRewardable,
+      isTracked,
+      trackedAt,
+      isCompleted,
+      completedAt,
+      estimatedTime,
+      actualTime,
+    } = req.body;
+
+    // Pass down parameters for new quest's values
+    const updatedQuest = await updateQuestService({
+      id: Number(req.params.id),
+      name,
+      description,
+      icon,
+      totalXp,
+      isRewardable,
+      isTracked,
+      trackedAt,
+      isCompleted,
+      completedAt,
+      estimatedTime,
+      actualTime,
+    });
+    // Sends back an error status code if a quest wasn't found
+    if (!updatedQuest) return handleResponse(res, 404, "Quest not found");
+
+    // Sends back a successfull status code if the quest was updated successfully
+    handleResponse(res, 200, "Quest updated successfully", updatedQuest);
+  } catch (err) {
+    next(err);
   }
 };

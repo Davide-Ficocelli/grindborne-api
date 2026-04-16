@@ -1,7 +1,24 @@
 import pool from "../config/db.ts";
+import updateRow from "../utils/updateRow.ts";
 
 // Importing types
 import type Quest from "../types/quest.ts";
+
+// Creating an interface for updating quests
+interface UpdatedQuest {
+  id: number;
+  name?: string;
+  description?: string | null;
+  icon?: Buffer | null;
+  totalXp?: number | null;
+  isRewardable?: boolean;
+  isTracked?: boolean;
+  trackedAt?: Date | null;
+  isCompleted?: boolean;
+  completedAt?: Date | null;
+  estimatedTime?: number | null;
+  actualTime?: number | null;
+}
 
 // Gets a quest based on its id
 export const getQuestByIdService = async (
@@ -45,5 +62,20 @@ export const createNewQuestService = async (
       questObj.actualTime,
     ],
   );
+  return result.rows[0] ?? null;
+};
+
+// Updates a specific quest by id
+export const updateQuestService = async (
+  questObj: UpdatedQuest,
+): Promise<UpdatedQuest | null> => {
+  const { query, values } = updateRow(
+    "quests",
+    questObj.id as number,
+    questObj,
+    "No parameters for quest update were provided",
+  );
+
+  const result = await pool.query<UpdatedQuest>(query, values);
   return result.rows[0] ?? null;
 };

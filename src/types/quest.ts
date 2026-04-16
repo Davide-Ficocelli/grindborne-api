@@ -1,4 +1,5 @@
 export default interface Quest {
+  id?: number;
   usersId: number;
   name: string;
   description?: string | null;

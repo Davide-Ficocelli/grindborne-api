@@ -89,6 +89,23 @@ const newQuestSchema = Joi.object({
   inputSanitizationOptions,
 );
 
+// Schema for quest update
+const updatedQuestSchema = Joi.object({
+  id: Joi.number().required(),
+  name: Joi.string().optional(),
+  description: Joi.string().optional(),
+  icon: Joi.optional(),
+  totalXp: Joi.number().optional(),
+  isRewardable: Joi.boolean().optional(),
+  isTracked: Joi.boolean().optional(),
+  trackedAt: Joi.date().optional(),
+  isCompleted: Joi.boolean().optional(),
+  estimatedTime: Joi.number().optional(),
+}).options(
+  // Inputs sanitization
+  inputSanitizationOptions,
+);
+
 // Validators
 
 // Validates user upon creation
@@ -103,3 +120,5 @@ export const validateNewAttribute = createValidator(newAttributeSchema);
 export const validateUpdatedAttribute = createValidator(updatedAttributeSchema);
 // Validates quest upon creation
 export const validateNewQuest = createValidator(newQuestSchema);
+// Validates quest upon update
+export const validateUpdatedQuest = createValidator(updatedQuestSchema);
