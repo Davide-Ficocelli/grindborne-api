@@ -68,14 +68,14 @@ export const createNewQuest = async (
         name,
         description,
         icon,
-        totalXp,
-        isRewardable,
-        isTracked,
-        trackedAt,
-        isCompleted,
-        completedAt,
-        estimatedTime,
-        actualTime,
+        total_xp,
+        is_rewardable,
+        is_tracked,
+        tracked_at,
+        is_completed,
+        completed_at,
+        estimated_time,
+        actual_time,
       } = req.body;
 
       // Gets user's id for users_id field
@@ -83,18 +83,18 @@ export const createNewQuest = async (
 
       // Starts the quest creation process with the appropriate async function created in the questsModel.ts file
       const newQuest = await createNewQuestService({
-        usersId: userId,
+        users_id: userId,
         name,
         description,
         icon,
-        totalXp,
-        isRewardable,
-        isTracked,
-        trackedAt,
-        isCompleted,
-        completedAt,
-        estimatedTime,
-        actualTime,
+        total_xp,
+        is_rewardable,
+        is_tracked,
+        tracked_at,
+        is_completed,
+        completed_at,
+        estimated_time,
+        actual_time,
       });
 
       // Sends back a successfull response, status code and message if the new quest is created with no issues
@@ -117,30 +117,29 @@ export const updateQuest = async (
       name,
       description,
       icon,
-      totalXp,
-      isRewardable,
-      isTracked,
-      trackedAt,
-      isCompleted,
-      completedAt,
-      estimatedTime,
-      actualTime,
+      total_xp,
+      is_rewardable,
+      is_tracked,
+      tracked_at,
+      is_completed,
+      completed_at,
+      estimated_time,
+      actual_time,
     } = req.body;
 
     // Pass down parameters for new quest's values
-    const updatedQuest = await updateQuestService({
-      id: Number(req.params.id),
+    const updatedQuest = await updateQuestService(Number(req.params.id), {
       name,
       description,
       icon,
-      totalXp,
-      isRewardable,
-      isTracked,
-      trackedAt,
-      isCompleted,
-      completedAt,
-      estimatedTime,
-      actualTime,
+      total_xp,
+      is_rewardable,
+      is_tracked,
+      tracked_at,
+      is_completed,
+      completed_at,
+      estimated_time,
+      actual_time,
     });
     // Sends back an error status code if a quest wasn't found
     if (!updatedQuest) return handleResponse(res, 404, "Quest not found");

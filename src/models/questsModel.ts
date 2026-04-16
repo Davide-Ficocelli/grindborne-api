@@ -6,18 +6,17 @@ import type Quest from "../types/quest.ts";
 
 // Creating an interface for updating quests
 interface UpdatedQuest {
-  id: number;
   name?: string;
   description?: string | null;
   icon?: Buffer | null;
-  totalXp?: number | null;
-  isRewardable?: boolean;
-  isTracked?: boolean;
-  trackedAt?: Date | null;
-  isCompleted?: boolean;
-  completedAt?: Date | null;
-  estimatedTime?: number | null;
-  actualTime?: number | null;
+  total_xp?: number | null;
+  is_rewardable?: boolean;
+  is_tracked?: boolean;
+  tracked_at?: Date | null;
+  is_completed?: boolean;
+  completed_at?: Date | null;
+  estimated_time?: number | null;
+  actual_time?: number | null;
 }
 
 // Gets a quest based on its id
@@ -48,18 +47,18 @@ export const createNewQuestService = async (
   const result = await pool.query<Quest>(
     "INSERT INTO quests (users_id, name, description, icon, total_xp, is_rewardable, is_tracked, tracked_at, is_completed, completed_at, estimated_time, actual_time) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *",
     [
-      questObj.usersId,
+      questObj.users_id,
       questObj.name,
       questObj.description,
       questObj.icon,
-      questObj.totalXp,
-      questObj.isRewardable,
-      questObj.isTracked,
-      questObj.trackedAt,
-      questObj.isCompleted,
-      questObj.completedAt,
-      questObj.estimatedTime,
-      questObj.actualTime,
+      questObj.total_xp,
+      questObj.is_rewardable,
+      questObj.is_tracked,
+      questObj.tracked_at,
+      questObj.is_completed,
+      questObj.completed_at,
+      questObj.estimated_time,
+      questObj.actual_time,
     ],
   );
   return result.rows[0] ?? null;
@@ -67,11 +66,12 @@ export const createNewQuestService = async (
 
 // Updates a specific quest by id
 export const updateQuestService = async (
+  id: number,
   questObj: UpdatedQuest,
 ): Promise<UpdatedQuest | null> => {
   const { query, values } = updateRow(
     "quests",
-    questObj.id as number,
+    id,
     questObj,
     "No parameters for quest update were provided",
   );
@@ -88,3 +88,8 @@ export const deleteQuestService = async (id: number): Promise<Quest | null> => {
   );
   return result.rows[0] ?? null;
 };
+
+// // Completes a quest
+// export const completeQuestService = async () => {
+//   // 1)
+// };

@@ -78,12 +78,12 @@ const newQuestSchema = Joi.object({
   name: Joi.string().required(),
   description: Joi.string().optional(),
   icon: Joi.optional(),
-  totalXp: Joi.number().optional(),
-  isRewardable: Joi.boolean().required(),
-  isTracked: Joi.boolean().required(),
-  trackedAt: Joi.date().optional(),
-  isCompleted: Joi.boolean().required(),
-  estimatedTime: Joi.number().optional(),
+  total_xp: Joi.number().optional(),
+  is_rewardable: Joi.boolean().required(),
+  is_tracked: Joi.boolean().required(),
+  tracked_at: Joi.date().optional(),
+  is_completed: Joi.boolean().required(),
+  estimated_time: Joi.number().optional(),
 }).options(
   // Inputs sanitization
   inputSanitizationOptions,
@@ -91,16 +91,15 @@ const newQuestSchema = Joi.object({
 
 // Schema for quest update
 const updatedQuestSchema = Joi.object({
-  id: Joi.number().required(),
   name: Joi.string().optional(),
   description: Joi.string().optional(),
   icon: Joi.optional(),
-  totalXp: Joi.number().optional(),
-  isRewardable: Joi.boolean().optional(),
-  isTracked: Joi.boolean().optional(),
-  trackedAt: Joi.date().optional(),
-  isCompleted: Joi.boolean().optional(),
-  estimatedTime: Joi.number().optional(),
+  total_xp: Joi.number().optional(),
+  is_rewardable: Joi.boolean().optional(),
+  is_tracked: Joi.boolean().optional(),
+  tracked_at: Joi.date().optional(),
+  is_completed: Joi.boolean().optional(),
+  estimated_time: Joi.number().optional(),
 }).options(
   // Inputs sanitization
   inputSanitizationOptions,
