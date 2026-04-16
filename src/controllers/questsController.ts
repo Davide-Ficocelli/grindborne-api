@@ -4,6 +4,7 @@ import {
   getQuestByIdService,
   getQuestsByUserIdService,
   updateQuestService,
+  deleteQuestService,
 } from "../models/questsModel.ts";
 
 // Importing types
@@ -146,6 +147,21 @@ export const updateQuest = async (
 
     // Sends back a successfull status code if the quest was updated successfully
     handleResponse(res, 200, "Quest updated successfully", updatedQuest);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Deletes a quest
+export const deleteQuest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const deletedQuest = await deleteQuestService(Number(req.params.id));
+    if (!deletedQuest) return handleResponse(res, 404, "Quest not found");
+    handleResponse(res, 200, "Quest deleted successfully", deletedQuest);
   } catch (err) {
     next(err);
   }

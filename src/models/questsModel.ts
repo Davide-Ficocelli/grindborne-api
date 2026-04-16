@@ -79,3 +79,12 @@ export const updateQuestService = async (
   const result = await pool.query<UpdatedQuest>(query, values);
   return result.rows[0] ?? null;
 };
+
+// Deletes a specific quest by id
+export const deleteQuestService = async (id: number): Promise<Quest | null> => {
+  const result = await pool.query<Quest>(
+    "DELETE FROM quests WHERE id = $1 RETURNING *",
+    [id],
+  );
+  return result.rows[0] ?? null;
+};

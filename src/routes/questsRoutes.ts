@@ -9,6 +9,7 @@ import {
   getQuestById,
   getQuestsByUserId,
   updateQuest,
+  deleteQuest,
 } from "../controllers/questsController.ts";
 
 const router = Router();
@@ -21,6 +22,8 @@ router.get("/quests/:id", authenticateToken, getQuestById);
 
 // Route to update an existing quest
 router.put("/quests/:id", authenticateToken, validateUpdatedQuest, updateQuest);
+
+router.delete("quests/:id", authenticateToken, deleteQuest);
 
 // Route for new quest creation
 router.post(
