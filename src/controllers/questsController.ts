@@ -6,6 +6,7 @@ import {
   updateQuestService,
   deleteQuestService,
   trackQuestService,
+  addAttributesToQuestService,
 } from "../models/questsModel.ts";
 
 // Importing types
@@ -80,6 +81,7 @@ export const createNewQuest = async (
         completed_at,
         estimated_time,
         actual_time,
+        attributes_ids,
       } = req.body;
 
       // Gets user's id for users_id field
@@ -104,6 +106,25 @@ export const createNewQuest = async (
       // Sends an error message if quest could not be created
       if (!newQuest)
         return handleResponse(res, 500, "Quest could not be created");
+
+      console.log(`attributes:${attributes_ids}`);
+      console.dir(req.body, { depth: null });
+
+      // If it is rewardable, populate the join table
+      if (is_rewardable) {
+        if (!Array.isArray(attributes_ids) || attributes_ids.length === 0) {
+          return handleResponse(
+            res,
+            400,
+            "Rewardable quests must have at least one attribute id",
+          );
+        }
+
+        await addAttributesToQuestService(
+          (newQuest as Quest).id,
+          attributes_ids,
+        );
+      }
 
       // If the client asked to track the quest upon creation then it's done now
       let questToReturn = newQuest;
@@ -206,3 +227,5 @@ export const trackQuest = async (
     next(err);
   }
 };
+
+// --- HELPER FUNCTIONS --- //

@@ -1,6 +1,9 @@
 import Joi, { type Schema } from "joi";
 import { type Request, type Response, type NextFunction } from "express";
 
+// - Input validation setup -
+
+// Creates a new validator from schema as input
 function createValidator(schema: Schema) {
   return (req: Request, res: Response, next: NextFunction) => {
     const { error, value } = schema.validate(req.body);
@@ -20,6 +23,8 @@ const inputSanitizationOptions = {
   stripUnknown: true, // Removes undefined keys in the schema
   abortEarly: false, // Optional, to have every error together
 };
+
+// --- SCHEMAS ---
 
 // Schema for user creation
 const newUserSchema = Joi.object({
@@ -84,6 +89,7 @@ const newQuestSchema = Joi.object({
   tracked_at: Joi.date().optional(),
   is_completed: Joi.boolean().required(),
   estimated_time: Joi.number().optional(),
+  attributes_ids: Joi.array().optional(),
 }).options(
   // Inputs sanitization
   inputSanitizationOptions,
@@ -105,7 +111,7 @@ const updatedQuestSchema = Joi.object({
   inputSanitizationOptions,
 );
 
-// Validators
+// --- VALIDATORS ---
 
 // Validates user upon creation
 export const validateNewUser = createValidator(newUserSchema);

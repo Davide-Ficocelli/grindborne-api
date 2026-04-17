@@ -101,3 +101,27 @@ export const trackQuestService = async (id: number): Promise<Quest | null> => {
   );
   return result.rows[0] ?? null;
 };
+
+// Adds attributes related to the quest in the join table
+export const addAttributesToQuestService = async (
+  questId: number,
+  attributes_ids: number[],
+): Promise<void> => {
+  if (!attributes_ids || attributes_ids.length === 0) return;
+
+  // Let's build a multi-valued query: INSERT INTO quest_attributes(quest_id, attribute_id) VALUES ($1, $2),...
+  const values: any[] = [];
+  const valuePlaceholders: string[] = [];
+
+  attributes_ids.forEach((attrId, idx) => {
+    // for each pair quest/attribute we add two parameters
+    const baseIndex = idx * 2;
+    valuePlaceholders.push(`($${baseIndex + 1}, $${baseIndex + 2})`);
+    values.push(questId, attrId);
+  });
+
+  await pool.query(
+    `INSERT INTO quests_attributes (quests_id, attributes_id) VALUES ${valuePlaceholders.join(", ")}`,
+    values,
+  );
+};
