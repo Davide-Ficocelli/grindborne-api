@@ -11,6 +11,7 @@ import {
 // Importing types
 import { type Request, type Response, type NextFunction } from "express";
 import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
+import { type NewQuestInput, type Quest } from "../types/quest.ts";
 
 // --- GENERAL CRUD CONTROLLER FUNCTIONS ---
 
@@ -100,8 +101,22 @@ export const createNewQuest = async (
         actual_time,
       });
 
+      // Sends an error message if quest could not be created
+      if (!newQuest)
+        return handleResponse(res, 500, "Quest could not be created");
+
+      // If the client asked to track the quest upon creation then it's done now
+      let questToReturn = newQuest;
+
+      if (is_tracked) {
+        const trackedQuest = await trackQuestService((newQuest as Quest).id);
+        if (trackedQuest) {
+          questToReturn = trackedQuest;
+        }
+      }
+
       // Sends back a successfull response, status code and message if the new quest is created with no issues
-      handleResponse(res, 201, "Quest created successfully", newQuest);
+      handleResponse(res, 201, "Quest created successfully", questToReturn);
     } catch (err) {
       next(err);
     }

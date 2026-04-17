@@ -1,4 +1,5 @@
-export default interface Quest {
+export interface Quest {
+  id: number;
   users_id: number;
   name: string;
   description?: string | null;
@@ -12,3 +13,21 @@ export default interface Quest {
   estimated_time?: number | null; // integer minuti, può essere NULL se non rewardable
   actual_time?: number | null; // integer minuti, NULL finché non completi
 }
+
+export interface QuestRow {
+  id: number;
+  users_id: number;
+  name: string;
+  description?: string | null;
+  icon?: Buffer | null;
+  total_xp?: number | null;
+  is_rewardable: boolean;
+  is_tracked: boolean;
+  tracked_at?: Date | null;
+  is_completed: boolean;
+  completed_at?: Date | null;
+  estimated_time?: number | null;
+  actual_time?: number | null;
+}
+
+export type NewQuestInput = Omit<QuestRow, "id">;
