@@ -10,9 +10,12 @@ import {
   getQuestsByUserId,
   updateQuest,
   deleteQuest,
+  trackQuest,
 } from "../controllers/questsController.ts";
 
 const router = Router();
+
+// --- GENERAL CRUD ENDPOINTS ---
 
 // Route to get all user's quests
 router.get("/quests", authenticateToken, getQuestsByUserId as RequestHandler);
@@ -33,5 +36,10 @@ router.post(
   validateNewQuest,
   createNewQuest as RequestHandler,
 );
+
+// --- BUSINESS LOGIC ENDPOINTS ---
+
+// Route to start tracking a quest
+router.patch("/quests/:id/track", authenticateToken, trackQuest);
 
 export default router;

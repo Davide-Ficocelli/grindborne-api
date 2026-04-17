@@ -19,6 +19,8 @@ interface UpdatedQuest {
   actual_time?: number | null;
 }
 
+// --- GENERAL CRUD MODEL FUNCTIONS ---
+
 // Gets a quest based on its id
 export const getQuestByIdService = async (
   id: number,
@@ -89,7 +91,13 @@ export const deleteQuestService = async (id: number): Promise<Quest | null> => {
   return result.rows[0] ?? null;
 };
 
-// // Completes a quest
-// export const completeQuestService = async () => {
-//   // 1)
-// };
+// --- BUSINESS LOGIC MODEL FUNCTIONS ---
+
+// Tracks a quest
+export const trackQuestService = async (id: number): Promise<Quest | null> => {
+  const result = await pool.query<Quest>(
+    "UPDATE quests SET is_tracked = true, tracked_at = NOW() WHERE id = $1 RETURNING *",
+    [id],
+  );
+  return result.rows[0] ?? null;
+};

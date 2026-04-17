@@ -5,11 +5,14 @@ import {
   getQuestsByUserIdService,
   updateQuestService,
   deleteQuestService,
+  trackQuestService,
 } from "../models/questsModel.ts";
 
 // Importing types
 import { type Request, type Response, type NextFunction } from "express";
 import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
+
+// --- GENERAL CRUD CONTROLLER FUNCTIONS ---
 
 // Returns a quest by its id
 export const getQuestById = async (
@@ -161,6 +164,29 @@ export const deleteQuest = async (
     const deletedQuest = await deleteQuestService(Number(req.params.id));
     if (!deletedQuest) return handleResponse(res, 404, "Quest not found");
     handleResponse(res, 200, "Quest deleted successfully", deletedQuest);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// --- BUSINESS LOGIC CONTROLLER FUNCTIONS ---
+
+// Tracks a quest
+export const trackQuest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // Pass down the quest id from parameters in the service function
+    const trackedQuest = await trackQuestService(Number(req.params.id));
+
+    // If tracked quest wasn't found then sends back an error message
+    if (!trackedQuest)
+      return handleResponse(res, 404, "Tracked quest not found");
+
+    // If everything went well then sends back a successful message
+    handleResponse(res, 201, "Quest successfully tracked", trackedQuest);
   } catch (err) {
     next(err);
   }
