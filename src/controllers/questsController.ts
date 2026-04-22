@@ -66,6 +66,7 @@ export const createNewQuest = async (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log("createNewQuest CALLED!!!");
   {
     try {
       // Gets the input fields which will be inserted in the quests table for the new record from the request body
@@ -83,6 +84,26 @@ export const createNewQuest = async (
         actual_time,
         attributes_ids,
       } = req.body;
+
+      // If it is rewardable and there are no attributes ids, stop the execution
+      if (is_rewardable) {
+        if (!Array.isArray(attributes_ids) || attributes_ids.length === 0) {
+          return handleResponse(
+            res,
+            400,
+            "Rewardable quests must have at least one attribute id",
+          );
+        }
+      } else {
+        // if not rewardable, there must be NO attributes
+        if (Array.isArray(attributes_ids) && attributes_ids.length > 0) {
+          return handleResponse(
+            res,
+            400,
+            "Non-rewardable quests cannot have attributes",
+          );
+        }
+      }
 
       // Gets user's id for users_id field
       const userId: number = req.user.id;
@@ -107,33 +128,15 @@ export const createNewQuest = async (
       if (!newQuest)
         return handleResponse(res, 500, "Quest could not be created");
 
-      console.log(`attributes:${attributes_ids}`);
-      console.dir(req.body, { depth: null });
-
-      // If it is rewardable, populate the join table
-      if (is_rewardable) {
-        if (!Array.isArray(attributes_ids) || attributes_ids.length === 0) {
-          return handleResponse(
-            res,
-            400,
-            "Rewardable quests must have at least one attribute id",
-          );
-        }
-
-        await addAttributesToQuestService(
-          (newQuest as Quest).id,
-          attributes_ids,
-        );
-      }
+      // Populates the join table quests_attributes with both quests and attributes' ids
+      await addAttributesToQuestService((newQuest as Quest).id, attributes_ids);
 
       // If the client asked to track the quest upon creation then it's done now
       let questToReturn = newQuest;
 
       if (is_tracked) {
         const trackedQuest = await trackQuestService((newQuest as Quest).id);
-        if (trackedQuest) {
-          questToReturn = trackedQuest;
-        }
+        if (trackedQuest) questToReturn = trackedQuest;
       }
 
       // Sends back a successfull response, status code and message if the new quest is created with no issues
@@ -227,5 +230,3 @@ export const trackQuest = async (
     next(err);
   }
 };
-
-// --- HELPER FUNCTIONS --- //
