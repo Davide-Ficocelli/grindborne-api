@@ -14,6 +14,58 @@ import { type Request, type Response, type NextFunction } from "express";
 import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
 import { type NewQuestInput, type Quest } from "../types/quest.ts";
 
+// --- HELPER FUNCTIONS ---
+
+// Validates request for new quest according to business requirements
+const validateNewQuestReq = function (
+  res: any,
+  is_rewardable: boolean,
+  attributes_ids: number[],
+  estimated_time: number,
+): {
+  isValid: boolean;
+  response: void | null;
+} {
+  // Check if it's rewardable and then proceed with the other checks accordingly
+  if (is_rewardable) {
+    // If attributes_id is either not an array or an empty one stop execution
+    if (!Array.isArray(attributes_ids) || attributes_ids.length === 0)
+      return {
+        isValid: false,
+        response: handleResponse(
+          res,
+          400,
+          "Rewardable quests must have at least one attribute id",
+        ),
+      };
+    // If there's no estimated time, stop execution
+    else if (!estimated_time)
+      return {
+        isValid: false,
+        response: handleResponse(
+          res,
+          400,
+          "Rewardable quests must have an estimated time",
+        ),
+      };
+    // if not rewardable, there must be NO attributes
+  } else if (
+    !is_rewardable &&
+    Array.isArray(attributes_ids) &&
+    attributes_ids.length > 0
+  )
+    return {
+      isValid: false,
+      response: handleResponse(
+        res,
+        400,
+        "Non-rewardable quests cannot have attributes",
+      ),
+    };
+
+  return { isValid: true, response: null };
+};
+
 // --- GENERAL CRUD CONTROLLER FUNCTIONS ---
 
 // Returns a quest by its id
@@ -85,25 +137,16 @@ export const createNewQuest = async (
         attributes_ids,
       } = req.body;
 
-      // If it is rewardable and there are no attributes ids, stop the execution
-      if (is_rewardable) {
-        if (!Array.isArray(attributes_ids) || attributes_ids.length === 0) {
-          return handleResponse(
-            res,
-            400,
-            "Rewardable quests must have at least one attribute id",
-          );
-        }
-      } else {
-        // if not rewardable, there must be NO attributes
-        if (Array.isArray(attributes_ids) && attributes_ids.length > 0) {
-          return handleResponse(
-            res,
-            400,
-            "Non-rewardable quests cannot have attributes",
-          );
-        }
-      }
+      // Request validation
+      const { isValid, response } = validateNewQuestReq(
+        res,
+        is_rewardable,
+        attributes_ids,
+        estimated_time,
+      );
+
+      // Check if the request is valid, if not stop execution and sends back a response
+      if (isValid === false) return response;
 
       // Gets user's id for users_id field
       const userId: number = req.user.id;
