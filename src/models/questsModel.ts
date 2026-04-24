@@ -3,6 +3,7 @@ import updateRow from "../utils/updateRow.ts";
 
 // Importing types
 import type { Quest, NewQuestInput } from "../types/quest.ts";
+import handleResponse from "../utils/handleResponse.ts";
 
 // Creating an interface for updating quests
 interface UpdatedQuest {
@@ -19,15 +20,29 @@ interface UpdatedQuest {
   actual_time?: number | null;
 }
 
+// --- HELPER FUNCTIONS ---
+
+// - Helper functions for completeQuestService -
+
+// Calculates the difference between two dates and returns it in minutes
+const calculateDatesDiff = function (
+  endDate: Date = new Date(),
+  startDate: Date,
+): number {
+  const diffInMinutes = Math.floor(endDate.getTime() - startDate.getTime());
+  return diffInMinutes;
+};
+
 // --- GENERAL CRUD MODEL FUNCTIONS ---
 
 // Gets a quest based on its id
 export const getQuestByIdService = async (
   id: number,
 ): Promise<Quest | null> => {
-  const result = await pool.query<Quest>("SELECT * FROM quests WHERE id = $1", [
-    id,
-  ]);
+  const result = await pool.query<Quest>(
+    "SELECT * FROM quests WHERE id = $1 RETURNING *",
+    [id],
+  );
   return result.rows[0] ?? null;
 };
 
@@ -36,7 +51,7 @@ export const getQuestsByUserIdService = async (
   userId: number,
 ): Promise<Quest[] | null> => {
   const result = await pool.query<Quest>(
-    "SELECT quests.id, quests.name, quests.description, quests.icon, quests.is_rewardable, quests.estimated_time, quests.actual_time, quests.is_tracked, quests.is_completed FROM quests JOIN users ON quests.users_id = users.id WHERE quests.users_id = $1;",
+    "SELECT quests.id, quests.name, quests.description, quests.icon, quests.is_rewardable, quests.estimated_time, quests.actual_time, quests.is_tracked, quests.is_completed FROM quests JOIN users ON quests.users_id = users.id WHERE quests.users_id = $1 RETURNING *;",
     [userId],
   );
   return result.rows.length ? result.rows : null;
@@ -124,4 +139,49 @@ export const addAttributesToQuestService = async (
     `INSERT INTO quests_attributes (quests_id, attributes_id) VALUES ${valuePlaceholders.join(", ")}`,
     values,
   );
+};
+
+// Completes a quest
+export const completeQuestService = async (
+  res: any,
+  id: number,
+  userLevel: number,
+  userAttributesLvls: number[],
+  attributesToQuestLvls: number[],
+): Promise<Quest | null | void> => {
+  // 1) Get quest
+  const questToBeCompleted = await getQuestByIdService(id);
+  console.dir(questToBeCompleted, { depth: null });
+
+  // If quest to be completed wasn't found then return
+  if (!questToBeCompleted)
+    return handleResponse(res, 404, "Quest to be completed was not found");
+
+  // 2) Get quest's is_rewardable and estimated_time value
+  const { is_rewardable, estimated_time, tracked_at } =
+    questToBeCompleted as Quest;
+
+  // 3) Validate quest
+  let result;
+  // If is not rewardable then just mark the quest as completed and stop the tracking
+  if (!is_rewardable)
+    result = await pool.query<Quest>(
+      `UPDATE quests SET is_tracked = false, is_completed = true, completed_at = NOW()${estimated_time ? ", estimated_time = $2" : ""} WHERE id = $1 RETURNING *`,
+      [id, estimated_time],
+    );
+  // If quest is rewardable calculate total xp and actual time
+  else if (is_rewardable) {
+    // 4) Calculate the actual time spent to complete the quest
+    const completed_at = new Date();
+    const actual_time = calculateDatesDiff(completed_at, tracked_at as Date);
+
+    // 5) Calculate total xp reward for quest
+
+    result = await pool.query<Quest>(
+      "UPDATE quests SET is_tracked = false, is_completed = true, completed_at = NOW(), estimated_time = $2, total_xp = $3, actual_time = $4 WHERE id = $1 RETURNING *",
+      [id, estimated_time, actual_time],
+    );
+  } else throw new Error("Something went wrong during quest completion");
+
+  return result.rows[0] ?? null;
 };

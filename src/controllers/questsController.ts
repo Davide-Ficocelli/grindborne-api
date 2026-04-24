@@ -7,12 +7,19 @@ import {
   deleteQuestService,
   trackQuestService,
   addAttributesToQuestService,
+  completeQuestService,
 } from "../models/questsModel.ts";
+import { getUserByIdService } from "../models/usersModel.ts";
+import {
+  getAllAttributesToQuest,
+  getAttributesByUserIdService,
+} from "../models/attributesModel.ts";
 
 // Importing types
 import { type Request, type Response, type NextFunction } from "express";
 import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
 import { type NewQuestInput, type Quest } from "../types/quest.ts";
+import { valid } from "joi";
 
 // --- HELPER FUNCTIONS ---
 
@@ -64,6 +71,109 @@ const validateNewQuestReq = function (
     };
 
   return { isValid: true, response: null };
+};
+
+type CompletedQuestValidationResult =
+  | {
+      ok: true;
+      userLevel: number;
+      userAttributesLvls: number[];
+      attributesToQuestLvls: number[];
+    }
+  | {
+      ok: false;
+    };
+
+// Validates all checks before completing a quest and returns all values needed to calculate the total xp reward
+const validateCompletedQuest = async function (
+  res: any,
+  userId: number,
+  questId: number,
+): Promise<CompletedQuestValidationResult> {
+  // Find the authenticated user
+  const user = await getUserByIdService(userId);
+  if (!user) {
+    handleResponse(res, 404, "Authenticated user could not be found");
+    return { ok: false };
+  }
+
+  // Getting user's quest to be completed
+  const userQuestToComplete = await getQuestByIdService(questId);
+
+  // If user's quest to be completed could not be found then stop execution returning an error message
+  if (!userQuestToComplete) {
+    handleResponse(res, 404, "Quest to be completed could not be found");
+    return { ok: false };
+  }
+
+  // Compare authenticated user's id with users_id registered upon quest creation
+  // If authenticated user's id and registered user's id do not match then stop execution returning an error message
+  if (user.id !== (userQuestToComplete as Quest).users_id) {
+    handleResponse(
+      res,
+      403,
+      "Quest owner does not match with authenticated user",
+    );
+    return { ok: false };
+  }
+
+  // Get all user's attributes
+  const userAttributes = await getAttributesByUserIdService(userId);
+
+  // If authenticated user's attributes could not be found then stop execution returning an error message
+  if (!userAttributes) {
+    handleResponse(
+      res,
+      404,
+      "Authenticated user's attributes could not be found",
+    );
+    return { ok: false };
+  }
+
+  /*
+    Compare authenticated user's id with registered users_id upon attributes creation.
+    If at least one attribute among the ones owned by the user has a users_id value not matching with authenticated user's id
+    then stop execution returning an error message
+    */
+  if (userAttributes.some((attr) => attr.users_id !== userId)) {
+    handleResponse(
+      res,
+      404,
+      "Attributes' owner and authenticated user do not match",
+    );
+    return { ok: false };
+  }
+
+  // Get all user's attributes involved in the quest to be completed by using the id passed in the params
+  const attributesToBeComQuest = await getAllAttributesToQuest(questId);
+
+  // If attributes could not be found then stop execution returning an error message
+  if (!attributesToBeComQuest) {
+    handleResponse(
+      res,
+      404,
+      "Attributes involved in quest to be completed could not be found",
+    );
+    return { ok: false };
+  }
+
+  // Getting user level
+  const { level: userLevel } = user;
+
+  // Getting user attributes levels
+  const userAttributesLvls = userAttributes.map((attr) => Number(attr.level));
+
+  // Getting user attributes level tied to quest to complete
+  const attributesToQuestLvls = attributesToBeComQuest.map((attr) =>
+    Number(attr.level),
+  );
+
+  return {
+    ok: true,
+    userLevel: Number(userLevel),
+    userAttributesLvls,
+    attributesToQuestLvls,
+  };
 };
 
 // --- GENERAL CRUD CONTROLLER FUNCTIONS ---
@@ -118,7 +228,6 @@ export const createNewQuest = async (
   res: Response,
   next: NextFunction,
 ) => {
-  console.log("createNewQuest CALLED!!!");
   {
     try {
       // Gets the input fields which will be inserted in the quests table for the new record from the request body
@@ -180,10 +289,11 @@ export const createNewQuest = async (
       if (is_tracked) {
         const trackedQuest = await trackQuestService((newQuest as Quest).id);
         if (trackedQuest) questToReturn = trackedQuest;
+        else return handleResponse(res, 500, "Quest could not be tracked");
       }
 
       // Sends back a successfull response, status code and message if the new quest is created with no issues
-      handleResponse(res, 201, "Quest created successfully", questToReturn);
+      handleResponse(res, 201, "Quest successfully created", questToReturn);
     } catch (err) {
       next(err);
     }
@@ -273,3 +383,107 @@ export const trackQuest = async (
     next(err);
   }
 };
+
+// Completes a quest
+export const completeQuest = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // Get user id needed to identify the quest's owner
+    const userId = req.user.id;
+
+    // Get quest id
+    const questId = Number(req.params.id);
+
+    const validation = await validateCompletedQuest(res, userId, questId);
+    if (!validation.ok) return; // the response has already been sent
+
+    const { userLevel, userAttributesLvls, attributesToQuestLvls } = validation;
+
+    // Pass down the quest id from parameters and the user's level in the service function
+    const completedQuest = await completeQuestService(
+      res,
+      questId,
+      userLevel,
+      userAttributesLvls,
+      attributesToQuestLvls,
+    );
+
+    // If completed quest could not be found then sends back an error message
+    if (!completedQuest)
+      return handleResponse(res, 404, "Completed quest could not be found");
+
+    // If everything went well then sends back a successful message
+    handleResponse(res, 201, "Quest successfully completed", completedQuest);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// // Find the authenticated user
+// const user = await getUserByIdService(userId);
+// if (!user)
+//   return handleResponse(res, 404, "Authenticated user could not be found");
+
+// // Getting user's quest to be completed
+// const userQuestToComplete = await getQuestByIdService(
+//   Number(req.params.id),
+// );
+
+// // If user's quest to be completed could not be found then stop execution returning an error message
+// if (!userQuestToComplete)
+//   return handleResponse(
+//     res,
+//     404,
+//     "Quest to be completed could not be found",
+//   );
+
+// // Compare authenticated user's id with users_id registered upon quest creation
+// // If authenticated user's id and registered user's id do not match then stop execution returning an error message
+// if (user.id !== (userQuestToComplete as Quest).users_id)
+//   return handleResponse(
+//     res,
+//     403,
+//     "Quest owner does not match with authenticated user",
+//   );
+
+// // Getting user level
+// const { level: userLevel } = user;
+
+// // Get all user's attributes
+// const userAttributes = await getAttributesByUserIdService(userId);
+
+// // If authenticated user's attributes could not be found then stop execution returning an error message
+// if (!userAttributes)
+//   return handleResponse(
+//     res,
+//     404,
+//     "Authenticated user's attributes could not be found",
+//   );
+
+// /*
+// Compare authenticated user's id with registered users_id upon attributes creation.
+// If at least one attribute among the ones owned by the user has a users_id value not matching with authenticated user's id
+// then stop execution returning an error message
+// */
+// if (userAttributes.some((attr) => attr.users_id !== userId))
+//   return handleResponse(
+//     res,
+//     404,
+//     "Attributes' owner and authenticated user do not match",
+//   );
+
+// // Get all user's attributes involved in the quest to be completed by using the id passed in the params
+// const attributesToBeComQuest = await getAllAttributesToQuest(
+//   Number(req.params.id),
+// );
+
+// // If attributes could not be found then stop execution returning an error message
+// if (!attributesToBeComQuest)
+//   return handleResponse(
+//     res,
+//     404,
+//     "Attributes involved in quest to be completed could not be found",
+//   );

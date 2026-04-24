@@ -73,6 +73,7 @@ const updatedAttributeSchema = Joi.object({
   icon: Joi.optional(),
   level: Joi.number().optional(),
   xp: Joi.number().optional(),
+  xp_to_next_level: Joi.number().optional(),
 }).options(
   // Inputs sanitization
   inputSanitizationOptions,

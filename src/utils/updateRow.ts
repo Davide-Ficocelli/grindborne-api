@@ -1,3 +1,7 @@
+/*
+  Function that can be used whenever you have to update values in a row.
+  WARNING: the keys in the paramsObj parameter must match the table's columns' names
+*/
 export default function updateRow(
   tableName: string,
   id: number,
