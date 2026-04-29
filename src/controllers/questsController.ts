@@ -105,6 +105,16 @@ const validateCompletedQuest = async function (
     return { ok: false };
   }
 
+  // Do not allow quest completion if quest to be completed has already been completed
+  if (userQuestToComplete.is_completed) {
+    handleResponse(
+      res,
+      400,
+      "Cannot complete a quest that is already completed",
+    );
+    return { ok: false };
+  }
+
   // Do not allow quest completion if quest to be completed is not being tracked
   if (!userQuestToComplete.is_tracked) {
     handleResponse(
@@ -379,6 +389,17 @@ export const trackQuest = async (
   next: NextFunction,
 ) => {
   try {
+    // Get quest to track
+    const questToTrack = await getQuestByIdService(Number(req.params.id));
+
+    // If quest to be tracked wasn't found then return an error
+    if (!questToTrack)
+      return handleResponse(res, 404, "Couldn't find quest to be tracked");
+
+    // Do not allow tracking if quest has already been completed
+    if (questToTrack?.is_completed)
+      return handleResponse(res, 400, "Cannot track completed quest");
+
     // Pass down the quest id from parameters in the service function
     const trackedQuest = await trackQuestService(Number(req.params.id));
 
