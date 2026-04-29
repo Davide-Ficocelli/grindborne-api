@@ -19,7 +19,6 @@ import {
 import { type Request, type Response, type NextFunction } from "express";
 import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
 import { type NewQuestInput, type Quest } from "../types/quest.ts";
-import { valid } from "joi";
 
 // --- HELPER FUNCTIONS ---
 
@@ -421,69 +420,3 @@ export const completeQuest = async (
     next(err);
   }
 };
-
-// // Find the authenticated user
-// const user = await getUserByIdService(userId);
-// if (!user)
-//   return handleResponse(res, 404, "Authenticated user could not be found");
-
-// // Getting user's quest to be completed
-// const userQuestToComplete = await getQuestByIdService(
-//   Number(req.params.id),
-// );
-
-// // If user's quest to be completed could not be found then stop execution returning an error message
-// if (!userQuestToComplete)
-//   return handleResponse(
-//     res,
-//     404,
-//     "Quest to be completed could not be found",
-//   );
-
-// // Compare authenticated user's id with users_id registered upon quest creation
-// // If authenticated user's id and registered user's id do not match then stop execution returning an error message
-// if (user.id !== (userQuestToComplete as Quest).users_id)
-//   return handleResponse(
-//     res,
-//     403,
-//     "Quest owner does not match with authenticated user",
-//   );
-
-// // Getting user level
-// const { level: userLevel } = user;
-
-// // Get all user's attributes
-// const userAttributes = await getAttributesByUserIdService(userId);
-
-// // If authenticated user's attributes could not be found then stop execution returning an error message
-// if (!userAttributes)
-//   return handleResponse(
-//     res,
-//     404,
-//     "Authenticated user's attributes could not be found",
-//   );
-
-// /*
-// Compare authenticated user's id with registered users_id upon attributes creation.
-// If at least one attribute among the ones owned by the user has a users_id value not matching with authenticated user's id
-// then stop execution returning an error message
-// */
-// if (userAttributes.some((attr) => attr.users_id !== userId))
-//   return handleResponse(
-//     res,
-//     404,
-//     "Attributes' owner and authenticated user do not match",
-//   );
-
-// // Get all user's attributes involved in the quest to be completed by using the id passed in the params
-// const attributesToBeComQuest = await getAllAttributesToQuest(
-//   Number(req.params.id),
-// );
-
-// // If attributes could not be found then stop execution returning an error message
-// if (!attributesToBeComQuest)
-//   return handleResponse(
-//     res,
-//     404,
-//     "Attributes involved in quest to be completed could not be found",
-//   );

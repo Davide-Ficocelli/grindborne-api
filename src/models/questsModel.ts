@@ -22,15 +22,16 @@ interface UpdatedQuest {
 
 // --- HELPER FUNCTIONS ---
 
-// - Helper functions for completeQuestService -
+// -- Helper functions for completeQuestService --
 
 // Calculates the difference between two dates and returns it in minutes
 const calculateDatesDiff = function (
   endDate: Date = new Date(),
   startDate: Date,
 ): number {
-  const diffInMinutes = Math.floor(endDate.getTime() - startDate.getTime());
-  return diffInMinutes;
+  const msDiff = endDate.getTime() - startDate.getTime();
+  const diffInMinutes = Math.floor(msDiff / (1000 * 60)); // ms -> minutes
+  return Math.max(0, diffInMinutes);
 };
 
 // --- GENERAL CRUD MODEL FUNCTIONS ---

@@ -4,6 +4,8 @@ import updateRow from "../utils/updateRow.ts";
 // Importing types
 import type Attribute from "../types/attribute.ts";
 
+// -- HELPER FUNCTIONS --
+
 // --- GENERAL CRUD METHODS ---
 
 // Inserts new attribute in the attributes table given the params from the request body and user's id from the JWT token
