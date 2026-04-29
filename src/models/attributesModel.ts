@@ -4,6 +4,10 @@ import updateRow from "../utils/updateRow.ts";
 // Importing types
 import type Attribute from "../types/attribute.ts";
 
+// -- HELPER FUNCTIONS --
+
+// --- GENERAL CRUD METHODS ---
+
 // Inserts new attribute in the attributes table given the params from the request body and user's id from the JWT token
 export const createNewAttributeService = async (
   name: string,
@@ -11,9 +15,12 @@ export const createNewAttributeService = async (
   icon: Buffer | null,
   userId: number,
 ): Promise<Attribute | null> => {
+  // Represents the initial value of xp for the new attribute to reach level 2
+  const initialXpToNext = 100;
+
   const result = await pool.query<Attribute>(
-    "INSERT INTO attributes (name, description, icon, users_id) VALUES ($1, $2, $3, $4) RETURNING *",
-    [name, description, icon, userId],
+    "INSERT INTO attributes (name, description, icon, users_id, xp_to_next_level) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+    [name, description, icon, userId, initialXpToNext],
   );
   return result.rows[0] ?? null;
 };
@@ -34,7 +41,19 @@ export const getAttributesByUserIdService = async (
   userId: number,
 ): Promise<Attribute[] | null> => {
   const result = await pool.query<Attribute>(
-    "SELECT attributes.id, attributes.name, attributes.description, attributes.level, attributes.icon FROM attributes JOIN users ON attributes.users_id = users.id WHERE attributes.users_id = $1;",
+    `SELECT
+    attributes.id,
+    attributes.users_id,
+    attributes.name,
+    attributes.description,
+    attributes.level,
+    attributes.icon,
+    attributes.xp,
+    attributes.xp_to_next_level,
+    attributes.decay_date
+    FROM attributes
+    JOIN users ON attributes.users_id = users.id
+    WHERE attributes.users_id = $1`,
     [userId],
   );
   return result.rows.length ? result.rows : null;
@@ -73,4 +92,31 @@ export const updateAttributeService = async (
 
   const result = await pool.query<Attribute>(query, values);
   return result.rows[0] ?? null;
+};
+
+// --- BUSINESS LOGIC MODEL METHODS ---
+
+// Gets all attributes involved in a specific quest
+export const getAllAttributesToQuest = async (
+  questId: number,
+): Promise<Attribute[] | null> => {
+  const result = await pool.query<Attribute>(
+    `SELECT 
+    attributes.id,
+    attributes.name,
+    attributes.description,
+    attributes.level,
+    attributes.icon,
+    attributes.xp,
+    attributes.xp_to_next_level,
+    attributes.decay_date
+    FROM
+    attributes
+    JOIN quests_attributes ON attributes.id = quests_attributes.attributes_id
+    JOIN quests ON quests_attributes.quests_id = quests.id
+    WHERE
+    quests_attributes.quests_id = $1`,
+    [questId],
+  );
+  return result.rows.length ? result.rows : null;
 };
