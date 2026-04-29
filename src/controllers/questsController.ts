@@ -105,6 +105,16 @@ const validateCompletedQuest = async function (
     return { ok: false };
   }
 
+  // Do not allow quest completion if quest to be completed is not being tracked
+  if (!userQuestToComplete.is_tracked) {
+    handleResponse(
+      res,
+      400,
+      "Cannot complete an untracked quest. Only tracked quests can be completed",
+    );
+    return { ok: false };
+  }
+
   // Compare authenticated user's id with users_id registered upon quest creation
   // If authenticated user's id and registered user's id do not match then stop execution returning an error message
   if (user.id !== (userQuestToComplete as Quest).users_id) {
@@ -133,11 +143,11 @@ const validateCompletedQuest = async function (
     Compare authenticated user's id with registered users_id upon attributes creation.
     If at least one attribute among the ones owned by the user has a users_id value not matching with authenticated user's id
     then stop execution returning an error message
-    */
+  */
   if (userAttributes.some((attr) => attr.users_id !== userId)) {
     handleResponse(
       res,
-      404,
+      403,
       "Attributes' owner and authenticated user do not match",
     );
     return { ok: false };
@@ -397,7 +407,7 @@ export const completeQuest = async (
     const questId = Number(req.params.id);
 
     const validation = await validateCompletedQuest(res, userId, questId);
-    if (!validation.ok) return; // the response has already been sent
+    if (!validation.ok) return; // the API response has already been sent inside the helper function
 
     const { userLevel, userAttributesLvls, attributesToQuestLvls } = validation;
 

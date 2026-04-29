@@ -10,10 +10,9 @@ export const getAllUsersService = async (): Promise<User[] | null> => {
 };
 
 export const getUserByIdService = async (id: number): Promise<User | null> => {
-  const result = await pool.query<User>(
-    "SELECT * FROM users WHERE id = $1 RETURNING *",
-    [id],
-  );
+  const result = await pool.query<User>("SELECT * FROM users WHERE id = $1", [
+    id,
+  ]);
   return result.rows[0] ?? null;
 };
 
