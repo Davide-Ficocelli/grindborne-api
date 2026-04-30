@@ -97,12 +97,13 @@ export const updateAttributeService = async (
 // --- BUSINESS LOGIC MODEL METHODS ---
 
 // Gets all attributes involved in a specific quest
-export const getAllAttributesToQuest = async (
+export const getAllAttributesToQuestService = async (
   questId: number,
 ): Promise<Attribute[] | null> => {
   const result = await pool.query<Attribute>(
     `SELECT 
     attributes.id,
+    attributes.users_id,
     attributes.name,
     attributes.description,
     attributes.level,

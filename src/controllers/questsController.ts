@@ -11,7 +11,7 @@ import {
 } from "../models/questsModel.ts";
 import { getUserByIdService } from "../models/usersModel.ts";
 import {
-  getAllAttributesToQuest,
+  getAllAttributesToQuestService,
   getAttributesByUserIdService,
 } from "../models/attributesModel.ts";
 
@@ -149,22 +149,8 @@ const validateCompletedQuest = async function (
     return { ok: false };
   }
 
-  /*
-    Compare authenticated user's id with registered users_id upon attributes creation.
-    If at least one attribute among the ones owned by the user has a users_id value not matching with authenticated user's id
-    then stop execution returning an error message
-  */
-  if (userAttributes.some((attr) => attr.users_id !== userId)) {
-    handleResponse(
-      res,
-      403,
-      "Attributes' owner and authenticated user do not match",
-    );
-    return { ok: false };
-  }
-
   // Get all user's attributes involved in the quest to be completed by using the id passed in the params
-  const attributesToBeComQuest = await getAllAttributesToQuest(questId);
+  const attributesToBeComQuest = await getAllAttributesToQuestService(questId);
 
   // If attributes could not be found then stop execution returning an error message
   if (!attributesToBeComQuest) {
@@ -172,6 +158,24 @@ const validateCompletedQuest = async function (
       res,
       404,
       "Attributes involved in quest to be completed could not be found",
+    );
+    return { ok: false };
+  }
+
+  /*
+    Compare authenticated user's id with registered users_id upon attributes creation.
+    If at least one attribute among the ones owned by the user or those owned by them and involved in the quest
+    to be completed has the users_id value not matching with authenticated user's id
+    then stop execution returning an error message
+  */
+  if (
+    userAttributes.some((attr) => attr.users_id !== userId) ||
+    attributesToBeComQuest.some((attr) => attr.users_id !== userId)
+  ) {
+    handleResponse(
+      res,
+      403,
+      "Attributes' owner and authenticated user do not match",
     );
     return { ok: false };
   }
