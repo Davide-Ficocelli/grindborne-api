@@ -162,6 +162,7 @@ const validateCompletedQuest = async function (
     return { ok: false };
   }
 
+  // Preventing IDOR (Insecure Direct Object Reference)
   /*
     Compare authenticated user's id with registered users_id upon attributes creation.
     If at least one attribute among the ones owned by the user or those owned by them and involved in the quest
@@ -412,7 +413,7 @@ export const trackQuest = async (
       return handleResponse(res, 404, "Tracked quest not found");
 
     // If everything went well then sends back a successful message
-    handleResponse(res, 201, "Quest successfully tracked", trackedQuest);
+    handleResponse(res, 200, "Quest successfully tracked", trackedQuest);
   } catch (err) {
     next(err);
   }
@@ -450,7 +451,7 @@ export const completeQuest = async (
       return handleResponse(res, 404, "Completed quest could not be found");
 
     // If everything went well then sends back a successful message
-    handleResponse(res, 201, "Quest successfully completed", completedQuest);
+    handleResponse(res, 200, "Quest successfully completed", completedQuest);
   } catch (err) {
     next(err);
   }
