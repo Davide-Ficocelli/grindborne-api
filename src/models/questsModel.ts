@@ -1,6 +1,6 @@
 import pool from "../config/db.ts";
 import updateRow from "../utils/updateRow.ts";
-import { assignXpToAttributesService } from "../models/attributesModel.ts";
+import { assignXpToAttributesAndUserService } from "../models/attributesModel.ts";
 
 // Importing types
 import type { Quest, NewQuestInput } from "../types/quest.ts";
@@ -273,6 +273,7 @@ export const addAttributesToQuestService = async (
 export const completeQuestService = async (
   res: any,
   id: number,
+  userId: number,
   userLevel: number,
   userAttributesLvls: number[],
   attributesToQuestLvls: number[],
@@ -317,7 +318,7 @@ export const completeQuestService = async (
     );
 
     // Assign xp to involved attributes in the quest
-    await assignXpToAttributesService(res, id, questTotalXp);
+    await assignXpToAttributesAndUserService(res, id, questTotalXp, userId);
   } else throw new Error("Something went wrong during quest completion");
 
   return result.rows[0] ?? null;

@@ -1,5 +1,6 @@
 import pool from "../config/db.ts";
 import updateRow from "../utils/updateRow.ts";
+import { calculateUserLvl, assignNewUserLvlService } from "./usersModel.ts";
 
 // Importing types
 import type Attribute from "../types/attribute.ts";
@@ -143,12 +144,13 @@ export const getAllAttributesToQuestService = async (
 };
 
 // Assigns XP to attributes involved in a specific quest while completing it
-export const assignXpToAttributesService = async (
+export const assignXpToAttributesAndUserService = async (
   res: any,
   questId: number,
   questTotalXp: number,
+  userId: number,
 ): Promise<void> => {
-  // 1) Get all user's attributes related to the quest to be completed
+  // Get all user's attributes related to the quest to be completed
   const userAttrsToBeComQuest = await getAllAttributesToQuestService(questId);
 
   if (!userAttrsToBeComQuest) {
@@ -159,13 +161,13 @@ export const assignXpToAttributesService = async (
     );
   }
 
-  // 2) XP per attribute (even split)
+  // XP per attribute (even split)
   const xpForEachAttribute = Math.floor(
     questTotalXp / userAttrsToBeComQuest.length,
   );
 
   console.log("------ ATTRIBUTES FOR OF LOOP BEGIN ------");
-  // 3) For each attribute, apply XP and handle possible multi-level-ups
+  // For each attribute, apply XP and handle possible multi-level-ups
   for (const attr of userAttrsToBeComQuest) {
     console.log(`--- ATTRIBUTE ITERATION: ${attr.name.toUpperCase()} ---`);
     let remainingXpToDistributePerAttr = xpForEachAttribute;
@@ -222,15 +224,6 @@ export const assignXpToAttributesService = async (
       totalXpToNextLvl = xpToNext;
       console.log(`While loop data: 
         totalXpToNextLvl: ${totalXpToNextLvl}`);
-
-      /*
-        IMPORTANT! To calculate the exact amount of xp try to save the initial value of the xp to next level and then have
-        the accumulated xp subtracted by that value.
-        This mean that the column xp_to_next_level would have to change meaning, representing the fixed amount of xp
-        to next level. You'd use xp_to_next_level - current xp in order to calculate how much xp is left for the next level.
-        If you don't want to change this, then see if you can calculate the value of this hypothetical new xp_to_next_level
-        by doing current xp + xp_to_next_level and do that for the next levels
-      */
     }
 
     // After all level-ups are processed, the remaining XP is what is still needed
@@ -254,5 +247,27 @@ export const assignXpToAttributesService = async (
   }
 
   console.log("------ ATTRIBUTES FOR OF LOOP END ------");
-  // (Opzionale: qui potresti ricalcolare il livello UTENTE in base ai nuovi livelli degli attributi)
+
+  // Get all user's attributes
+  const userAttributes = await getAttributesByUserIdService(userId);
+
+  // Initialize array which will contain each user attribute's level
+  const userAttributesLvls: number[] = [];
+
+  // Push each user attribute's level into the newly initialized array
+  userAttributes?.forEach((attr: Attribute) =>
+    userAttributesLvls.push(attr.level as number),
+  );
+
+  // Calculate new user level after quest was completed
+  const newUserLvl = calculateUserLvl(userAttributesLvls);
+
+  // Assign new user level to that specific user
+  const userToLevelUp = await assignNewUserLvlService(userId, newUserLvl);
+  console.log(`userToLevelUp: ${userToLevelUp}`);
+
+  // If user to level up wasn't found then returns an error message
+  if (!userToLevelUp)
+    return handleResponse(res, 404, "User to level up could not be found");
+  console.log(`newUserLvl: ${newUserLvl}`);
 };

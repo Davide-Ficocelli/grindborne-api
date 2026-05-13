@@ -1,4 +1,5 @@
 import handleResponse from "../utils/handleResponse.ts";
+import preventIdor from "../utils/preventIdor.ts";
 import {
   createNewQuestService,
   getQuestByIdService,
@@ -9,7 +10,10 @@ import {
   addAttributesToQuestService,
   completeQuestService,
 } from "../models/questsModel.ts";
-import { getUserByIdService } from "../models/usersModel.ts";
+import {
+  assignNewUserLvlService,
+  getUserByIdService,
+} from "../models/usersModel.ts";
 import {
   getAllAttributesToQuestService,
   getAttributesByUserIdService,
@@ -19,6 +23,7 @@ import {
 import { type Request, type Response, type NextFunction } from "express";
 import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
 import { type NewQuestInput, type Quest } from "../types/quest.ts";
+import type Attribute from "../types/attribute.ts";
 
 // --- HELPER FUNCTIONS ---
 
@@ -105,6 +110,10 @@ const validateCompletedQuest = async function (
     return { ok: false };
   }
 
+  // Prevent IDOR from quest data
+  if (preventIdor(res, userId, userQuestToComplete?.users_id).isIdorDetected)
+    return { ok: false };
+
   // Do not allow quest completion if quest to be completed has already been completed
   if (userQuestToComplete.is_completed) {
     handleResponse(
@@ -141,13 +150,16 @@ const validateCompletedQuest = async function (
 
   // If authenticated user's attributes could not be found then stop execution returning an error message
   if (!userAttributes) {
-    handleResponse(
-      res,
-      404,
-      "Authenticated user's attributes could not be found",
-    );
+    handleResponse(res, 404, "User's attributes could not be found");
     return { ok: false };
   }
+
+  // Prevent IDOR from attributes data
+  if (
+    preventIdor(res, userId, (userAttributes[0] as Attribute).users_id)
+      .isIdorDetected
+  )
+    return { ok: false };
 
   // Get all user's attributes involved in the quest to be completed by using the id passed in the params
   const attributesToBeComQuest = await getAllAttributesToQuestService(questId);
@@ -419,6 +431,7 @@ export const trackQuest = async (
   }
 };
 
+// Update this comment
 // Completes a quest
 export const completeQuest = async (
   req: AuthRequest,
@@ -441,6 +454,7 @@ export const completeQuest = async (
     const completedQuest = await completeQuestService(
       res,
       questId,
+      userId,
       userLevel,
       userAttributesLvls,
       attributesToQuestLvls,
