@@ -4,6 +4,8 @@ import updateRow from "../utils/updateRow.ts";
 // Importing types
 import type User from "../types/user.ts";
 
+// --- GENERAL CRUD METHODS ---
+
 export const getAllUsersService = async (): Promise<User[] | null> => {
   const result = await pool.query<User>("SELECT * FROM users");
   return result.rows ?? null;
@@ -73,4 +75,42 @@ export const deleteUserService = async (id: number) => {
     [id],
   );
   return result.rows[0] ?? null;
+};
+
+// --- BUSINESS LOGIC MODEL METHODS ---
+
+// Assigns new user's overall level
+export const assignNewUserLvlService = async (
+  id: number,
+  newUserLvl: number,
+) => {
+  const result = await pool.query<User>(
+    `
+    UPDATE users
+    SET level=$2
+    WHERE id=$1
+    RETURNING *
+    `,
+    [id, newUserLvl],
+  );
+  return result.rows[0] ?? null;
+};
+
+// Calculate user's level
+export const calculateUserLvl = function (
+  userAttributesLvls: number[],
+): number {
+  // Perform the calculation to get user level
+  // Sum all of the levels
+
+  const attributesLvlTotal = userAttributesLvls.reduce(
+    (sum, lvl) => sum + lvl,
+    0,
+  );
+  console.log(`attributesLvlTotal: ${attributesLvlTotal}`);
+
+  // Subtract to the total the number of the attributes minus 1
+  const userLevel = attributesLvlTotal - (userAttributesLvls.length - 1);
+
+  return userLevel;
 };

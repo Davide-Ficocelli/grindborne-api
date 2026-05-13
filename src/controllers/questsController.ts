@@ -1,4 +1,5 @@
 import handleResponse from "../utils/handleResponse.ts";
+import preventIdor from "../utils/preventIdor.ts";
 import {
   createNewQuestService,
   getQuestByIdService,
@@ -9,9 +10,12 @@ import {
   addAttributesToQuestService,
   completeQuestService,
 } from "../models/questsModel.ts";
-import { getUserByIdService } from "../models/usersModel.ts";
 import {
-  getAllAttributesToQuest,
+  assignNewUserLvlService,
+  getUserByIdService,
+} from "../models/usersModel.ts";
+import {
+  getAllAttributesToQuestService,
   getAttributesByUserIdService,
 } from "../models/attributesModel.ts";
 
@@ -19,6 +23,7 @@ import {
 import { type Request, type Response, type NextFunction } from "express";
 import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
 import { type NewQuestInput, type Quest } from "../types/quest.ts";
+import type Attribute from "../types/attribute.ts";
 
 // --- HELPER FUNCTIONS ---
 
@@ -105,6 +110,10 @@ const validateCompletedQuest = async function (
     return { ok: false };
   }
 
+  // Prevent IDOR from quest data
+  if (preventIdor(res, userId, userQuestToComplete?.users_id).isIdorDetected)
+    return { ok: false };
+
   // Do not allow quest completion if quest to be completed has already been completed
   if (userQuestToComplete.is_completed) {
     handleResponse(
@@ -141,30 +150,19 @@ const validateCompletedQuest = async function (
 
   // If authenticated user's attributes could not be found then stop execution returning an error message
   if (!userAttributes) {
-    handleResponse(
-      res,
-      404,
-      "Authenticated user's attributes could not be found",
-    );
+    handleResponse(res, 404, "User's attributes could not be found");
     return { ok: false };
   }
 
-  /*
-    Compare authenticated user's id with registered users_id upon attributes creation.
-    If at least one attribute among the ones owned by the user has a users_id value not matching with authenticated user's id
-    then stop execution returning an error message
-  */
-  if (userAttributes.some((attr) => attr.users_id !== userId)) {
-    handleResponse(
-      res,
-      403,
-      "Attributes' owner and authenticated user do not match",
-    );
+  // Prevent IDOR from attributes data
+  if (
+    preventIdor(res, userId, (userAttributes[0] as Attribute).users_id)
+      .isIdorDetected
+  )
     return { ok: false };
-  }
 
   // Get all user's attributes involved in the quest to be completed by using the id passed in the params
-  const attributesToBeComQuest = await getAllAttributesToQuest(questId);
+  const attributesToBeComQuest = await getAllAttributesToQuestService(questId);
 
   // If attributes could not be found then stop execution returning an error message
   if (!attributesToBeComQuest) {
@@ -172,6 +170,25 @@ const validateCompletedQuest = async function (
       res,
       404,
       "Attributes involved in quest to be completed could not be found",
+    );
+    return { ok: false };
+  }
+
+  // Preventing IDOR (Insecure Direct Object Reference)
+  /*
+    Compare authenticated user's id with registered users_id upon attributes creation.
+    If at least one attribute among the ones owned by the user or those owned by them and involved in the quest
+    to be completed has the users_id value not matching with authenticated user's id
+    then stop execution returning an error message
+  */
+  if (
+    userAttributes.some((attr) => attr.users_id !== userId) ||
+    attributesToBeComQuest.some((attr) => attr.users_id !== userId)
+  ) {
+    handleResponse(
+      res,
+      403,
+      "Attributes' owner and authenticated user do not match",
     );
     return { ok: false };
   }
@@ -408,12 +425,13 @@ export const trackQuest = async (
       return handleResponse(res, 404, "Tracked quest not found");
 
     // If everything went well then sends back a successful message
-    handleResponse(res, 201, "Quest successfully tracked", trackedQuest);
+    handleResponse(res, 200, "Quest successfully tracked", trackedQuest);
   } catch (err) {
     next(err);
   }
 };
 
+// Update this comment
 // Completes a quest
 export const completeQuest = async (
   req: AuthRequest,
@@ -436,6 +454,7 @@ export const completeQuest = async (
     const completedQuest = await completeQuestService(
       res,
       questId,
+      userId,
       userLevel,
       userAttributesLvls,
       attributesToQuestLvls,
@@ -446,7 +465,7 @@ export const completeQuest = async (
       return handleResponse(res, 404, "Completed quest could not be found");
 
     // If everything went well then sends back a successful message
-    handleResponse(res, 201, "Quest successfully completed", completedQuest);
+    handleResponse(res, 200, "Quest successfully completed", completedQuest);
   } catch (err) {
     next(err);
   }
