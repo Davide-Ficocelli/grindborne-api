@@ -23,6 +23,9 @@ const pool = new Pool({
   database: process.env.DB_NAME, // database name
   password: process.env.DB_PASSWORD, // database user password
   port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432, // database port (usually 5432)
+  ssl: {
+    rejectUnauthorized: false, // Requested by Neon
+  },
 });
 
 // Listen for the "connect" event on the pool. This event fires when
