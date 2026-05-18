@@ -10,7 +10,7 @@
     "test": "newman run \"./tests/Grindborne API tests.postman_collection.json\"",
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node ./src/index.ts"
+    "dev": "nodemon ./src/index.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

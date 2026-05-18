@@ -1,10 +1,12 @@
 import pool from "../config/db.ts";
 import updateRow from "../utils/updateRow.ts";
 import { assignXpToAttributesAndUserService } from "../models/attributesModel.ts";
+import { ESTIMATED_TIME_BREAKPOINTS } from "../config/globals.ts";
 
 // Importing types
 import type { Quest, NewQuestInput } from "../types/quest.ts";
 import handleResponse from "../utils/handleResponse.ts";
+import { before } from "node:test";
 
 // Creating an interface for updating quests
 interface UpdatedQuest {
@@ -52,16 +54,31 @@ export function calculateLevelCost(level: number): number {
 const durationMultiplier = function (estimatedMinutes: number | null): number {
   if (!estimatedMinutes) return 0;
 
+  // Save breakpoints values and breakpoints multipliers values
+  const { breakpoints, xpMultipliers, standardXpMultiplier } =
+    ESTIMATED_TIME_BREAKPOINTS;
+
+  // Initialize multiplier
+  let xpMultiplier: number = 1;
+
   // Breakpoints for estimated duration with their corresponding XP multipliers
-  if (estimatedMinutes < 10) return 0.2;
-  if (estimatedMinutes < 30) return 0.3;
-  if (estimatedMinutes < 60) return 0.4;
-  if (estimatedMinutes < 90) return 0.5;
-  if (estimatedMinutes < 120) return 0.6;
-  if (estimatedMinutes < 150) return 0.7;
-  if (estimatedMinutes < 180) return 0.8;
-  if (estimatedMinutes < 210) return 0.9;
-  return 1; // 210–240 and above → hard cap at 1
+  for (const [i, breakpoint] of breakpoints.entries()) {
+    // If estimated minutes are greater then the current breakpoint go to the next iteration
+    if (estimatedMinutes > breakpoint) continue;
+    // If estimated minutes are below the current breakpoint then assign the final multiplier's value
+    else if (estimatedMinutes < breakpoint) {
+      xpMultiplier = xpMultipliers[i] as number;
+      // Exit the loop
+      break;
+      // If estimated minutes are greater than all breakpoints then assign the standard multiplier
+    } else {
+      xpMultiplier = standardXpMultiplier;
+      // Exit the loop
+      break;
+    }
+  }
+  // Return the caltulated multiplier
+  return xpMultiplier;
 };
 
 // Calculates an XP multiplier based on the LEVELS of the attributes involved in this quest.
