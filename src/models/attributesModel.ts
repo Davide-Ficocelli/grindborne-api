@@ -1,6 +1,7 @@
 import pool from "../config/db.ts";
 import updateRow from "../utils/updateRow.ts";
 import { calculateUserLvl, assignNewUserLvlService } from "./usersModel.ts";
+import { STARTING_GRACE_PERIOD_IN_DAYS } from "../config/globals.ts";
 
 // Importing types
 import type Attribute from "../types/attribute.ts";
@@ -55,6 +56,12 @@ export const getAttributeByIdService = async (
     [id],
   );
   return result.rows[0] ?? null;
+};
+
+// Gets all attributes
+const getAllAttributes = async (): Promise<Attribute[] | null> => {
+  const result = await pool.query<Attribute>(`SELECT * FROM attributes`);
+  return result.rows.length ? result.rows : null;
 };
 
 // Gets all user attributes by user id
@@ -270,4 +277,55 @@ export const assignXpToAttributesAndUserService = async (
   if (!userToLevelUp)
     return handleResponse(res, 404, "User to level up could not be found");
   console.log(`newUserLvl: ${newUserLvl}`);
+};
+
+const assignStartingDecayDateToAttributeService = async (
+  id: number,
+  startingDecayDate: number,
+): Promise<Attribute | null> => {
+  const result = await pool.query<Attribute>(
+    "UPDATE attrtibutes SET decay_date = $2, WHERE id = $1 RETURNING *",
+    [id, startingDecayDate],
+  );
+  return result.rows[0] ?? null;
+};
+
+// Assigns a decay date if the attribute has no decays date and the attribute actually has xp
+const assignStartingDecayDateToAttribute = async () => {
+  // Get all attributes
+  const allAttributes = await getAllAttributes();
+
+  // Handling case in which allAttributes is null
+  if (!allAttributes) return new Error("Attributes could not be fetched");
+
+  // Checking if at least an attribute hasn't got a decay date and has xp
+  const hasXpAndNotDecayDate: boolean = allAttributes.some(
+    (attr) => attr.xp !== null && attr.xp > 0 && !attr.decay_date,
+  );
+
+  // If no attributes have xp nor a decay date then stop execution
+  if (!hasXpAndNotDecayDate) return;
+
+  // Otherwise loop over the attributes and set the default decay date for whichever is the case
+
+  // Calculate today's UTC date
+  const today = new Date();
+  const todayUTC = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()),
+  );
+
+  // Calculate starting decay date
+  const startingDecayDate = todayUTC.setUTCDate(
+    todayUTC.getUTCDate() + STARTING_GRACE_PERIOD_IN_DAYS,
+  );
+
+  // Looping over all attributes
+  for (const attribute of allAttributes) {
+    if (attribute.xp !== null && attribute.xp < 1) continue;
+    else
+      await assignStartingDecayDateToAttributeService(
+        attribute.id,
+        startingDecayDate,
+      );
+  }
 };

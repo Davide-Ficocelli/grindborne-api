@@ -7,4 +7,5 @@ export default interface Attribute {
   icon?: Buffer | null; // bytea -> Buffer
   users_id: number;
   xp_to_next_level: number;
+  decay_date: Date | null;
 }
