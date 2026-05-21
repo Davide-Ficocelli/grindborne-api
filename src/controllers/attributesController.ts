@@ -1,11 +1,8 @@
-import {
-  getAttributesByUserIdModel,
-  deleteAttributeService,
-  updateAttributeService,
-} from "../models/attributesModel.ts";
+import { updateAttributeService } from "../models/attributesModel.ts";
 import {
   createNewAttributeService,
   getAttributesByUserIdService,
+  deleteAttributeService,
 } from "../services/attributesService.ts";
 import handleResponse from "../utils/handleResponse.ts";
 

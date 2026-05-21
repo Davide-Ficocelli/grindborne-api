@@ -10,7 +10,10 @@ import { overallAttributesMultiplier } from "./questsModel.ts";
 
 // Importing types
 import type Attribute from "../types/attribute.ts";
-import type { AttributesLvlsPerUser } from "../types/attribute.ts";
+import type {
+  AttributeInDatabase,
+  AttributesLvlsPerUser,
+} from "../types/attribute.ts";
 import handleResponse from "../utils/handleResponse.ts";
 
 // -- HELPER FUNCTIONS --
@@ -72,7 +75,7 @@ function applyDecayToAttribute(
 
 // Checks if decay would eventually be applicable
 const isDecayApplicable = function (
-  allAttributes: Attribute[],
+  allAttributes: AttributeInDatabase[],
 ): boolean | Error {
   // Handling case in which allAttributes is null
   if (!allAttributes) return new Error("Attributes could not be fetched");
@@ -101,7 +104,7 @@ const toUTCDate = (localDate: Date) =>
   );
 
 // Gets all user attributes levels
-const getAllUserAttrLvls = function (allAttributes: Attribute[]) {
+const getAllUserAttrLvls = function (allAttributes: AttributeInDatabase[]) {
   // Split every attribute per owner
   const everyUserAttributes: AttributesLvlsPerUser[] = [];
 
@@ -158,8 +161,8 @@ export function calculateNextLevelThreshold(level: number): number {
 export const createNewAttributeModel = async (newAttributeData: {
   initialXpToNext: number;
   attributeObj: Attribute;
-}): Promise<Attribute | null> => {
-  const result = await pool.query<Attribute>(
+}): Promise<AttributeInDatabase | null> => {
+  const result = await pool.query<AttributeInDatabase>(
     "INSERT INTO attributes (name, description, icon, users_id, xp_to_next_level) VALUES ($1, $2, $3, $4, $5) RETURNING *",
     [
       newAttributeData.attributeObj.name,
@@ -175,8 +178,8 @@ export const createNewAttributeModel = async (newAttributeData: {
 // Gets a specific attribute by its id
 export const getAttributeByIdModel = async (
   id: number,
-): Promise<Attribute | null> => {
-  const result = await pool.query<Attribute>(
+): Promise<AttributeInDatabase | null> => {
+  const result = await pool.query<AttributeInDatabase>(
     "SELECT * FROM attributes WHERE id = $1",
     [id],
   );
@@ -184,16 +187,18 @@ export const getAttributeByIdModel = async (
 };
 
 // Gets all attributes
-const getAllAttributes = async (): Promise<Attribute[] | null> => {
-  const result = await pool.query<Attribute>(`SELECT * FROM attributes`);
+const getAllAttributes = async (): Promise<AttributeInDatabase[] | null> => {
+  const result = await pool.query<AttributeInDatabase>(
+    `SELECT * FROM attributes`,
+  );
   return result.rows.length ? result.rows : null;
 };
 
 // Gets all user attributes by user id
 export const getAttributesByUserIdModel = async (
   userId: number,
-): Promise<Attribute[] | null> => {
-  const result = await pool.query<Attribute>(
+): Promise<AttributeInDatabase[] | null> => {
+  const result = await pool.query<AttributeInDatabase>(
     `SELECT
     attributes.id,
     attributes.users_id,
@@ -215,8 +220,8 @@ export const getAttributesByUserIdModel = async (
 // Deletes a specific attribute by id
 export const deleteAttributeModel = async (
   id: number,
-): Promise<Attribute | null> => {
-  const result = await pool.query<Attribute>(
+): Promise<AttributeInDatabase | null> => {
+  const result = await pool.query<AttributeInDatabase>(
     "DELETE FROM attributes WHERE id = $1 RETURNING *",
     [id],
   );
@@ -230,7 +235,7 @@ export const updateAttributeService = async (
   description?: string,
   level?: number,
   xp?: number,
-): Promise<Attribute | null> => {
+): Promise<AttributeInDatabase | null> => {
   const { query, values } = updateRow(
     "attributes",
     id,
@@ -243,7 +248,7 @@ export const updateAttributeService = async (
     "No parameters for attribute update were provided",
   );
 
-  const result = await pool.query<Attribute>(query, values);
+  const result = await pool.query<AttributeInDatabase>(query, values);
   return result.rows[0] ?? null;
 };
 
@@ -252,8 +257,8 @@ export const updateAttributeService = async (
 // Gets all attributes involved in a specific quest
 export const getAllAttributesToQuestService = async (
   questId: number,
-): Promise<Attribute[] | null> => {
-  const result = await pool.query<Attribute>(
+): Promise<AttributeInDatabase[] | null> => {
+  const result = await pool.query<AttributeInDatabase>(
     `SELECT 
     attributes.id,
     attributes.users_id,
@@ -380,14 +385,14 @@ export const assignXpToAttributesAndUserService = async (
 
   console.log("------ ATTRIBUTES FOR OF LOOP END ------");
 
-  // Get all user's attributes
-  const userAttributes = await getAttributesByUserIdService(userId);
+  // 🛠️ FIX: getAttributesByUserIdService era un typo, corretto in getAttributesByUserIdModel
+  const userAttributes = await getAttributesByUserIdModel(userId);
 
   // Initialize array which will contain each user attribute's level
   const userAttributesLvls: number[] = [];
 
   // Push each user attribute's level into the newly initialized array
-  userAttributes?.forEach((attr: Attribute) =>
+  userAttributes?.forEach((attr: AttributeInDatabase) =>
     userAttributesLvls.push(attr.level as number),
   );
 
@@ -408,9 +413,10 @@ export const assignXpToAttributesAndUserService = async (
 const assignStartingDecayDateToAttributeService = async (
   id: number,
   startingDecayDate: number,
-): Promise<Attribute | null> => {
-  const result = await pool.query<Attribute>(
-    "UPDATE attrtibutes SET decay_date = $2, WHERE id = $1 RETURNING *",
+): Promise<AttributeInDatabase | null> => {
+  const result = await pool.query<AttributeInDatabase>(
+    // 🛠️ FIX: corretti il typo "attrtibutes" in "attributes" e la virgola illegale in "SET decay_date = $2, WHERE"
+    "UPDATE attributes SET decay_date = $2 WHERE id = $1 RETURNING *",
     [id, startingDecayDate],
   );
   return result.rows[0] ?? null;
