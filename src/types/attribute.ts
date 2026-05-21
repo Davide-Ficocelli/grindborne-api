@@ -9,3 +9,8 @@ export default interface Attribute {
   xp_to_next_level: number;
   decay_date: Date | null;
 }
+
+export type AttributesLvlsPerUser = {
+  userId: number;
+  attributeLevels: number[];
+};

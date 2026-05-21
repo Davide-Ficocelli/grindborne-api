@@ -1,7 +1,10 @@
 import pool from "../config/db.ts";
 import updateRow from "../utils/updateRow.ts";
 import { assignXpToAttributesAndUserService } from "../models/attributesModel.ts";
-import { ESTIMATED_TIME_BREAKPOINTS } from "../config/globals.ts";
+import {
+  ESTIMATED_TIME_BREAKPOINTS,
+  REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING,
+} from "../config/globals.ts";
 
 // Importing types
 import type { Quest, NewQuestInput } from "../types/quest.ts";
@@ -122,7 +125,7 @@ const timeAccuracyMultiplier = function (
 // This represents how developed the character is overall: more advanced builds
 // make quests potentially more rewarding in terms of XP.
 // If the user has no attributes, the multiplier is neutral (1).
-const overallAttributesMultiplier = function (
+export const overallAttributesMultiplier = function (
   allAttributeLevels: number[],
 ): number {
   if (allAttributeLevels.length === 0) return 1;
@@ -133,7 +136,7 @@ const overallAttributesMultiplier = function (
 
   // Example: average 10 → 1 + 10/10 = 2.0 (x2)
   //          average 20 → 1 + 20/10 = 3.0 (x3)
-  return 1 + avgAll / 10;
+  return 1 + avgAll / REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING;
 };
 
 // Calculates the TOTAL XP reward for a completed quest.
