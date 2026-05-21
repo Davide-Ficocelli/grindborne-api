@@ -41,32 +41,32 @@ function applyDecayToAttribute(
   let { level, xp, xp_to_next_level } = attr;
   let remainingLoss = lossXp;
 
-  // Caso limite: attributo al livello 1 con 0 XP → non puoi scendere sotto
+  // Edge case: attribute at level 1 with 0 XP → you can't go below
   if (level === 1 && xp <= 0) {
     return { level: 1, xp: 0, xp_to_next_level };
   }
 
-  // Togliamo XP dallo "storico"
+  // Let's remove XP from the "hystory"
   xp -= remainingLoss;
 
-  // Se scende sotto 0, può significare level-down multipli
+  // Se scene sotto 0, può significare moltiplicare il livello
   while (xp < 0 && level > 1) {
-    // Per scendere di 1 livello, dobbiamo "restituire" l'XP del livello precedente
+    // To go down 1 level, we need to "return" the XP of the previous level
     level -= 1;
 
     const prevLevelThreshold = calculateNextLevelThreshold(level);
 
-    // Se abbiamo perso più XP di quella che avevamo in questo livello,
-    // prendiamo in prestito dal livello precedente
+    // If we lost more XP than we had in this level,
+    // we borrow from the previous level
     xp += prevLevelThreshold;
   }
 
-  // Se siamo tornati al livello 1 e xp ancora < 0, clamp a 0
+  // If we are back to level 1 and xp still < 0, clamp to 0
   if (level === 1 && xp < 0) {
     xp = 0;
   }
 
-  // Ricalcola xp_to_next_level coerente con i nuovi valori
+  // Recalculate xp_to_next_level consistent with new values
   const fullCostForCurrentLevel = calculateNextLevelThreshold(level);
   xp_to_next_level = fullCostForCurrentLevel - xp;
 
@@ -385,7 +385,6 @@ export const assignXpToAttributesAndUserService = async (
 
   console.log("------ ATTRIBUTES FOR OF LOOP END ------");
 
-  // 🛠️ FIX: getAttributesByUserIdService era un typo, corretto in getAttributesByUserIdModel
   const userAttributes = await getAttributesByUserIdModel(userId);
 
   // Initialize array which will contain each user attribute's level
@@ -415,7 +414,6 @@ const assignStartingDecayDateToAttributeService = async (
   startingDecayDate: number,
 ): Promise<AttributeInDatabase | null> => {
   const result = await pool.query<AttributeInDatabase>(
-    // 🛠️ FIX: corretti il typo "attrtibutes" in "attributes" e la virgola illegale in "SET decay_date = $2, WHERE"
     "UPDATE attributes SET decay_date = $2 WHERE id = $1 RETURNING *",
     [id, startingDecayDate],
   );
@@ -486,10 +484,10 @@ const decayAttributes = async () => {
       ? attribute.decay_date.toISOString().slice(0, 10)
       : null;
 
-    // 1) Solo se oggi è il giorno di decay per questo attributo
+    // 1) Only if today is the day of decay for this attribute
     if (!decayStr || decayStr !== todayStr) continue;
 
-    // 2) Trova i livelli di TUTTI gli attributi di questo utente
+    // 2) Find the levels of ALL attributes of this user
     const correspondingUserAttrLvls = allUserAttrLvls.find(
       (attr) => attr.userId === attribute.users_id,
     );
@@ -500,14 +498,14 @@ const decayAttributes = async () => {
       correspondingUserAttrLvls.attributeLevels,
     );
 
-    // 3) Calcola quanta XP perdere
+    // 3) Calculate how much XP to lose
     const xpToNext =
       attribute.xp_to_next_level ??
       calculateNextLevelThreshold(attribute.level ?? 1);
 
     const loss = calculateDecayLoss(xpToNext, userBuildMultiplier);
 
-    // 4) Applica il decay a questo attributo
+    // 4) Apply the decay to this attribute
     const current: AttributeProgress = {
       level: attribute.level ?? 1,
       xp: attribute.xp ?? 0,
@@ -516,7 +514,7 @@ const decayAttributes = async () => {
 
     const updated = applyDecayToAttribute(current, loss);
 
-    // 5) Persisti
+    // 5) Persist
     await pool.query(
       `UPDATE attributes
        SET level = $1,
@@ -526,7 +524,7 @@ const decayAttributes = async () => {
       [updated.level, updated.xp, updated.xp_to_next_level, attribute.id],
     );
 
-    // 6) (opzionale) ricalcola la nuova decay_date, es. riparti dal grace period
+    // 6) (optional) recalculates the new decay_date, e.g. starts again from the grace period
     const newDecayDate = toUTCDate(new Date());
     newDecayDate.setUTCDate(
       newDecayDate.getUTCDate() + STARTING_GRACE_PERIOD_IN_DAYS,
