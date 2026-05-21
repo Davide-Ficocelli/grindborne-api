@@ -1,9 +1,9 @@
 import { Router, type RequestHandler } from "express";
 import { authenticateToken } from "../controllers/authController.ts";
 import {
-  createNewAttribute,
-  deleteAttribute,
-  getAttributesByUserId,
+  createNewAttributeController,
+  deleteAttributeController,
+  getAttributesByUserIdController,
   updateAttribute,
 } from "../controllers/attributesController.ts";
 import {
@@ -18,7 +18,7 @@ const router = Router();
 router.get(
   "/attributes",
   authenticateToken,
-  getAttributesByUserId as RequestHandler,
+  getAttributesByUserIdController as RequestHandler,
 );
 
 // Endpoint for user attribute creation
@@ -26,14 +26,14 @@ router.post(
   "/attributes",
   authenticateToken,
   validateNewAttribute,
-  createNewAttribute as RequestHandler,
+  createNewAttributeController as RequestHandler,
 );
 
 // Endpoint for user attribute deletion
 router.delete(
   "/attributes/:id",
   authenticateToken,
-  deleteAttribute as RequestHandler,
+  deleteAttributeController as RequestHandler,
 );
 
 // Endpoint for user attribute update

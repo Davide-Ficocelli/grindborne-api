@@ -12,7 +12,6 @@ import { overallAttributesMultiplier } from "./questsModel.ts";
 import type Attribute from "../types/attribute.ts";
 import type { AttributesLvlsPerUser } from "../types/attribute.ts";
 import handleResponse from "../utils/handleResponse.ts";
-import { debug } from "node:console";
 
 // -- HELPER FUNCTIONS --
 
@@ -156,24 +155,25 @@ export function calculateNextLevelThreshold(level: number): number {
 // --- GENERAL CRUD METHODS ---
 
 // Inserts new attribute in the attributes table given the params from the request body and user's id from the JWT token
-export const createNewAttributeService = async (
-  name: string,
-  description: string,
-  icon: Buffer | null,
-  userId: number,
-): Promise<Attribute | null> => {
-  // Represents the initial value of xp for the new attribute to reach level 2
-  const initialXpToNext = 100;
-
+export const createNewAttributeModel = async (newAttributeData: {
+  initialXpToNext: number;
+  attributeObj: Attribute;
+}): Promise<Attribute | null> => {
   const result = await pool.query<Attribute>(
     "INSERT INTO attributes (name, description, icon, users_id, xp_to_next_level) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-    [name, description, icon, userId, initialXpToNext],
+    [
+      newAttributeData.attributeObj.name,
+      newAttributeData.attributeObj.description,
+      newAttributeData.attributeObj.icon,
+      newAttributeData.attributeObj.users_id,
+      newAttributeData.initialXpToNext,
+    ],
   );
   return result.rows[0] ?? null;
 };
 
 // Gets a specific attribute by its id
-export const getAttributeByIdService = async (
+export const getAttributeByIdModel = async (
   id: number,
 ): Promise<Attribute | null> => {
   const result = await pool.query<Attribute>(
@@ -190,7 +190,7 @@ const getAllAttributes = async (): Promise<Attribute[] | null> => {
 };
 
 // Gets all user attributes by user id
-export const getAttributesByUserIdService = async (
+export const getAttributesByUserIdModel = async (
   userId: number,
 ): Promise<Attribute[] | null> => {
   const result = await pool.query<Attribute>(
@@ -213,7 +213,7 @@ export const getAttributesByUserIdService = async (
 };
 
 // Deletes a specific attribute by id
-export const deleteAttributeService = async (
+export const deleteAttributeModel = async (
   id: number,
 ): Promise<Attribute | null> => {
   const result = await pool.query<Attribute>(

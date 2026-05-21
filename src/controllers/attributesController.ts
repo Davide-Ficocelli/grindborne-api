@@ -1,16 +1,20 @@
 import {
-  createNewAttributeService,
-  getAttributesByUserIdService,
+  getAttributesByUserIdModel,
   deleteAttributeService,
   updateAttributeService,
 } from "../models/attributesModel.ts";
+import {
+  createNewAttributeService,
+  getAttributesByUserIdService,
+} from "../services/attributesService.ts";
 import handleResponse from "../utils/handleResponse.ts";
 
 // Importing types
 import { type Request, type Response, type NextFunction } from "express";
-import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
+import { type AuthRequest } from "../types/auth.ts";
+import type Attribute from "../types/attribute.ts";
 
-export const createNewAttribute = async (
+export const createNewAttributeController = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
@@ -20,15 +24,26 @@ export const createNewAttribute = async (
     const { name, description, icon } = req.body;
 
     // Gets user's id for attributes_id field
-    const userId = req.user.id;
+    const users_id = req.user.id;
 
-    // Starts the attribute creation process with the appropriate async function created in the attributesModel.ts file
-    const newAttribute = await createNewAttributeService(
+    // Let's create the object compliant with the NewAttribute interface
+    const attributeData: Attribute = {
+      status: "new", // TypeScript is now happy because NewAttribute requires it
       name,
       description,
       icon,
-      userId,
-    );
+      users_id,
+    };
+
+    // Starts the attribute creation process with the appropriate async function created in the attributesService.ts file
+    const newAttribute = await createNewAttributeService(attributeData);
+
+    if (!newAttribute)
+      return handleResponse(
+        res,
+        500,
+        "Something went wrong while creating new attribute",
+      );
 
     // Sends back a successfull response, status code and message if the new attribute is created with no issues
     handleResponse(res, 201, "Attribute created successfully", newAttribute);
@@ -38,7 +53,7 @@ export const createNewAttribute = async (
 };
 
 // Returns all of the corrispective user's attributes
-export const getAttributesByUserId = async (
+export const getAttributesByUserIdController = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
@@ -48,7 +63,7 @@ export const getAttributesByUserId = async (
     const userId = req.user.id;
 
     // Retrieves and saves all user's attributes
-    const userAttributes = await getAttributesByUserIdService(userId);
+    const userAttributes = await getAttributesByUserIdService(res, userId);
 
     // If no attributes are returned send back an error message
     if (!userAttributes)
@@ -67,17 +82,22 @@ export const getAttributesByUserId = async (
 };
 
 // Deletes an attribute
-export const deleteAttribute = async (
-  req: Request,
+export const deleteAttributeController = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
+    // Gets user id
+    const userId = req.user.id;
+
     const deletedAttribute = await deleteAttributeService(
+      res,
+      userId,
       Number(req.params.id),
     );
     if (!deletedAttribute)
-      return handleResponse(res, 404, "Attribute not found");
+      return handleResponse(res, 404, "Deleted attribute not found");
     handleResponse(
       res,
       200,

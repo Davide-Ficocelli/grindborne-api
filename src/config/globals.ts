@@ -1,5 +1,8 @@
 export const STARTING_GRACE_PERIOD_IN_DAYS: number = 7;
 
+// Represents the xp to next level value to start with in database
+export const INITIAL_XP_TO_NEXT_LEVEL: number = 100;
+
 /*
   Represents all breakpoints and multipliers for estimated time
   The user will get input a certain number of minutes they think it will take for their quest to complete
