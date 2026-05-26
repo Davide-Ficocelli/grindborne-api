@@ -105,7 +105,7 @@ export const deleteAttributeModel = async (
 export const updateAttributeModel = async (
   id: number,
   updatedAttrProps: { name: string; description?: string; icon?: Buffer },
-): Promise<AttributeInDatabase | null> => {
+): Promise<Attribute | null> => {
   const { query, values } = updateRow(
     "attributes",
     id,

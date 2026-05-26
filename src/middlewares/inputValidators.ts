@@ -80,6 +80,8 @@ const updatedAttributeSchema = Joi.object({
   inputSanitizationOptions,
 );
 
+// --- QUESTS SCHEMAS ---
+
 // Schema for new quest creation
 const newQuestSchema = Joi.object({
   name: Joi.string().required(),

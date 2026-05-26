@@ -3,14 +3,16 @@ import {
   getAttributesByUserIdService,
   deleteAttributeService,
   updateAttributeService,
+  getAllAttributesToQuestService,
 } from "../services/attributesService.ts";
 import handleResponse from "../utils/handleResponse.ts";
 
 // Importing types
-import { type Request, type Response, type NextFunction } from "express";
+import { type Response, type NextFunction } from "express";
 import { type AuthRequest } from "../types/auth.ts";
 import type Attribute from "../types/attribute.ts";
 
+// Creates a new attribute with user's inputs
 export const createNewAttributeController = async (
   req: AuthRequest,
   res: Response,
@@ -21,7 +23,7 @@ export const createNewAttributeController = async (
     const { name, description, icon } = req.body;
 
     // Gets user's id for attributes_id field
-    const users_id = req.user.id;
+    const users_id: number = req.user.id;
 
     // Let's create the object compliant with the NewAttribute interface
     const newAttrDataObj: Attribute = {
@@ -35,15 +37,13 @@ export const createNewAttributeController = async (
     // Starts the attribute creation process with the appropriate async function created in the attributesService.ts file
     const newAttribute = await createNewAttributeService(newAttrDataObj);
 
-    if (!newAttribute)
-      return handleResponse(
-        res,
-        500,
-        "Something went wrong while creating new attribute",
-      );
+    const { ok, status, message, data } = newAttribute;
+
+    // If a problem occured send back an error message
+    if (!ok) return handleResponse(res, status, message);
 
     // Sends back a successfull response, status code and message if the new attribute is created with no issues
-    handleResponse(res, 201, "Attribute created successfully", newAttribute);
+    return handleResponse(res, status, message, data);
   } catch (err) {
     next(err);
   }
@@ -57,22 +57,18 @@ export const getAttributesByUserIdController = async (
 ) => {
   try {
     // Gets user id
-    const userId = req.user.id;
+    const userId: number = req.user.id;
 
     // Retrieves and saves all user's attributes
-    const userAttributes = await getAttributesByUserIdService(res, userId);
+    const userAttributes = await getAttributesByUserIdService(userId);
 
-    // If no attributes are returned send back an error message
-    if (!userAttributes)
-      return handleResponse(res, 404, "No attributes were found for this user");
+    const { ok, status, message, data } = userAttributes;
 
-    // Return attributes if no issues occured
-    handleResponse(
-      res,
-      200,
-      "All user attributes successfully retrieved",
-      userAttributes,
-    );
+    // If a problem occured send back an error message
+    if (!ok) return handleResponse(res, status, message);
+
+    // Return attributes normally if no issues occured
+    return handleResponse(res, status, message, data);
   } catch (err) {
     next(err);
   }
@@ -86,21 +82,21 @@ export const deleteAttributeController = async (
 ) => {
   try {
     // Gets user id
-    const userId = req.user.id;
+    const userId: number = req.user.id;
 
+    // Get deleted attribute
     const deletedAttribute = await deleteAttributeService(
-      res,
       userId,
       Number(req.params.id),
     );
-    if (!deletedAttribute)
-      return handleResponse(res, 404, "Deleted attribute not found");
-    handleResponse(
-      res,
-      200,
-      "Attribute deleted successfully",
-      deletedAttribute,
-    );
+
+    const { ok, status, message, data } = deletedAttribute;
+
+    // If a problem occured return an error message
+    if (!ok) return handleResponse(res, status, message);
+
+    // If no problems occured return the attribute
+    return handleResponse(res, status, message, data);
   } catch (err) {
     next(err);
   }
@@ -114,20 +110,52 @@ export const updateAttributeController = async (
 ) => {
   try {
     const { name, description, icon } = req.body;
+    // Gets user id
+    const userId: number = req.user.id;
+
+    // Get updated attribute
     const updatedAttribute = await updateAttributeService(
-      res,
-      req.user.id,
+      userId,
       Number(req.params.id),
       { name, description, icon },
     );
-    if (!updatedAttribute)
-      return handleResponse(res, 404, "Attribute not found");
-    handleResponse(
-      res,
-      200,
-      "Attribute updated successfully",
-      updatedAttribute,
+
+    const { ok, status, message, data } = updatedAttribute;
+
+    // If a problem occured return an error message
+    if (!ok) return handleResponse(res, status, message);
+
+    // If no problems occured return updated attribute normally
+    handleResponse(res, status, message, data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Gets all attributes involved in a specific quest
+export const getAllAttributesToQuestController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // Gets user id
+    const userId: number = req.user.id;
+    const questId: number = Number(req.params.questId);
+
+    // Get all attributes to quest
+    const allAttrsToQuest = await getAllAttributesToQuestService(
+      userId,
+      questId,
     );
+
+    // Gets all intel regarding attributes to quest
+    const { ok, status, message, data } = allAttrsToQuest;
+
+    // If request wasn't successfull then stop execution
+    if (!ok) return handleResponse(res, status, message);
+
+    return handleResponse(res, status, message, data);
   } catch (err) {
     next(err);
   }

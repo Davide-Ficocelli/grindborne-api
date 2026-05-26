@@ -5,6 +5,7 @@ import {
   deleteAttributeController,
   getAttributesByUserIdController,
   updateAttributeController,
+  getAllAttributesToQuestController,
 } from "../controllers/attributesController.ts";
 import {
   validateNewAttribute,
@@ -14,7 +15,7 @@ import {
 // Initialize and export express router for attributes routes
 const router = Router();
 
-// // Endpoint for all user attributes retrieval
+// // Endpoint for all user attributes fetching
 router.get(
   "/attributes",
   authenticateToken,
@@ -43,6 +44,13 @@ router.put(
   authenticateToken,
   validateUpdatedAttribute,
   updateAttributeController as RequestHandler,
+);
+
+// Endpoint for all attributes linked to a specific quest fetching
+router.get(
+  "/quests-attributes/:questId",
+  authenticateToken,
+  getAllAttributesToQuestController as RequestHandler,
 );
 
 export default router;
