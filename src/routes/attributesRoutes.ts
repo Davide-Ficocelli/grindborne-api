@@ -4,7 +4,7 @@ import {
   createNewAttributeController,
   deleteAttributeController,
   getAttributesByUserIdController,
-  updateAttribute,
+  updateAttributeController,
 } from "../controllers/attributesController.ts";
 import {
   validateNewAttribute,
@@ -42,7 +42,7 @@ router.put(
   "/attributes/:id",
   authenticateToken,
   validateUpdatedAttribute,
-  updateAttribute as RequestHandler,
+  updateAttributeController as RequestHandler,
 );
 
 export default router;

@@ -15,8 +15,8 @@ import {
   getUserByIdService,
 } from "../models/usersModel.ts";
 import {
-  getAllAttributesToQuestService,
-  getAttributesByUserIdService,
+  getAllAttributesToQuestModel,
+  getAttributesByUserIdModel,
 } from "../models/attributesModel.ts";
 
 // Importing types
@@ -146,7 +146,7 @@ const validateCompletedQuest = async function (
   }
 
   // Get all user's attributes
-  const userAttributes = await getAttributesByUserIdService(userId);
+  const userAttributes = await getAttributesByUserIdModel(userId);
 
   // If authenticated user's attributes could not be found then stop execution returning an error message
   if (!userAttributes) {
@@ -162,7 +162,7 @@ const validateCompletedQuest = async function (
     return { ok: false };
 
   // Get all user's attributes involved in the quest to be completed by using the id passed in the params
-  const attributesToBeComQuest = await getAllAttributesToQuestService(questId);
+  const attributesToBeComQuest = await getAllAttributesToQuestModel(questId);
 
   // If attributes could not be found then stop execution returning an error message
   if (!attributesToBeComQuest) {

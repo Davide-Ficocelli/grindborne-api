@@ -26,6 +26,8 @@ const inputSanitizationOptions = {
 
 // --- SCHEMAS ---
 
+// --- USERS SCHEMAS ---
+
 // Schema for user creation
 const newUserSchema = Joi.object({
   name: Joi.string().min(3).max(50).trim().required(),
@@ -56,6 +58,8 @@ const userCredentialSchema = Joi.object({
   inputSanitizationOptions,
 );
 
+// --- ATTRIBUTES SCHEMAS ---
+
 // Schema for attribute creation
 const newAttributeSchema = Joi.object({
   name: Joi.string().lowercase().trim().required(),
@@ -71,9 +75,6 @@ const updatedAttributeSchema = Joi.object({
   name: Joi.string().lowercase().trim().optional(),
   description: Joi.string().lowercase().trim().optional(),
   icon: Joi.optional(),
-  level: Joi.number().optional(),
-  xp: Joi.number().optional(),
-  xp_to_next_level: Joi.number().optional(),
 }).options(
   // Inputs sanitization
   inputSanitizationOptions,

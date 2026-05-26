@@ -1,6 +1,6 @@
 import pool from "../config/db.ts";
 import updateRow from "../utils/updateRow.ts";
-import { assignXpToAttributesAndUserService } from "../models/attributesModel.ts";
+import { assignXpToAttributesAndUserModel } from "../models/attributesModel.ts";
 import {
   ESTIMATED_TIME_BREAKPOINTS,
   REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING,
@@ -338,7 +338,7 @@ export const completeQuestService = async (
     );
 
     // Assign xp to involved attributes in the quest
-    await assignXpToAttributesAndUserService(res, id, questTotalXp, userId);
+    await assignXpToAttributesAndUserModel(res, id, questTotalXp, userId);
   } else throw new Error("Something went wrong during quest completion");
 
   return result.rows[0] ?? null;

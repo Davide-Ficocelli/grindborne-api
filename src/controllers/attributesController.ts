@@ -1,8 +1,8 @@
-import { updateAttributeService } from "../models/attributesModel.ts";
 import {
   createNewAttributeService,
   getAttributesByUserIdService,
   deleteAttributeService,
+  updateAttributeService,
 } from "../services/attributesService.ts";
 import handleResponse from "../utils/handleResponse.ts";
 
@@ -24,7 +24,7 @@ export const createNewAttributeController = async (
     const users_id = req.user.id;
 
     // Let's create the object compliant with the NewAttribute interface
-    const attributeData: Attribute = {
+    const newAttrDataObj: Attribute = {
       status: "new", // TypeScript is now happy because NewAttribute requires it
       name,
       description,
@@ -33,7 +33,7 @@ export const createNewAttributeController = async (
     };
 
     // Starts the attribute creation process with the appropriate async function created in the attributesService.ts file
-    const newAttribute = await createNewAttributeService(attributeData);
+    const newAttribute = await createNewAttributeService(newAttrDataObj);
 
     if (!newAttribute)
       return handleResponse(
@@ -107,19 +107,18 @@ export const deleteAttributeController = async (
 };
 
 // Updates an attribute
-export const updateAttribute = async (
-  req: Request,
+export const updateAttributeController = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { name, description, level, xp } = req.body;
+    const { name, description, icon } = req.body;
     const updatedAttribute = await updateAttributeService(
+      res,
+      req.user.id,
       Number(req.params.id),
-      name,
-      description,
-      level,
-      xp,
+      { name, description, icon },
     );
     if (!updatedAttribute)
       return handleResponse(res, 404, "Attribute not found");

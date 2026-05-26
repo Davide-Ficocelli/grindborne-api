@@ -5,6 +5,7 @@ import {
   getAttributesByUserIdModel,
   getAttributeByIdModel,
   deleteAttributeModel,
+  updateAttributeModel,
 } from "../models/attributesModel.ts";
 import handleResponse from "../utils/handleResponse.ts";
 import preventIdor from "../utils/preventIdor.ts";
@@ -12,7 +13,6 @@ import preventIdor from "../utils/preventIdor.ts";
 // File's index
 
 /*
-| --- PURE HELPER FUNCTIONS ---
 |
 | --- GENERAL CRUD SERVICE FUNCTIONS ---
 |
@@ -26,14 +26,9 @@ import preventIdor from "../utils/preventIdor.ts";
 
 // Inserts new attribute in the attributes table given the params from the request body and user's id from the JWT token
 export const createNewAttributeService = async (
-  attributeObj: Attribute,
+  newAttrObj: Attribute,
 ): Promise<Attribute | null> => {
-  // Represents the initial value of xp for the new attribute to reach level 2
-  const initialXpToNext = 100;
-  return await createNewAttributeModel({
-    initialXpToNext,
-    attributeObj: attributeObj,
-  });
+  return await createNewAttributeModel(newAttrObj);
 };
 
 // Gets all user attributes by user id
@@ -81,4 +76,33 @@ export const deleteAttributeService = async (
 
   // Delete the attribute and return it
   return await deleteAttributeModel(attributeId);
+};
+
+// Updates a specific attribute by id
+export const updateAttributeService = async (
+  res: any,
+  userId: number,
+  attributeId: number,
+  updatedAttrProps: {
+    name: string;
+    description?: string;
+    icon?: Buffer;
+  },
+) => {
+  // Get the attribute to be updated first
+  const attributeToBeUpdated = await getAttributeByIdModel(attributeId);
+
+  // Handle case in which the attribute to be updated is null
+  if (!attributeToBeUpdated)
+    return handleResponse(res, 404, "Attribute to be updated wasn't found");
+
+  // Get attribute owner id
+  const attributeOwnerId = attributeToBeUpdated?.users_id;
+
+  // Prevent IDOR
+  if (preventIdor(res, userId, attributeOwnerId as number).isIdorDetected)
+    return;
+
+  // Update the attribute and return it
+  return await updateAttributeModel(attributeId, updatedAttrProps);
 };
