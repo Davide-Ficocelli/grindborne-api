@@ -157,7 +157,7 @@ export const updateAttributeService = async (
   // Update the attribute and return it
   return {
     ok: true,
-    status: 202,
+    status: 200,
     message: "Attribute updated successfully",
     data: await updateAttributeModel(attributeId, updatedAttrProps),
   };
