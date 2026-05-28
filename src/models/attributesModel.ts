@@ -163,7 +163,7 @@ export const setAttributeLvlAndXpModel = async (
   const { query, values } = updateRow(
     "attributes",
     attributeId,
-    { level, xp, xpToNextLvl },
+    { level, xp, xp_to_next_level: xpToNextLvl },
     "Something went wrong during attribute update",
   );
 
