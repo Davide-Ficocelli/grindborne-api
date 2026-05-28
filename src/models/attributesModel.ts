@@ -7,7 +7,7 @@ import {
   DECAY_BASE_PERCENT,
   INITIAL_XP_TO_NEXT_LEVEL,
 } from "../config/globals.ts";
-import { overallAttributesMultiplier } from "./questsModel.ts";
+import { overallAttributesMultiplier } from "../services/questsService.ts";
 
 // Importing types
 import type Attribute from "../types/attribute.ts";
@@ -16,6 +16,7 @@ import type {
   AttributesLvlsPerUser,
 } from "../types/attribute.ts";
 import handleResponse from "../utils/handleResponse.ts";
+import { Query } from "pg";
 
 // File's index
 
@@ -58,7 +59,7 @@ export const getAttributeByIdModel = async (
 };
 
 // Gets all attributes
-const getAllAttributesModel = async (): Promise<
+export const getAllAttributesModel = async (): Promise<
   AttributeInDatabase[] | null
 > => {
   const result = await pool.query<AttributeInDatabase>(
@@ -145,6 +146,29 @@ export const getAllAttributesToQuestModel = async (
     [questId],
   );
   return result.rows.length ? result.rows : null;
+};
+
+/*
+  Sets the new level and xp values of a specific attribute
+
+  This function is used in the attributes service to update all attributes involved in a specific quest
+  upon quest completion and total xp rewards calculation for that quest
+*/
+export const setAttributeLvlAndXpModel = async (
+  level: number,
+  xp: number,
+  xpToNextLvl: number,
+  attributeId: number,
+): Promise<Attribute | null> => {
+  const { query, values } = updateRow(
+    "attributes",
+    attributeId,
+    { level, xp, xpToNextLvl },
+    "Something went wrong during attribute update",
+  );
+
+  const result = await pool.query<Attribute>(query, values);
+  return result.rows[0] ?? null;
 };
 
 // --- Helper functions for assignXpToAttributesAndUserModel ---

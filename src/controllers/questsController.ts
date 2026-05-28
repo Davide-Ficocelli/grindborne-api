@@ -2,22 +2,19 @@ import handleResponse from "../utils/handleResponse.ts";
 import preventIdor from "../utils/preventIdor.ts";
 import {
   createNewQuestService,
-  getQuestByIdService,
+  getQuestByIdModel,
   getQuestsByUserIdService,
-  updateQuestService,
+  updateQuestModel,
   deleteQuestService,
   trackQuestService,
   addAttributesToQuestService,
-  completeQuestService,
 } from "../models/questsModel.ts";
-import {
-  assignNewUserLvlService,
-  getUserByIdService,
-} from "../models/usersModel.ts";
+import { getUserByIdService } from "../models/usersModel.ts";
 import {
   getAllAttributesToQuestModel,
   getAttributesByUserIdModel,
 } from "../models/attributesModel.ts";
+import { completeQuestService } from "../services/questsService.ts";
 
 // Importing types
 import { type Request, type Response, type NextFunction } from "express";
@@ -77,141 +74,6 @@ const validateNewQuestReq = function (
   return { isValid: true, response: null };
 };
 
-type CompletedQuestValidationResult =
-  | {
-      ok: true;
-      userLevel: number;
-      userAttributesLvls: number[];
-      attributesToQuestLvls: number[];
-    }
-  | {
-      ok: false;
-    };
-
-// Validates all checks before completing a quest and returns all values needed to calculate the total xp reward
-const validateCompletedQuest = async function (
-  res: any,
-  userId: number,
-  questId: number,
-): Promise<CompletedQuestValidationResult> {
-  // Find the authenticated user
-  const user = await getUserByIdService(userId);
-  if (!user) {
-    handleResponse(res, 404, "Authenticated user could not be found");
-    return { ok: false };
-  }
-
-  // Getting user's quest to be completed
-  const userQuestToComplete = await getQuestByIdService(questId);
-
-  // If user's quest to be completed could not be found then stop execution returning an error message
-  if (!userQuestToComplete) {
-    handleResponse(res, 404, "Quest to be completed could not be found");
-    return { ok: false };
-  }
-
-  // Prevent IDOR from quest data
-  if (preventIdor(res, userId, userQuestToComplete?.users_id).isIdorDetected)
-    return { ok: false };
-
-  // Do not allow quest completion if quest to be completed has already been completed
-  if (userQuestToComplete.is_completed) {
-    handleResponse(
-      res,
-      400,
-      "Cannot complete a quest that is already completed",
-    );
-    return { ok: false };
-  }
-
-  // Do not allow quest completion if quest to be completed is not being tracked
-  if (!userQuestToComplete.is_tracked) {
-    handleResponse(
-      res,
-      400,
-      "Cannot complete an untracked quest. Only tracked quests can be completed",
-    );
-    return { ok: false };
-  }
-
-  // Compare authenticated user's id with users_id registered upon quest creation
-  // If authenticated user's id and registered user's id do not match then stop execution returning an error message
-  if (user.id !== (userQuestToComplete as Quest).users_id) {
-    handleResponse(
-      res,
-      403,
-      "Quest owner does not match with authenticated user",
-    );
-    return { ok: false };
-  }
-
-  // Get all user's attributes
-  const userAttributes = await getAttributesByUserIdModel(userId);
-
-  // If authenticated user's attributes could not be found then stop execution returning an error message
-  if (!userAttributes) {
-    handleResponse(res, 404, "User's attributes could not be found");
-    return { ok: false };
-  }
-
-  // Prevent IDOR from attributes data
-  if (
-    preventIdor(res, userId, (userAttributes[0] as Attribute).users_id)
-      .isIdorDetected
-  )
-    return { ok: false };
-
-  // Get all user's attributes involved in the quest to be completed by using the id passed in the params
-  const attributesToBeComQuest = await getAllAttributesToQuestModel(questId);
-
-  // If attributes could not be found then stop execution returning an error message
-  if (!attributesToBeComQuest) {
-    handleResponse(
-      res,
-      404,
-      "Attributes involved in quest to be completed could not be found",
-    );
-    return { ok: false };
-  }
-
-  // Preventing IDOR (Insecure Direct Object Reference)
-  /*
-    Compare authenticated user's id with registered users_id upon attributes creation.
-    If at least one attribute among the ones owned by the user or those owned by them and involved in the quest
-    to be completed has the users_id value not matching with authenticated user's id
-    then stop execution returning an error message
-  */
-  if (
-    userAttributes.some((attr) => attr.users_id !== userId) ||
-    attributesToBeComQuest.some((attr) => attr.users_id !== userId)
-  ) {
-    handleResponse(
-      res,
-      403,
-      "Attributes' owner and authenticated user do not match",
-    );
-    return { ok: false };
-  }
-
-  // Getting user level
-  const { level: userLevel } = user;
-
-  // Getting user attributes levels
-  const userAttributesLvls = userAttributes.map((attr) => Number(attr.level));
-
-  // Getting user attributes level tied to quest to complete
-  const attributesToQuestLvls = attributesToBeComQuest.map((attr) =>
-    Number(attr.level),
-  );
-
-  return {
-    ok: true,
-    userLevel: Number(userLevel),
-    userAttributesLvls,
-    attributesToQuestLvls,
-  };
-};
-
 // --- GENERAL CRUD CONTROLLER FUNCTIONS ---
 
 // Returns a quest by its id
@@ -221,7 +83,7 @@ export const getQuestById = async (
   next: NextFunction,
 ) => {
   try {
-    const quest = await getQuestByIdService(Number(req.params.id));
+    const quest = await getQuestByIdModel(Number(req.params.id));
     if (!quest) return handleResponse(res, 404, "Quest not found");
     handleResponse(res, 200, "Quest fetched successfully", quest);
   } catch (err) {
@@ -359,7 +221,7 @@ export const updateQuest = async (
     } = req.body;
 
     // Pass down parameters for new quest's values
-    const updatedQuest = await updateQuestService(Number(req.params.id), {
+    const updatedQuest = await updateQuestModel(Number(req.params.id), {
       name,
       description,
       icon,
@@ -407,7 +269,7 @@ export const trackQuest = async (
 ) => {
   try {
     // Get quest to track
-    const questToTrack = await getQuestByIdService(Number(req.params.id));
+    const questToTrack = await getQuestByIdModel(Number(req.params.id));
 
     // If quest to be tracked wasn't found then return an error
     if (!questToTrack)
@@ -431,9 +293,8 @@ export const trackQuest = async (
   }
 };
 
-// Update this comment
 // Completes a quest
-export const completeQuest = async (
+export const completeQuestController = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
@@ -445,27 +306,16 @@ export const completeQuest = async (
     // Get quest id
     const questId = Number(req.params.id);
 
-    const validation = await validateCompletedQuest(res, userId, questId);
-    if (!validation.ok) return; // the API response has already been sent inside the helper function
-
-    const { userLevel, userAttributesLvls, attributesToQuestLvls } = validation;
-
     // Pass down the quest id from parameters and the user's level in the service function
-    const completedQuest = await completeQuestService(
-      res,
-      questId,
-      userId,
-      userLevel,
-      userAttributesLvls,
-      attributesToQuestLvls,
-    );
+    const completedQuest = await completeQuestService(questId, userId);
 
-    // If completed quest could not be found then sends back an error message
-    if (!completedQuest)
-      return handleResponse(res, 404, "Completed quest could not be found");
+    const { ok, status, message, data } = completedQuest;
+
+    // If a problem occured while completing the quest then stop execution
+    if (!ok) return handleResponse(res, status, message);
 
     // If everything went well then sends back a successful message
-    handleResponse(res, 200, "Quest successfully completed", completedQuest);
+    return handleResponse(res, status, message, data);
   } catch (err) {
     next(err);
   }

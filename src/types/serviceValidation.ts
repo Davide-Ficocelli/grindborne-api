@@ -1,6 +1,6 @@
-export default interface ServiceValidation {
+export default interface ServiceValidation<T = unknown> {
   ok: boolean;
   status: number;
   message: string;
-  data?: any;
+  data?: T;
 }
