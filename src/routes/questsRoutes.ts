@@ -11,7 +11,7 @@ import {
   updateQuest,
   deleteQuest,
   trackQuest,
-  completeQuest,
+  completeQuestController,
 } from "../controllers/questsController.ts";
 
 const router = Router();
@@ -47,7 +47,7 @@ router.patch("/quests/:id/track", authenticateToken, trackQuest);
 router.patch(
   "/quests/:id/complete",
   authenticateToken,
-  completeQuest as RequestHandler,
+  completeQuestController as RequestHandler,
 );
 
 export default router;

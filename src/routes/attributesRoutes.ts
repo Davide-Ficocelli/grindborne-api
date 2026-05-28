@@ -1,10 +1,11 @@
 import { Router, type RequestHandler } from "express";
 import { authenticateToken } from "../controllers/authController.ts";
 import {
-  createNewAttribute,
-  deleteAttribute,
-  getAttributesByUserId,
-  updateAttribute,
+  createNewAttributeController,
+  deleteAttributeController,
+  getAttributesByUserIdController,
+  updateAttributeController,
+  getAllAttributesToQuestController,
 } from "../controllers/attributesController.ts";
 import {
   validateNewAttribute,
@@ -14,11 +15,11 @@ import {
 // Initialize and export express router for attributes routes
 const router = Router();
 
-// // Endpoint for all user attributes retrieval
+// // Endpoint for all user attributes fetching
 router.get(
   "/attributes",
   authenticateToken,
-  getAttributesByUserId as RequestHandler,
+  getAttributesByUserIdController as RequestHandler,
 );
 
 // Endpoint for user attribute creation
@@ -26,14 +27,14 @@ router.post(
   "/attributes",
   authenticateToken,
   validateNewAttribute,
-  createNewAttribute as RequestHandler,
+  createNewAttributeController as RequestHandler,
 );
 
 // Endpoint for user attribute deletion
 router.delete(
   "/attributes/:id",
   authenticateToken,
-  deleteAttribute as RequestHandler,
+  deleteAttributeController as RequestHandler,
 );
 
 // Endpoint for user attribute update
@@ -42,7 +43,14 @@ router.put(
   "/attributes/:id",
   authenticateToken,
   validateUpdatedAttribute,
-  updateAttribute as RequestHandler,
+  updateAttributeController as RequestHandler,
+);
+
+// Endpoint for all attributes linked to a specific quest fetching
+router.get(
+  "/quests-attributes/:questId",
+  authenticateToken,
+  getAllAttributesToQuestController as RequestHandler,
 );
 
 export default router;

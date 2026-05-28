@@ -1,15 +1,18 @@
 import handleResponse from "./handleResponse.ts";
 
 const preventIdor = function (
-  res: any,
   authenticatedUserId: number,
   dataOwnerId: number,
-): { isIdorDetected: boolean } {
+): { isIdorDetected: boolean; status?: number; message?: string } {
   if (authenticatedUserId !== dataOwnerId) {
-    handleResponse(res, 403, "Data owner and authenticated user don't match");
     return {
       isIdorDetected: true,
+      status: 403,
+      message: "Data owner and authenticated user don't match",
     };
-  } else return { isIdorDetected: false };
+  } else
+    return {
+      isIdorDetected: false,
+    };
 };
 export default preventIdor;
