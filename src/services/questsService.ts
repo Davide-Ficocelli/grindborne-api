@@ -7,15 +7,160 @@ import {
   ESTIMATED_TIME_BREAKPOINTS,
 } from "../config/globals.ts";
 
+// Importing types
+import { type NewQuestInput, type Quest } from "../types/quest.ts";
+
 // Importing functions
 import preventIdor from "../utils/preventIdor.ts";
-import { getQuestByIdModel, updateQuestModel } from "../models/questsModel.ts";
+import {
+  getQuestByIdModel,
+  getQuestsByUserIdModel,
+  updateQuestModel,
+  createNewQuestModel,
+  addAttributesToQuestModel,
+} from "../models/questsModel.ts";
 import { assignXpToAttributesAndUserService } from "../services/attributesService.ts";
 import { getUserByIdService } from "../models/usersModel.ts";
 import {
   getAttributesByUserIdModel,
   getAllAttributesToQuestModel,
 } from "../models/attributesModel.ts";
+
+// File's index
+
+/*
+|
+| --- GENERAL CRUD SERVICE FUNCTIONS ---
+|
+| --- BUSINESS LOGIC SERVICE FUNCTIONS ---
+|
+*/
+
+// ─────────────────────────────────────────────
+// --- GENERAL CRUD SERVICE FUNCTIONS ---
+// ─────────────────────────────────────────────
+
+// Gets quest by its id
+export const getQuestByIdService = async (
+  id: number,
+  userId: number,
+): Promise<ServiceValidation> => {
+  // Get quest by id
+  const quest = await getQuestByIdModel(id);
+
+  // If quest wasn't found return an error message
+  if (!quest) return { ok: false, status: 404, message: "Quest not found" };
+
+  // Prevent IDOR
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    quest.users_id,
+  );
+
+  if (isIdorDetected)
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  // If everything went well then return a successfull response along with the data
+  return {
+    ok: true,
+    status: 200,
+    message: "Quest fetched successfully",
+    data: quest,
+  };
+};
+
+// Gets quest by user's id
+export const getQuestsByUserIdService = async (
+  userId: number,
+): Promise<ServiceValidation> => {
+  // Get quest by id
+  const userQuests = await getQuestsByUserIdModel(userId);
+
+  // If quests weren't found return an error message
+  if (!userQuests)
+    return { ok: false, status: 404, message: "Quest not found" };
+
+  // Prevent IDOR
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    (userQuests[0] as Quest)?.users_id,
+  );
+
+  // Use both the preventIdor function and a more in depth check
+  if (isIdorDetected || userQuests.some((q) => q.users_id !== userId))
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  // If everything went well then return a successfull response along with the data
+  return {
+    ok: true,
+    status: 200,
+    message: "Quest fetched successfully",
+    data: userQuests,
+  };
+};
+
+// --- Helper functions for createNewQuestService ---
+
+// Creates a new quest
+export const createNewQuestService = async (
+  attributes_ids: number[],
+  questObj: NewQuestInput,
+) => {
+  // Validating new quest request
+  if (questObj.is_rewardable) {
+    // If attributes_id is either not an array or an empty one stop execution
+    if (!Array.isArray(attributes_ids) || attributes_ids.length === 0)
+      return {
+        ok: false,
+        status: 400,
+        message: "Rewardable quests must have at least one attribute id",
+      };
+    // If there's no estimated time, stop execution
+    else if (!questObj.estimated_time)
+      return {
+        ok: false,
+        status: 400,
+        message: "Rewardable quests must have an estimated time",
+      };
+    // if not rewardable, there must be NO attributes
+  } else if (
+    !questObj.is_rewardable &&
+    Array.isArray(attributes_ids) &&
+    attributes_ids.length > 0
+  )
+    return {
+      ok: false,
+      status: 400,
+      message: "Non-rewardable quests cannot have attributes",
+    };
+
+  // Once all validations are passed, create the new quest in the db
+  const newQuest = await createNewQuestModel({ ...questObj });
+
+  // If the client asked to track the quest upon creation then it's done now
+  let questToReturn = newQuest;
+
+  if (questObj.is_tracked) {
+    const trackedQuest = await trackQuestService((newQuest as Quest).id);
+    if (trackedQuest) questToReturn = trackedQuest;
+    else
+      return { ok: false, status: 500, message: "Quest could not be tracked" };
+  }
+
+  // Populates the join table quests_attributes with both quests and attributes' ids
+  await addAttributesToQuestModel((newQuest as Quest).id, attributes_ids);
+
+  return {
+    ok: true,
+    status: 201,
+    message: "Quest successfully created",
+    data: questToReturn,
+  };
+};
+
+// ─────────────────────────────────────────────
+// --- BUSINESS LOGIC SERVICE FUNCTIONS ---
+// ─────────────────────────────────────────────
 
 // --- Helper functions for completeQuestService ---
 

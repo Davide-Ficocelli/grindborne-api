@@ -40,7 +40,7 @@ export const getQuestByIdModel = async (id: number): Promise<Quest | null> => {
 };
 
 // Gets all quests based on user's id
-export const getQuestsByUserIdService = async (
+export const getQuestsByUserIdModel = async (
   userId: number,
 ): Promise<Quest[] | null> => {
   const result = await pool.query<Quest>(
@@ -51,7 +51,7 @@ export const getQuestsByUserIdService = async (
 };
 
 // Creates a quest
-export const createNewQuestService = async (
+export const createNewQuestModel = async (
   questObj: NewQuestInput,
 ): Promise<NewQuestInput | null> => {
   const result = await pool.query<NewQuestInput>(
@@ -111,7 +111,7 @@ export const trackQuestService = async (id: number): Promise<Quest | null> => {
 };
 
 // Adds attributes related to the quest in the join table
-export const addAttributesToQuestService = async (
+export const addAttributesToQuestModel = async (
   questId: number,
   attributes_ids: number[],
 ): Promise<void> => {

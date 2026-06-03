@@ -1,98 +1,57 @@
 import handleResponse from "../utils/handleResponse.ts";
-import preventIdor from "../utils/preventIdor.ts";
 import {
-  createNewQuestService,
-  getQuestByIdModel,
-  getQuestsByUserIdService,
   updateQuestModel,
   deleteQuestService,
   trackQuestService,
-  addAttributesToQuestService,
 } from "../models/questsModel.ts";
-import { getUserByIdService } from "../models/usersModel.ts";
 import {
-  getAllAttributesToQuestModel,
-  getAttributesByUserIdModel,
-} from "../models/attributesModel.ts";
-import { completeQuestService } from "../services/questsService.ts";
+  completeQuestService,
+  getQuestByIdService,
+  getQuestsByUserIdService,
+  createNewQuestService,
+} from "../services/questsService.ts";
 
 // Importing types
 import { type Request, type Response, type NextFunction } from "express";
-import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
-import { type NewQuestInput, type Quest } from "../types/quest.ts";
-import type Attribute from "../types/attribute.ts";
+import { type AuthRequest } from "../types/auth.ts";
+import { type Quest } from "../types/quest.ts";
 
-// --- HELPER FUNCTIONS ---
+// File's index
 
-// Validates request for new quest according to business requirements
-const validateNewQuestReq = function (
-  res: any,
-  is_rewardable: boolean,
-  attributes_ids: number[],
-  estimated_time: number,
-): {
-  isValid: boolean;
-  response: void | null;
-} {
-  // Check if it's rewardable and then proceed with the other checks accordingly
-  if (is_rewardable) {
-    // If attributes_id is either not an array or an empty one stop execution
-    if (!Array.isArray(attributes_ids) || attributes_ids.length === 0)
-      return {
-        isValid: false,
-        response: handleResponse(
-          res,
-          400,
-          "Rewardable quests must have at least one attribute id",
-        ),
-      };
-    // If there's no estimated time, stop execution
-    else if (!estimated_time)
-      return {
-        isValid: false,
-        response: handleResponse(
-          res,
-          400,
-          "Rewardable quests must have an estimated time",
-        ),
-      };
-    // if not rewardable, there must be NO attributes
-  } else if (
-    !is_rewardable &&
-    Array.isArray(attributes_ids) &&
-    attributes_ids.length > 0
-  )
-    return {
-      isValid: false,
-      response: handleResponse(
-        res,
-        400,
-        "Non-rewardable quests cannot have attributes",
-      ),
-    };
-
-  return { isValid: true, response: null };
-};
+/*
+|
+| --- GENERAL CRUD CONTROLLER FUNCTIONS ---
+|
+| --- BUSINESS LOGIC CONTROLLER FUNCTIONS ---
+|
+*/
 
 // --- GENERAL CRUD CONTROLLER FUNCTIONS ---
 
 // Returns a quest by its id
-export const getQuestById = async (
-  req: Request,
+export const getQuestByIdController = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const quest = await getQuestByIdModel(Number(req.params.id));
-    if (!quest) return handleResponse(res, 404, "Quest not found");
-    handleResponse(res, 200, "Quest fetched successfully", quest);
+    // Get user id
+    const userId = req.user.id;
+    // Get quest
+    const quest = await getQuestByIdService(Number(req.params.id), userId);
+
+    // Get and return service validation results
+    const { ok, status, message, data } = quest;
+
+    // return response validation results
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
 };
 
 // Returns all of the corrispective user's quests
-export const getQuestsByUserId = async (
+export const getQuestsByUserIdController = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
@@ -104,24 +63,19 @@ export const getQuestsByUserId = async (
     // Retrieves and saves all user's quests
     const userQuests = await getQuestsByUserIdService(userId);
 
-    // If no quests are returned send back an error message
-    if (!userQuests)
-      return handleResponse(res, 404, "No quests were found for this user");
+    // Get and return service validation results
+    const { ok, status, message, data } = userQuests;
 
-    // Return quests if no issues occured
-    handleResponse(
-      res,
-      200,
-      "All user quests successfully retrieved",
-      userQuests,
-    );
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
 };
 
+// --- Helper functions for CreateNewQuestController ---
+
 // Creates a new quest
-export const createNewQuest = async (
+export const createNewQuestController = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
@@ -144,22 +98,11 @@ export const createNewQuest = async (
         attributes_ids,
       } = req.body;
 
-      // Request validation
-      const { isValid, response } = validateNewQuestReq(
-        res,
-        is_rewardable,
-        attributes_ids,
-        estimated_time,
-      );
-
-      // Check if the request is valid, if not stop execution and sends back a response
-      if (isValid === false) return response;
-
       // Gets user's id for users_id field
       const userId: number = req.user.id;
 
       // Starts the quest creation process with the appropriate async function created in the questsModel.ts file
-      const newQuest = await createNewQuestService({
+      const newQuest = await createNewQuestService(attributes_ids, {
         users_id: userId,
         name,
         description,
@@ -173,25 +116,6 @@ export const createNewQuest = async (
         estimated_time,
         actual_time,
       });
-
-      // Sends an error message if quest could not be created
-      if (!newQuest)
-        return handleResponse(res, 500, "Quest could not be created");
-
-      // Populates the join table quests_attributes with both quests and attributes' ids
-      await addAttributesToQuestService((newQuest as Quest).id, attributes_ids);
-
-      // If the client asked to track the quest upon creation then it's done now
-      let questToReturn = newQuest;
-
-      if (is_tracked) {
-        const trackedQuest = await trackQuestService((newQuest as Quest).id);
-        if (trackedQuest) questToReturn = trackedQuest;
-        else return handleResponse(res, 500, "Quest could not be tracked");
-      }
-
-      // Sends back a successfull response, status code and message if the new quest is created with no issues
-      handleResponse(res, 201, "Quest successfully created", questToReturn);
     } catch (err) {
       next(err);
     }
@@ -311,11 +235,8 @@ export const completeQuestController = async (
 
     const { ok, status, message, data } = completedQuest;
 
-    // If a problem occured while completing the quest then stop execution
-    if (!ok) return handleResponse(res, status, message);
-
-    // If everything went well then sends back a successful message
-    return handleResponse(res, status, message, data);
+    // Return results
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
