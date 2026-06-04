@@ -8,7 +8,11 @@ import {
 } from "../config/globals.ts";
 
 // Importing types
-import { type NewQuestInput, type Quest } from "../types/quest.ts";
+import {
+  type NewQuest,
+  type QuestInDb,
+  type UpdatedQuest,
+} from "../types/quest.ts";
 
 // Importing functions
 import preventIdor from "../utils/preventIdor.ts";
@@ -18,6 +22,8 @@ import {
   updateQuestModel,
   createNewQuestModel,
   addAttributesToQuestModel,
+  trackQuestModel,
+  deleteQuestModel,
 } from "../models/questsModel.ts";
 import { assignXpToAttributesAndUserService } from "../services/attributesService.ts";
 import { getUserByIdService } from "../models/usersModel.ts";
@@ -26,7 +32,7 @@ import {
   getAllAttributesToQuestModel,
 } from "../models/attributesModel.ts";
 
-// File's index
+// File index
 
 /*
 |
@@ -40,13 +46,13 @@ import {
 // --- GENERAL CRUD SERVICE FUNCTIONS ---
 // ─────────────────────────────────────────────
 
-// Gets quest by its id
+// Gets quest by its quest
 export const getQuestByIdService = async (
-  id: number,
+  questId: number,
   userId: number,
 ): Promise<ServiceValidation> => {
   // Get quest by id
-  const quest = await getQuestByIdModel(id);
+  const quest = await getQuestByIdModel(questId);
 
   // If quest wasn't found return an error message
   if (!quest) return { ok: false, status: 404, message: "Quest not found" };
@@ -83,7 +89,7 @@ export const getQuestsByUserIdService = async (
   // Prevent IDOR
   const { isIdorDetected, status, message } = preventIdor(
     userId,
-    (userQuests[0] as Quest)?.users_id,
+    (userQuests[0] as QuestInDb)?.users_id,
   );
 
   // Use both the preventIdor function and a more in depth check
@@ -99,12 +105,89 @@ export const getQuestsByUserIdService = async (
   };
 };
 
+// Updates a quest
+export const updateQuestService = async (
+  questId: number,
+  userId: number,
+  updatedQuestProps: UpdatedQuest,
+): Promise<ServiceValidation> => {
+  // Get the quest to be updated first
+  const questToBeUpdated = await getQuestByIdModel(questId);
+
+  // Handle case in which the quest to be updated is null
+  if (!questToBeUpdated)
+    return {
+      ok: false,
+      status: 404,
+      message: "Quest to be updated not found",
+    };
+
+  // Get quest owner id
+  const questOwnerId = questToBeUpdated?.users_id;
+
+  // Prevent IDOR
+
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    questOwnerId as number,
+  );
+
+  if (isIdorDetected)
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  // Update the quest and return it
+  return {
+    ok: true,
+    status: 200,
+    message: "Quest updated successfully",
+    data: await updateQuestModel(questId, updatedQuestProps),
+  };
+};
+
+// Deletes a quest
+export const deleteQuestService = async (
+  questId: number,
+  userId: number,
+): Promise<ServiceValidation> => {
+  // Get the quest to be deleted first
+  const questToBeDeleted = await getQuestByIdModel(questId);
+
+  // Handle case in which the quest to be deleted is null
+  if (!questToBeDeleted)
+    return {
+      ok: false,
+      status: 404,
+      message: "Quest to be deleted not found",
+    };
+
+  // Get quest owner id
+  const questOwnerId = questToBeDeleted?.users_id;
+
+  // Prevent IDOR
+
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    questOwnerId as number,
+  );
+
+  if (isIdorDetected)
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  // Delete the quest and return it
+  return {
+    ok: true,
+    status: 200,
+    message: "Quest deleted successfully",
+    data: await deleteQuestModel(questId),
+  };
+};
+
 // --- Helper functions for createNewQuestService ---
 
 // Creates a new quest
 export const createNewQuestService = async (
   attributes_ids: number[],
-  questObj: NewQuestInput,
+  questObj: NewQuest,
 ) => {
   // Validating new quest request
   if (questObj.is_rewardable) {
@@ -137,18 +220,35 @@ export const createNewQuestService = async (
   // Once all validations are passed, create the new quest in the db
   const newQuest = await createNewQuestModel({ ...questObj });
 
+  if (!newQuest)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while creating a new quest",
+    };
+
   // If the client asked to track the quest upon creation then it's done now
   let questToReturn = newQuest;
 
   if (questObj.is_tracked) {
-    const trackedQuest = await trackQuestService((newQuest as Quest).id);
-    if (trackedQuest) questToReturn = trackedQuest;
+    const trackedQuest = await trackQuestService(
+      (newQuest as QuestInDb).id,
+      (newQuest as QuestInDb).users_id,
+    );
+    if (trackedQuest.ok && trackedQuest.data)
+      questToReturn = trackedQuest.data as QuestInDb;
     else
       return { ok: false, status: 500, message: "Quest could not be tracked" };
   }
 
   // Populates the join table quests_attributes with both quests and attributes' ids
-  await addAttributesToQuestModel((newQuest as Quest).id, attributes_ids);
+  const { ok, status, message } = await addAttributesToQuestService(
+    (newQuest as QuestInDb).id,
+    attributes_ids,
+  );
+
+  // Stop execution and return error message if something went wrong
+  if (!ok) return { ok, status, message };
 
   return {
     ok: true,
@@ -161,6 +261,89 @@ export const createNewQuestService = async (
 // ─────────────────────────────────────────────
 // --- BUSINESS LOGIC SERVICE FUNCTIONS ---
 // ─────────────────────────────────────────────
+
+// Tracks an existing quest
+export const trackQuestService = async (questId: number, userId: number) => {
+  // Get quest to be tracked by its id
+  const questToBeTracked = await getQuestByIdModel(questId);
+
+  // If quest wasn't found return an error message
+  if (!questToBeTracked)
+    return { ok: false, status: 404, message: "Quest to be tracked not found" };
+
+  // Prevent IDOR
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    questToBeTracked.users_id,
+  );
+
+  if (isIdorDetected)
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  /* 
+    At this point, it is safe to assume the quest really belongs to the authenticated user.
+    Therefore it's time to start the tracking in the db
+  */
+  const trackedQuest = await trackQuestModel(questId);
+
+  // Handle case in which tracked quest is null
+  if (!trackedQuest)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while trying to track thr quest",
+    };
+
+  // If everything went well then return a successfull response along with the data
+  return {
+    ok: true,
+    status: 200,
+    message: "Quest tracked successfully",
+    data: trackedQuest,
+  };
+};
+
+// Adds attributes to a specific quest upon creation
+const addAttributesToQuestService = async function (
+  questId: number,
+  attributes_ids: number[],
+) {
+  if (!attributes_ids || attributes_ids.length === 0)
+    return {
+      ok: false,
+      status: 400,
+      message: "Invalid attributes were provided",
+    };
+
+  // Let's build a multi-valued query: INSERT INTO quest_attributes(quest_id, attribute_id) VALUES ($1, $2),...
+  const values: any[] = [];
+  const valuePlaceholders: string[] = [];
+
+  attributes_ids.forEach((attrId, idx) => {
+    // for each pair quest/attribute we add two parameters
+    const baseIndex = idx * 2;
+    valuePlaceholders.push(`($${baseIndex + 1}, $${baseIndex + 2})`);
+    values.push(questId, attrId);
+  });
+
+  // Perform the true attributes addition operation
+  const addedAttr = await addAttributesToQuestModel(valuePlaceholders, values);
+
+  // Prevent attribute addition to quest from failing silently
+  if (!addedAttr)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while adding attributes to quest",
+    };
+
+  // Return a successful result if everything went well
+  return {
+    ok: true,
+    status: 201,
+    message: "Attributes were added to quest successfully",
+  };
+};
 
 // --- Helper functions for completeQuestService ---
 
@@ -446,11 +629,11 @@ const validateCompletedQuest = async function (
 
 // Completes a quest
 export const completeQuestService = async (
-  id: number,
+  questId: number,
   userId: number,
 ): Promise<ServiceValidation> => {
   // Get quest to be completed
-  const questToBeCompleted = await getQuestByIdModel(id);
+  const questToBeCompleted = await getQuestByIdModel(questId);
 
   // If quest to be completed wasn't found then stop execution
   if (!questToBeCompleted)
@@ -467,7 +650,7 @@ export const completeQuestService = async (
     userLevel,
     userAttributesLvls,
     attributesToQuestLvls,
-  } = await validateCompletedQuest(userId, id);
+  } = await validateCompletedQuest(userId, questId);
 
   // If quest validation failed then stop execution
   if (!ok) return { ok, status: status ?? 0, message: message ?? "" };
@@ -479,7 +662,7 @@ export const completeQuestService = async (
   let result;
   // If is not rewardable then just mark the quest as completed and stop the tracking
   if (!is_rewardable) {
-    result = await updateQuestModel(id, {
+    result = await updateQuestModel(questId, {
       is_tracked: false,
       is_completed: true,
       completed_at: new Date(),
@@ -522,13 +705,13 @@ export const completeQuestService = async (
       status,
       message,
       data: userData,
-    } = await assignXpToAttributesAndUserService(id, questTotalXp, userId);
+    } = await assignXpToAttributesAndUserService(questId, questTotalXp, userId);
 
     // If xp assig went wrong stop execution
     if (!ok) return { ok, status, message };
 
     // Update the quest data accordingly
-    result = await updateQuestModel(id, {
+    result = await updateQuestModel(questId, {
       is_completed: true,
       is_tracked: false,
       completed_at: new Date(),

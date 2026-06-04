@@ -37,11 +37,15 @@ router.put(
   "/quests/:id",
   authenticateToken,
   validateUpdatedQuest,
-  updateQuestController,
+  updateQuestController as RequestHandler,
 );
 
 // Route to delete an existing quest
-router.delete("/quests/:id", authenticateToken, deleteQuestController);
+router.delete(
+  "/quests/:id",
+  authenticateToken,
+  deleteQuestController as RequestHandler,
+);
 
 // Route for new quest creation
 router.post(
@@ -54,7 +58,11 @@ router.post(
 // --- BUSINESS LOGIC ENDPOINTS ---
 
 // Route to start tracking a quest
-router.patch("/quests/:id/track", authenticateToken, trackQuestController);
+router.patch(
+  "/quests/:id/track",
+  authenticateToken,
+  trackQuestController as RequestHandler,
+);
 
 // Route to complete a quest
 router.patch(

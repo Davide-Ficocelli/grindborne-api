@@ -1,14 +1,12 @@
 import handleResponse from "../utils/handleResponse.ts";
 import {
-  updateQuestModel,
-  deleteQuestService,
-  trackQuestService,
-} from "../models/questsModel.ts";
-import {
   completeQuestService,
   getQuestByIdService,
   getQuestsByUserIdService,
   createNewQuestService,
+  deleteQuestService,
+  trackQuestService,
+  updateQuestService,
 } from "../services/questsService.ts";
 
 // Importing types
@@ -116,6 +114,11 @@ export const createNewQuestController = async (
         estimated_time,
         actual_time,
       });
+
+      // Get and return service results
+      const { ok, status, message, data } = newQuest;
+
+      return handleResponse(res, ok, status, message, data);
     } catch (err) {
       next(err);
     }
@@ -123,8 +126,8 @@ export const createNewQuestController = async (
 };
 
 // Updates a quest
-export const updateQuest = async (
-  req: Request,
+export const updateQuestController = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
@@ -144,40 +147,58 @@ export const updateQuest = async (
       actual_time,
     } = req.body;
 
-    // Pass down parameters for new quest's values
-    const updatedQuest = await updateQuestModel(Number(req.params.id), {
-      name,
-      description,
-      icon,
-      total_xp,
-      is_rewardable,
-      is_tracked,
-      tracked_at,
-      is_completed,
-      completed_at,
-      estimated_time,
-      actual_time,
-    });
-    // Sends back an error status code if a quest wasn't found
-    if (!updatedQuest) return handleResponse(res, 404, "Quest not found");
+    // Get user id
+    const userId = req.user.id;
 
-    // Sends back a successfull status code if the quest was updated successfully
-    handleResponse(res, 200, "Quest updated successfully", updatedQuest);
+    // Pass down parameters for new quest's values
+    const updatedQuest = await updateQuestService(
+      Number(req.params.id),
+      userId,
+      {
+        name,
+        description,
+        icon,
+        total_xp,
+        is_rewardable,
+        is_tracked,
+        tracked_at,
+        is_completed,
+        completed_at,
+        estimated_time,
+        actual_time,
+      },
+    );
+
+    // Get and send back service results
+    const { ok, status, message, data } = updatedQuest;
+
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
 };
 
 // Deletes a quest
-export const deleteQuest = async (
-  req: Request,
+export const deleteQuestController = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const deletedQuest = await deleteQuestService(Number(req.params.id));
-    if (!deletedQuest) return handleResponse(res, 404, "Quest not found");
-    handleResponse(res, 200, "Quest deleted successfully", deletedQuest);
+    // Get user id
+    const userId = req.user.id;
+
+    // Start the quest deletion process in the service
+    const deletedQuest = await deleteQuestService(
+      Number(req.params.id),
+      userId,
+    );
+
+    // Get and return service results
+
+    const { ok, status, message, data } = deletedQuest;
+
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
@@ -186,32 +207,23 @@ export const deleteQuest = async (
 // --- BUSINESS LOGIC CONTROLLER FUNCTIONS ---
 
 // Tracks a quest
-export const trackQuest = async (
-  req: Request,
+export const trackQuestController = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    // Get quest to track
-    const questToTrack = await getQuestByIdModel(Number(req.params.id));
+    // Get quest and user id
+    const questId = Number(req.params.id);
+    const userId = req.user.id;
 
-    // If quest to be tracked wasn't found then return an error
-    if (!questToTrack)
-      return handleResponse(res, 404, "Couldn't find quest to be tracked");
+    // Start the quest tracking process
+    const trackedQuest = await trackQuestService(questId, userId);
 
-    // Do not allow tracking if quest has already been completed
-    if (questToTrack?.is_completed)
-      return handleResponse(res, 400, "Cannot track completed quest");
+    // Get and return service results
+    const { ok, status, message, data } = trackedQuest;
 
-    // Pass down the quest id from parameters in the service function
-    const trackedQuest = await trackQuestService(Number(req.params.id));
-
-    // If tracked quest wasn't found then sends back an error message
-    if (!trackedQuest)
-      return handleResponse(res, 404, "Tracked quest not found");
-
-    // If everything went well then sends back a successful message
-    handleResponse(res, 200, "Quest successfully tracked", trackedQuest);
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
