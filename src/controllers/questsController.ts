@@ -33,10 +33,11 @@ export const getQuestByIdController = async (
   next: NextFunction,
 ) => {
   try {
-    // Get user id
+    // Get quest and user id
+    const questId = Number(req.params.id);
     const userId = req.user.id;
     // Get quest
-    const quest = await getQuestByIdService(Number(req.params.id), userId);
+    const quest = await getQuestByIdService(questId, userId);
 
     // Get and return service validation results
     const { ok, status, message, data } = quest;
@@ -147,27 +148,24 @@ export const updateQuestController = async (
       actual_time,
     } = req.body;
 
-    // Get user id
+    // Get quest and user id
+    const questId = Number(req.params.id);
     const userId = req.user.id;
 
     // Pass down parameters for new quest's values
-    const updatedQuest = await updateQuestService(
-      Number(req.params.id),
-      userId,
-      {
-        name,
-        description,
-        icon,
-        total_xp,
-        is_rewardable,
-        is_tracked,
-        tracked_at,
-        is_completed,
-        completed_at,
-        estimated_time,
-        actual_time,
-      },
-    );
+    const updatedQuest = await updateQuestService(questId, userId, {
+      name,
+      description,
+      icon,
+      total_xp,
+      is_rewardable,
+      is_tracked,
+      tracked_at,
+      is_completed,
+      completed_at,
+      estimated_time,
+      actual_time,
+    });
 
     // Get and send back service results
     const { ok, status, message, data } = updatedQuest;
@@ -185,14 +183,12 @@ export const deleteQuestController = async (
   next: NextFunction,
 ) => {
   try {
-    // Get user id
+    // Get quest and user id
+    const questId = Number(req.params.id);
     const userId = req.user.id;
 
     // Start the quest deletion process in the service
-    const deletedQuest = await deleteQuestService(
-      Number(req.params.id),
-      userId,
-    );
+    const deletedQuest = await deleteQuestService(questId, userId);
 
     // Get and return service results
 
