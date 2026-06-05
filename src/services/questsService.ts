@@ -94,8 +94,6 @@ export const getQuestsByUserIdService = async (
     (userQuests[0] as QuestInDb)?.users_id,
   );
 
-  console.log(userId);
-
   // Use both the preventIdor function and a more in depth check
   if (isIdorDetected || userQuests.some((q) => q.users_id !== userId))
     return { ok: false, status: status ?? 0, message: message ?? "" };
