@@ -1,15 +1,11 @@
 // Importing types
 import type Attribute from "../types/attribute.ts";
-import type {
-  AttributeInDatabase,
-  AttributesLvlsPerUser,
-} from "../types/attribute.ts";
+import type { AttributeInDatabase } from "../types/attribute.ts";
 import type ServiceValidation from "../types/serviceValidation.ts";
 
 // Importing methods
 import {
   createNewAttributeModel,
-  getAllAttributesModel,
   getAttributesByUserIdModel,
   getAttributeByIdModel,
   deleteAttributeModel,
@@ -22,15 +18,12 @@ import {
   assignNewUserLvlService,
   getUserByIdService,
 } from "../models/usersModel.ts";
-import { overallAttributesMultiplier } from "../services/questsService.ts";
 import preventIdor from "../utils/preventIdor.ts";
 
 // Importing global variables
 import {
   INITIAL_XP_TO_NEXT_LEVEL,
   NEW_ATTR_LEVEL_XP_COST_SCALING,
-  STARTING_GRACE_PERIOD_IN_DAYS,
-  DECAY_BASE_PERCENT,
 } from "../config/globals.ts";
 
 // File's index
@@ -78,7 +71,7 @@ export const getAttributesByUserIdService = async (
 
   // Handle case in which user attributes are null
   if (!allUserAttributes)
-    return { ok: false, status: 404, message: "User attributes weren't found" };
+    return { ok: false, status: 404, message: "User attributes not found" };
 
   // Get attributes owner id
   const attributeOwnerId = allUserAttributes[0]?.users_id;
@@ -90,7 +83,10 @@ export const getAttributesByUserIdService = async (
     attributeOwnerId as number,
   );
 
-  if (isIdorDetected)
+  if (
+    isIdorDetected ||
+    allUserAttributes.some((attr) => attr.users_id !== userId)
+  )
     return { ok: false, status: status ?? 0, message: message ?? "" };
 
   // return all user attirubutes
@@ -189,8 +185,8 @@ export const updateAttributeService = async (
 
 // Gets all attributes involved in a specific quest
 export const getAllAttributesToQuestService = async (
-  userId: number,
   questId: number,
+  userId: number,
 ): Promise<ServiceValidation> => {
   // Get all attributes by user id
   const allAttrsToQuest = await getAllAttributesToQuestModel(questId);
@@ -225,7 +221,7 @@ export const getAllAttributesToQuestService = async (
   };
 };
 
-// --- Helper functions for assignXpToAttributesAndUserService ---
+// --- Helper functions for assignXpToAttrsAndUserService ---
 
 // Calculates how much XP is needed to go from current level to next level for an ATTRIBUTE
 export function calculateNextLevelThresholdModel(level: number): number {
@@ -246,7 +242,7 @@ const isLevelUpRequired = (
 ): boolean => remainingXpToDistribute >= xpToNext;
 
 // Assigns XP to attributes involved in a specific quest while completing it
-export const assignXpToAttributesAndUserService = async (
+export const assignXpToAttrsAndUserService = async (
   questId: number,
   questTotalXp: number,
   userId: number,
@@ -258,7 +254,7 @@ export const assignXpToAttributesAndUserService = async (
     return {
       ok: false,
       status: 404,
-      message: "Attributes linked to quest to be completed couldn't be found",
+      message: "Attributes linked to quest to be completed not found",
     };
 
   // XP per attribute (evenly split)
@@ -266,15 +262,10 @@ export const assignXpToAttributesAndUserService = async (
     questTotalXp / userAttrsToBeComQuest.length,
   );
 
-  console.log("------ ATTRIBUTES FOR OF LOOP BEGIN ------");
   // For each attribute, apply XP and handle possible multi-level-ups
   for (const attr of userAttrsToBeComQuest) {
-    console.log(`--- ATTRIBUTE ITERATION: ${attr.name.toUpperCase()} ---`);
     let remainingXpToDistributePerAttr = xpForEachAttribute;
 
-    console.log(
-      `remainingXpToDistributePerAttr: ${remainingXpToDistributePerAttr}`,
-    );
     // Defensive: ensure numbers are not null
     let level = attr.level ?? 1;
     let xp = attr.xp ?? 0;
@@ -284,56 +275,28 @@ export const assignXpToAttributesAndUserService = async (
     // Calculate total xp value to next level in current level
     let totalXpToNextLvl = xp + xpToNext;
 
-    console.log(
-      `level: ${level}, xp: ${xp}, xpToNext: ${xpToNext}, remainingXpToDistributePerAttr: ${remainingXpToDistributePerAttr}, totalXpToNextLvl: ${totalXpToNextLvl}`,
-    );
-
     // Add XP to the "total" XP counter
     xp += remainingXpToDistributePerAttr;
-    console.log(`xp: ${xp}`);
 
     // While we still have XP to consume towards level-ups
     while (isLevelUpRequired(remainingXpToDistributePerAttr, xpToNext)) {
-      console.log(
-        `While loop data:
-        remainingXpToDistributePerAttr: ${remainingXpToDistributePerAttr}, xpToNext: ${xpToNext}`,
-      );
-
       // Spend what is needed to level up
       remainingXpToDistributePerAttr -= xpToNext;
-      console.log(`While loop data:
-        remainingXpToDistributePerAttr: ${remainingXpToDistributePerAttr}`);
 
       // Level up the attribute
       level += 1;
-      console.log(`While loop data:
-        level: ${level}`);
 
       xp -= totalXpToNextLvl;
-      console.log(`While loop data:
-        xp: ${xp}`);
 
       // Recalculate the total xp amount required for the NEW level
       xpToNext = calculateNextLevelThresholdModel(level);
       // (Here you could also accumulate some "leveledUp" count to later adjust user level)
 
-      console.log(
-        `While loop data:
-        remainingXpToDistributePerAttr: ${remainingXpToDistributePerAttr}, xpToNext: ${xpToNext}, xp: ${xp}`,
-      );
-
       totalXpToNextLvl = xpToNext;
-      console.log(`While loop data: 
-        totalXpToNextLvl: ${totalXpToNextLvl}`);
     }
 
     // After all level-ups are processed, the remaining XP is what is still needed
     xpToNext -= remainingXpToDistributePerAttr;
-    console.log(`xpToNext: ${xpToNext}`);
-
-    console.log(
-      `level: ${level}, xp: ${xp}, xpToNext: ${xpToNext}, attr.id: ${attr.id}`,
-    );
 
     // 4) Persist the updated values to the database
     const updatedAttr = await setAttributeLvlAndXpModel(
@@ -349,11 +312,7 @@ export const assignXpToAttributesAndUserService = async (
         status: 500,
         message: "Something went wrong during attribute update",
       };
-
-    console.log(`--- ATTRIBUTE ITERATION ${attr.name.toUpperCase()} END ---`);
   }
-
-  console.log("------ ATTRIBUTES FOR OF LOOP END ------");
 
   // Gets user attributes
   const userAttributes = await getAttributesByUserIdModel(userId);
@@ -377,6 +336,7 @@ export const assignXpToAttributesAndUserService = async (
   // Calculate new user level after quest was completed
   const newUserLvl = calculateUserLvl(userAttributesLvls);
 
+  // Get user to level up
   const userToLevelUp = await getUserByIdService(userId);
 
   // If user to level up wasn't found then returns an error message
@@ -384,15 +344,11 @@ export const assignXpToAttributesAndUserService = async (
     return {
       ok: false,
       status: 404,
-      message: "User to level up could not be found",
+      message: "User to level up not found",
     };
-  console.log(`userToLevelUp: ${userToLevelUp}`);
 
   // Assign new user level to that specific user
   const leveledUpUser = await assignNewUserLvlService(userId, newUserLvl);
-  console.log(`leveledUpUser: ${leveledUpUser}`);
-
-  console.log(`newUserLvl: ${newUserLvl}`);
 
   return {
     ok: true,

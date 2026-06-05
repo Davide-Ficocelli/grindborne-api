@@ -26,6 +26,9 @@ export const ESTIMATED_TIME_BREAKPOINTS: EstimatedTimeBreakpoints = {
   standardXpMultiplier: 1,
 };
 
+// Base reward: a "typical" quest is worth about 20% of a level-up
+export const AVG_QUEST_LVL_UP_WORTH: number = 0.2;
+
 // Represents the number of average attributes levels the user must go through to scale their build up
 export const REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING: number = 10;
 

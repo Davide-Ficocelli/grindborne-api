@@ -87,11 +87,8 @@ const newQuestSchema = Joi.object({
   name: Joi.string().required(),
   description: Joi.string().optional(),
   icon: Joi.optional(),
-  total_xp: Joi.number().optional(),
   is_rewardable: Joi.boolean().required(),
   is_tracked: Joi.boolean().required(),
-  tracked_at: Joi.date().optional(),
-  is_completed: Joi.boolean().required(),
   estimated_time: Joi.number().optional(),
   attributes_ids: Joi.array().optional(),
 }).options(
@@ -104,11 +101,7 @@ const updatedQuestSchema = Joi.object({
   name: Joi.string().optional(),
   description: Joi.string().optional(),
   icon: Joi.optional(),
-  total_xp: Joi.number().optional(),
   is_rewardable: Joi.boolean().optional(),
-  is_tracked: Joi.boolean().optional(),
-  tracked_at: Joi.date().optional(),
-  is_completed: Joi.boolean().optional(),
   estimated_time: Joi.number().optional(),
 }).options(
   // Inputs sanitization
