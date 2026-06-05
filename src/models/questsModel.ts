@@ -26,7 +26,7 @@ export const getQuestsByUserIdModel = async (
   userId: number,
 ): Promise<QuestInDb[] | null> => {
   const result = await pool.query<QuestInDb>(
-    "SELECT quests.id, quests.name, quests.description, quests.icon, quests.is_rewardable, quests.estimated_time, quests.actual_time, quests.is_tracked, quests.is_completed FROM quests JOIN users ON quests.users_id = users.id WHERE quests.users_id = $1",
+    "SELECT quests.id, quests.users_id, quests.name, quests.description, quests.icon, quests.is_rewardable, quests.estimated_time, quests.actual_time, quests.is_tracked, quests.is_completed FROM quests JOIN users ON quests.users_id = users.id WHERE quests.users_id = $1",
     [userId],
   );
   return result.rows.length ? result.rows : null;
@@ -37,20 +37,14 @@ export const createNewQuestModel = async (
   questObj: NewQuest,
 ): Promise<QuestInDb | null> => {
   const result = await pool.query<QuestInDb>(
-    "INSERT INTO quests (users_id, name, description, icon, total_xp, is_rewardable, is_tracked, tracked_at, is_completed, completed_at, estimated_time, actual_time) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *",
+    "INSERT INTO quests (users_id, name, description, icon, is_rewardable, estimated_time) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
     [
       questObj.users_id,
       questObj.name,
       questObj.description,
       questObj.icon,
-      questObj.total_xp,
       questObj.is_rewardable,
-      questObj.is_tracked,
-      questObj.tracked_at,
-      questObj.is_completed,
-      questObj.completed_at,
       questObj.estimated_time,
-      questObj.actual_time,
     ],
   );
   return result.rows[0] ?? null;

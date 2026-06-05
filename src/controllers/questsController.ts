@@ -86,14 +86,9 @@ export const createNewQuestController = async (
         name,
         description,
         icon,
-        total_xp,
         is_rewardable,
         is_tracked,
-        tracked_at,
-        is_completed,
-        completed_at,
         estimated_time,
-        actual_time,
         attributes_ids,
       } = req.body;
 
@@ -101,19 +96,13 @@ export const createNewQuestController = async (
       const userId: number = req.user.id;
 
       // Starts the quest creation process with the appropriate async function created in the questsModel.ts file
-      const newQuest = await createNewQuestService(attributes_ids, {
+      const newQuest = await createNewQuestService(attributes_ids, is_tracked, {
         users_id: userId,
         name,
         description,
         icon,
-        total_xp,
         is_rewardable,
-        is_tracked,
-        tracked_at,
-        is_completed,
-        completed_at,
         estimated_time,
-        actual_time,
       });
 
       // Get and return service results
@@ -134,19 +123,7 @@ export const updateQuestController = async (
 ) => {
   try {
     // Extract all data from the request body
-    const {
-      name,
-      description,
-      icon,
-      total_xp,
-      is_rewardable,
-      is_tracked,
-      tracked_at,
-      is_completed,
-      completed_at,
-      estimated_time,
-      actual_time,
-    } = req.body;
+    const { name, description, icon, is_rewardable, estimated_time } = req.body;
 
     // Get quest and user id
     const questId = Number(req.params.id);
@@ -157,14 +134,8 @@ export const updateQuestController = async (
       name,
       description,
       icon,
-      total_xp,
       is_rewardable,
-      is_tracked,
-      tracked_at,
-      is_completed,
-      completed_at,
       estimated_time,
-      actual_time,
     });
 
     // Get and send back service results

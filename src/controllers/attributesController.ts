@@ -37,13 +37,10 @@ export const createNewAttributeController = async (
     // Starts the attribute creation process with the appropriate async function created in the attributesService.ts file
     const newAttribute = await createNewAttributeService(newAttrDataObj);
 
+    // Get and return service results
     const { ok, status, message, data } = newAttribute;
 
-    // If a problem occured send back an error message
-    if (!ok) return handleResponse(res, status, message);
-
-    // Sends back a successfull response, status code and message if the new attribute is created with no issues
-    return handleResponse(res, status, message, data);
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
@@ -62,13 +59,10 @@ export const getAttributesByUserIdController = async (
     // Retrieves and saves all user's attributes
     const userAttributes = await getAttributesByUserIdService(userId);
 
+    // Get and return service results
     const { ok, status, message, data } = userAttributes;
 
-    // If a problem occured send back an error message
-    if (!ok) return handleResponse(res, status, message);
-
-    // Return attributes normally if no issues occured
-    return handleResponse(res, status, message, data);
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
@@ -90,13 +84,10 @@ export const deleteAttributeController = async (
       Number(req.params.id),
     );
 
+    // Get and return service results
     const { ok, status, message, data } = deletedAttribute;
 
-    // If a problem occured return an error message
-    if (!ok) return handleResponse(res, status, message);
-
-    // If no problems occured return the attribute
-    return handleResponse(res, status, message, data);
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
@@ -120,13 +111,10 @@ export const updateAttributeController = async (
       { name, description, icon },
     );
 
+    // Get and return service results
     const { ok, status, message, data } = updatedAttribute;
 
-    // If a problem occured return an error message
-    if (!ok) return handleResponse(res, status, message);
-
-    // If no problems occured return updated attribute normally
-    handleResponse(res, status, message, data);
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
@@ -145,17 +133,14 @@ export const getAllAttributesToQuestController = async (
 
     // Get all attributes to quest
     const allAttrsToQuest = await getAllAttributesToQuestService(
-      userId,
       questId,
+      userId,
     );
 
-    // Gets all intel regarding attributes to quest
+    // Get and return service results
     const { ok, status, message, data } = allAttrsToQuest;
 
-    // If request wasn't successfull then stop execution
-    if (!ok) return handleResponse(res, status, message);
-
-    return handleResponse(res, status, message, data);
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
