@@ -1,5 +1,6 @@
+export const SALT_ROUNDS: number = 10;
 // Represents in days the starting grace period before attributes start decaying
-export const STARTING_GRACE_PERIOD_IN_DAYS: number = 7;
+const STARTING_GRACE_PERIOD_IN_DAYS: number = 7;
 
 /*
   Can represent based on the context: 

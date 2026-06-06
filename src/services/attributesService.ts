@@ -127,12 +127,23 @@ export const deleteAttributeService = async (
   if (isIdorDetected)
     return { ok: false, status: status ?? 0, message: message ?? "" };
 
-  // Delete the attribute and return it
+  // Delete the attribute
+  const deletedAttribute = await deleteAttributeModel(attributeId);
+
+  // Handle case in which deleted attribute is null
+  if (!deletedAttribute)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while deleting attribute",
+    };
+
+  // If everything went well return a successful state
   return {
     ok: true,
     status: 200,
     message: "Attribute deleted successfully",
-    data: await deleteAttributeModel(attributeId),
+    data: deletedAttribute,
   };
 };
 
@@ -170,12 +181,26 @@ export const updateAttributeService = async (
   if (isIdorDetected)
     return { ok: false, status: status ?? 0, message: message ?? "" };
 
+  // Update the attribute
+  const updatedAttribute = await updateAttributeModel(
+    attributeId,
+    updatedAttrProps,
+  );
+
+  // Handle case in which updated attribute is null
+  if (!updatedAttribute)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while updating the attribute",
+    };
+
   // Update the attribute and return it
   return {
     ok: true,
     status: 200,
     message: "Attribute updated successfully",
-    data: await updateAttributeModel(attributeId, updatedAttrProps),
+    data: updatedAttribute,
   };
 };
 

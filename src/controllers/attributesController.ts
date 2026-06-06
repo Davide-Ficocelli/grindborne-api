@@ -127,7 +127,7 @@ export const getAllAttributesToQuestController = async (
   next: NextFunction,
 ) => {
   try {
-    // Gets user id
+    // Gets user and quest id
     const userId: number = req.user.id;
     const questId: number = Number(req.params.questId);
 

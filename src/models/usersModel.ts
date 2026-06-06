@@ -2,26 +2,24 @@ import pool from "../config/db.ts";
 import updateRow from "../utils/updateRow.ts";
 
 // Importing types
-import type User from "../types/user.ts";
+import { type UserInDb, type UpdatedUser } from "../types/user.ts";
 
 // --- GENERAL CRUD METHODS ---
 
-export const getAllUsersService = async (): Promise<User[] | null> => {
-  const result = await pool.query<User>("SELECT * FROM users");
-  return result.rows ?? null;
-};
-
-export const getUserByIdService = async (id: number): Promise<User | null> => {
-  const result = await pool.query<User>("SELECT * FROM users WHERE id = $1", [
-    id,
-  ]);
+export const getUserByIdModel = async (
+  userId: number,
+): Promise<UserInDb | null> => {
+  const result = await pool.query<UserInDb>(
+    "SELECT * FROM users WHERE id = $1",
+    [userId],
+  );
   return result.rows[0] ?? null;
 };
 
-export const getUserByEmailService = async (
+export const getUserByEmailModel = async (
   email: string,
-): Promise<User | null> => {
-  const result = await pool.query<User>(
+): Promise<UserInDb | null> => {
+  const result = await pool.query<UserInDb>(
     "SELECT * FROM users WHERE email = $1",
     [email],
   );
@@ -34,45 +32,39 @@ export const getUserByEmailService = async (
     data from the previous query.
     For more details check https://www.postgresql.org/docs/current/dml-returning.html
 */
-export const createUserService = async (
+export const createNewUserModel = async (
   name: string,
   email: string,
-  password: string,
-): Promise<User | null> => {
-  const result = await pool.query<User>(
+  passwordHash: string,
+): Promise<UserInDb | null> => {
+  const result = await pool.query<UserInDb>(
     "INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING *",
-    [name, email, password],
+    [name, email, passwordHash],
   );
   return result.rows[0] ?? null;
 };
 
-export const updateUserService = async (
+export const updateUserModel = async (
   id: number,
-  name: string,
-  email: string,
-  level: number,
-  stamina: number,
-): Promise<User | null> => {
+  updatedUserProps: UpdatedUser,
+): Promise<UserInDb | null> => {
   const { query, values } = updateRow(
     "users",
     id,
     {
-      name,
-      email,
-      level,
-      stamina,
+      ...updatedUserProps,
     },
     "No parameters for user update were provided",
   );
 
-  const result = await pool.query<User>(query, values);
+  const result = await pool.query<UserInDb>(query, values);
   return result.rows[0] ?? null;
 };
 
-export const deleteUserService = async (id: number) => {
-  const result = await pool.query<User>(
+export const deleteUserModel = async (userId: number) => {
+  const result = await pool.query<UserInDb>(
     "DELETE FROM users WHERE id = $1 RETURNING *",
-    [id],
+    [userId],
   );
   return result.rows[0] ?? null;
 };
@@ -84,7 +76,7 @@ export const assignNewUserLvlService = async (
   id: number,
   newUserLvl: number,
 ) => {
-  const result = await pool.query<User>(
+  const result = await pool.query<UserInDb>(
     `
     UPDATE users
     SET level=$2

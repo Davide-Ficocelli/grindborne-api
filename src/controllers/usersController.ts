@@ -1,101 +1,100 @@
-import bcrypt from "bcrypt";
 import handleResponse from "../utils/handleResponse.ts";
 import {
-  createUserService,
-  deleteUserService,
-  getAllUsersService,
+  createNewUserService,
   getUserByIdService,
   updateUserService,
-} from "../models/usersModel.ts";
+  deleteUserService,
+} from "../services/usersService.ts";
 
 // Importing types
 import { type Request, type Response, type NextFunction } from "express";
+import { type AuthRequest } from "../types/auth.ts";
 
-export const createUser = async (
+export const createNewUserController = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { name, email, password } = req.body as {
-      name: string;
-      email: string;
-      password: string;
-    };
+    const { name, email, password } = req.body;
 
-    const saltRounds = 10;
+    const newUser = await createNewUserService(name, email, password);
 
-    const passwordHash = await bcrypt.hash(password, saltRounds);
+    // Get and return service results
+    const { ok, status, message, data } = newUser;
 
-    const newUser = await createUserService(name, email, passwordHash);
-    handleResponse(res, 201, "User created successfully", newUser);
-
-    // VERY IMPORTANT: DO NOT return the hashed password in the response
-    if (newUser && (newUser as any).password_hash) {
-      delete (newUser as any).password_hash;
-    }
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
 };
 
-export const getAllUsers = async (
-  req: Request,
+export const getUserByIdController = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const users = await getAllUsersService();
-    handleResponse(res, 200, "Users fetched successfully", users as any);
+    // Get authenticated user and db user id
+    const userId = Number(req.params.id);
+    const authUserId = req.user.id;
+
+    // Get user
+    const quest = await getUserByIdService(userId, authUserId);
+
+    // Get and return service validation results
+    const { ok, status, message, data } = quest;
+
+    // return response validation results
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
 };
 
-export const getUserById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const user = await getUserByIdService(Number(req.params.id));
-    if (!user) return handleResponse(res, 404, "User not found");
-    handleResponse(res, 200, "User fetched successfully", user);
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const updateUser = async (
-  req: Request,
+export const updateUserController = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   const { name, email, level, stamina } = req.body;
+
+  // Get authenticated and passed user id
+  const userId = Number(req.params.id);
+  const authUserid = req.user.id;
   try {
-    const updatedUser = await updateUserService(
-      Number(req.params.id),
+    const updatedUser = await updateUserService(userId, authUserid, {
       name,
       email,
       level,
       stamina,
-    );
-    if (!updatedUser) return handleResponse(res, 404, "User not found");
-    handleResponse(res, 200, "User updated successfully", updatedUser);
+    });
+
+    // Get and return service results
+    const { ok, status, message, data } = updatedUser;
+
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
 };
 
-export const deleteUser = async (
-  req: Request,
+export const deleteUserController = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const deletedUser = await deleteUserService(Number(req.params.id));
-    if (!deletedUser) return handleResponse(res, 404, "User not found");
-    handleResponse(res, 200, "User deleted successfully", deletedUser);
+    // Get authenticated and passed user id
+    const userId = Number(req.params.id);
+    const authUserid = req.user.id;
+
+    const deletedUser = await deleteUserService(userId, authUserid);
+
+    // Get and return service results
+    const { ok, status, message, data } = deletedUser;
+
+    return handleResponse(res, ok, status, message, data);
   } catch (err) {
     next(err);
   }
