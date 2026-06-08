@@ -1,9 +1,8 @@
 import { Router } from "express";
 import {
-  authenticateToken,
-  logInUser,
-  logOutUser,
-  createNewAccessToken,
+  logInUserController,
+  logOutUserController,
+  createNewAccessTokenController,
 } from "../controllers/authController.ts";
 import { validateUserCredentials } from "../middlewares/inputValidators.ts";
 
@@ -11,10 +10,10 @@ import { validateUserCredentials } from "../middlewares/inputValidators.ts";
 const router = Router();
 
 // Logs the user in
-router.post("/login", validateUserCredentials, logInUser);
+router.post("/login", validateUserCredentials, logInUserController);
 // Creates new access token
-router.post("/token", createNewAccessToken);
+router.post("/token", createNewAccessTokenController);
 // Logs the user out
-router.delete("/logout", logOutUser);
+router.delete("/logout", logOutUserController);
 
 export default router;
