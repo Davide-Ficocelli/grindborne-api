@@ -28,7 +28,7 @@ import {
   deleteQuestModel,
 } from "../models/questsModel.ts";
 import { assignXpToAttrsAndUserService } from "../services/attributesService.ts";
-import { getUserByIdService } from "../models/usersModel.ts";
+import { getUserByIdModel } from "../models/usersModel.ts";
 import {
   getAttributesByUserIdService,
   getAllAttributesToQuestService,
@@ -590,7 +590,7 @@ const validateQuestToBeCompleted = async function (
     };
 
   // Find the authenticated user
-  const user = await getUserByIdService(userId);
+  const user = await getUserByIdModel(userId);
 
   // Handle case in which user is null
   if (!user)

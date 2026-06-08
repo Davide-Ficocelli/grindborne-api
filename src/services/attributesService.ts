@@ -16,7 +16,7 @@ import {
 import {
   calculateUserLvl,
   assignNewUserLvlService,
-  getUserByIdService,
+  getUserByIdModel,
 } from "../models/usersModel.ts";
 import preventIdor from "../utils/preventIdor.ts";
 
@@ -362,7 +362,7 @@ export const assignXpToAttrsAndUserService = async (
   const newUserLvl = calculateUserLvl(userAttributesLvls);
 
   // Get user to level up
-  const userToLevelUp = await getUserByIdService(userId);
+  const userToLevelUp = await getUserByIdModel(userId);
 
   // If user to level up wasn't found then returns an error message
   if (!userToLevelUp)
