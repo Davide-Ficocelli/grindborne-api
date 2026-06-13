@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { getUserByEmailService } from "../models/usersModel.ts";
+import { getUserByEmailModel } from "../models/usersModel.ts";
 import handleResponse from "../utils/handleResponse.ts";
 import bcrypt from "bcrypt";
 
@@ -23,17 +23,17 @@ export const logInUser = async (
 ) => {
   try {
     // Fetch users by using the sent email in the request body as the input for the function
-    const user = await getUserByEmailService(req.body.email);
+    const user = await getUserByEmailModel(req.body.email);
 
     // If user was not found then stop response and send an error message to the client
-    if (!user) return handleResponse(res, 404, "User not found");
+    if (!user) return handleResponse(res, false, 404, "User not found");
 
     // Save sent password from the request body
     const inputPassword = req.body.password;
 
     // If no password was provided then stop response and send an error message to the client
     if (!inputPassword)
-      return handleResponse(res, 400, "Credentials not provided");
+      return handleResponse(res, false, 400, "Credentials not provided");
 
     // Getting hashed password
     const hashedPassword = user.password_hash;
@@ -46,7 +46,7 @@ export const logInUser = async (
 
     // Returning an error message if passwords do not match
     if (!doPasswordsMatch)
-      return handleResponse(res, 401, "Incorrect credentials");
+      return handleResponse(res, false, 401, "Incorrect credentials");
 
     // === JSON web token implementation ===
 
@@ -69,7 +69,7 @@ export const logInUser = async (
 
     // Returning a success message and access token if passwords match
     if (doPasswordsMatch)
-      return handleResponse(res, 200, "Successfully logged in", {
+      return handleResponse(res, true, 200, "Successfully logged in", {
         accessToken,
         refreshToken,
       });
@@ -81,9 +81,11 @@ export const logInUser = async (
 // Logs user out
 export const logOutUser = (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!req.body.token)
+      return handleResponse(res, false, 404, "Refresh Token not found");
     // Normally you would delete refresh tokens from the database but since they're currently being stored in a local array they just get filtered out
     refreshTokens = refreshTokens.filter((token) => token !== req.body.token);
-    handleResponse(res, 204, "Refresh token successfuly deleted");
+    return handleResponse(res, true, 200, "Refresh token successfuly deleted");
   } catch (err) {
     next(err);
   }
@@ -102,7 +104,7 @@ export const authenticateToken = (
     const token = authHeader && authHeader.split(" ")[1];
 
     // Sending back a failure status code if no token exists
-    if (!token) return handleResponse(res, 401, "Token not provided");
+    if (!token) return handleResponse(res, false, 401, "Token not provided");
 
     // Verify token validity
     jwt.verify(
@@ -113,7 +115,8 @@ export const authenticateToken = (
         user: jwt.JwtPayload | string | undefined,
       ) => {
         // Returning status code if an error exist
-        if (err) return handleResponse(res, 403, "Invalid or expired token"); // 403 = Token no longer valid
+        if (err)
+          return handleResponse(res, false, 403, "Invalid or expired token"); // 403 = Token no longer valid
         const payload = user as AuthPayload; // We know { id: ... } has been used in sign
         (req as AuthRequest).user = payload;
         next();
@@ -134,9 +137,9 @@ export const createNewAccessToken = (
     const refreshToken = req.body.token;
     // If either no refresh token exists or no refresh codes are available then return an error status code
     if (!refreshToken)
-      return handleResponse(res, 401, "Refresh token not provided");
+      return handleResponse(res, false, 401, "Refresh token not provided");
     if (!refreshTokens.includes(refreshToken))
-      return handleResponse(res, 404, "Refresh token not found");
+      return handleResponse(res, false, 404, "Refresh token not found");
     // Verifying refresh token validity
     jwt.verify(
       refreshToken,
@@ -146,7 +149,8 @@ export const createNewAccessToken = (
         user: jwt.JwtPayload | string | undefined,
       ) => {
         // If an error occurs it gets returned alongside the status code
-        if (err) return handleResponse(res, 403, "Invalid refresh token");
+        if (err)
+          return handleResponse(res, false, 403, "Invalid refresh token");
 
         const payload = user as AuthPayload;
 
@@ -154,6 +158,7 @@ export const createNewAccessToken = (
         const accessToken = generateAccessToken({ id: payload.id });
         handleResponse(
           res,
+          true,
           201,
           "Access token successfully created",
           accessToken,

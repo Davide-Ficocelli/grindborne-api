@@ -1,22 +1,10 @@
 import pool from "../config/db.ts";
 import updateRow from "../utils/updateRow.ts";
-import { calculateUserLvl, assignNewUserLvlService } from "./usersModel.ts";
-import {
-  STARTING_GRACE_PERIOD_IN_DAYS,
-  NEW_ATTR_LEVEL_XP_COST_SCALING,
-  DECAY_BASE_PERCENT,
-  INITIAL_XP_TO_NEXT_LEVEL,
-} from "../config/globals.ts";
-import { overallAttributesMultiplier } from "../services/questsService.ts";
+import { INITIAL_XP_TO_NEXT_LEVEL } from "../config/globals.ts";
 
 // Importing types
 import type Attribute from "../types/attribute.ts";
-import type {
-  AttributeInDatabase,
-  AttributesLvlsPerUser,
-} from "../types/attribute.ts";
-import handleResponse from "../utils/handleResponse.ts";
-import { Query } from "pg";
+import type { AttributeInDatabase } from "../types/attribute.ts";
 
 // File's index
 

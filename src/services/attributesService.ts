@@ -13,12 +13,10 @@ import {
   getAllAttributesToQuestModel,
   setAttributeLvlAndXpModel,
 } from "../models/attributesModel.ts";
-import {
-  calculateUserLvl,
-  assignNewUserLvlService,
-  getUserByIdService,
-} from "../models/usersModel.ts";
+import { assignNewUserLvlService } from "../services/usersService.ts";
+import { getUserByIdModel } from "../models/usersModel.ts";
 import preventIdor from "../utils/preventIdor.ts";
+import { calculateUserLvlHelper } from "../shared/usersHelpers.ts";
 
 // Importing global variables
 import {
@@ -127,12 +125,23 @@ export const deleteAttributeService = async (
   if (isIdorDetected)
     return { ok: false, status: status ?? 0, message: message ?? "" };
 
-  // Delete the attribute and return it
+  // Delete the attribute
+  const deletedAttribute = await deleteAttributeModel(attributeId);
+
+  // Handle case in which deleted attribute is null
+  if (!deletedAttribute)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while deleting attribute",
+    };
+
+  // If everything went well return a successful state
   return {
     ok: true,
     status: 200,
     message: "Attribute deleted successfully",
-    data: await deleteAttributeModel(attributeId),
+    data: deletedAttribute,
   };
 };
 
@@ -170,12 +179,26 @@ export const updateAttributeService = async (
   if (isIdorDetected)
     return { ok: false, status: status ?? 0, message: message ?? "" };
 
+  // Update the attribute
+  const updatedAttribute = await updateAttributeModel(
+    attributeId,
+    updatedAttrProps,
+  );
+
+  // Handle case in which updated attribute is null
+  if (!updatedAttribute)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while updating the attribute",
+    };
+
   // Update the attribute and return it
   return {
     ok: true,
     status: 200,
     message: "Attribute updated successfully",
-    data: await updateAttributeModel(attributeId, updatedAttrProps),
+    data: updatedAttribute,
   };
 };
 
@@ -334,10 +357,10 @@ export const assignXpToAttrsAndUserService = async (
   );
 
   // Calculate new user level after quest was completed
-  const newUserLvl = calculateUserLvl(userAttributesLvls);
+  const newUserLvl = calculateUserLvlHelper(userAttributesLvls);
 
   // Get user to level up
-  const userToLevelUp = await getUserByIdService(userId);
+  const userToLevelUp = await getUserByIdModel(userId);
 
   // If user to level up wasn't found then returns an error message
   if (!userToLevelUp)
