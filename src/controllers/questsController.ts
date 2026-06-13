@@ -1,4 +1,4 @@
-import handleResponse from "../utils/handleResponse.ts";
+import processServiceRequest from "../utils/processServiceRequest.ts";
 import {
   completeQuestService,
   getQuestByIdService,
@@ -32,21 +32,11 @@ export const getQuestByIdController = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    // Get quest and user id
-    const questId = Number(req.params.id);
-    const userId = req.user.id;
-    // Get quest
-    const quest = await getQuestByIdService(questId, userId);
-
-    // Get and return service validation results
-    const { ok, status, message, data } = quest;
-
-    // return response validation results
-    return handleResponse(res, ok, status, message, data);
-  } catch (err) {
-    next(err);
-  }
+  // Get quest and user id
+  const questId = Number(req.params.id);
+  const userId = req.user.id;
+  // Get quest
+  return processServiceRequest(res, next, getQuestByIdService(questId, userId));
 };
 
 // Returns all of the corrispective user's quests
@@ -55,20 +45,11 @@ export const getQuestsByUserIdController = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    // Gets user id
-    const userId = req.user.id;
+  // Gets user id
+  const userId = req.user.id;
 
-    // Retrieves and saves all user's quests
-    const userQuests = await getQuestsByUserIdService(userId);
-
-    // Get and return service validation results
-    const { ok, status, message, data } = userQuests;
-
-    return handleResponse(res, ok, status, message, data);
-  } catch (err) {
-    next(err);
-  }
+  // Retrieves and saves all user's quests
+  return processServiceRequest(res, next, getQuestsByUserIdService(userId));
 };
 
 // --- Helper functions for CreateNewQuestController ---
@@ -79,40 +60,33 @@ export const createNewQuestController = async (
   res: Response,
   next: NextFunction,
 ) => {
-  {
-    try {
-      // Gets the input fields which will be inserted in the quests table for the new record from the request body
-      const {
-        name,
-        description,
-        icon,
-        is_rewardable,
-        is_tracked,
-        estimated_time,
-        attributes_ids,
-      } = req.body;
+  // Gets the input fields which will be inserted in the quests table for the new record from the request body
+  const {
+    name,
+    description,
+    icon,
+    is_rewardable,
+    is_tracked,
+    estimated_time,
+    attributes_ids,
+  } = req.body;
 
-      // Gets user's id for users_id field
-      const userId: number = req.user.id;
+  // Gets user's id for users_id field
+  const userId: number = req.user.id;
 
-      // Starts the quest creation process with the appropriate async function created in the questsModel.ts file
-      const newQuest = await createNewQuestService(attributes_ids, is_tracked, {
-        users_id: userId,
-        name,
-        description,
-        icon,
-        is_rewardable,
-        estimated_time,
-      });
-
-      // Get and return service results
-      const { ok, status, message, data } = newQuest;
-
-      return handleResponse(res, ok, status, message, data);
-    } catch (err) {
-      next(err);
-    }
-  }
+  // Starts the quest creation process with the appropriate async function created in the questsModel.ts file
+  return processServiceRequest(
+    res,
+    next,
+    createNewQuestService(attributes_ids, is_tracked, {
+      users_id: userId,
+      name,
+      description,
+      icon,
+      is_rewardable,
+      estimated_time,
+    }),
+  );
 };
 
 // Updates a quest
@@ -121,30 +95,25 @@ export const updateQuestController = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    // Extract all data from the request body
-    const { name, description, icon, is_rewardable, estimated_time } = req.body;
+  // Extract all data from the request body
+  const { name, description, icon, is_rewardable, estimated_time } = req.body;
 
-    // Get quest and user id
-    const questId = Number(req.params.id);
-    const userId = req.user.id;
+  // Get quest and user id
+  const questId = Number(req.params.id);
+  const userId = req.user.id;
 
-    // Pass down parameters for new quest's values
-    const updatedQuest = await updateQuestService(questId, userId, {
+  // Pass down parameters for new quest's values
+  return processServiceRequest(
+    res,
+    next,
+    updateQuestService(questId, userId, {
       name,
       description,
       icon,
       is_rewardable,
       estimated_time,
-    });
-
-    // Get and send back service results
-    const { ok, status, message, data } = updatedQuest;
-
-    return handleResponse(res, ok, status, message, data);
-  } catch (err) {
-    next(err);
-  }
+    }),
+  );
 };
 
 // Deletes a quest
@@ -153,22 +122,12 @@ export const deleteQuestController = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    // Get quest and user id
-    const questId = Number(req.params.id);
-    const userId = req.user.id;
+  // Get quest and user id
+  const questId = Number(req.params.id);
+  const userId = req.user.id;
 
-    // Start the quest deletion process in the service
-    const deletedQuest = await deleteQuestService(questId, userId);
-
-    // Get and return service results
-
-    const { ok, status, message, data } = deletedQuest;
-
-    return handleResponse(res, ok, status, message, data);
-  } catch (err) {
-    next(err);
-  }
+  // Start the quest deletion process in the service
+  return processServiceRequest(res, next, deleteQuestService(questId, userId));
 };
 
 // --- BUSINESS LOGIC CONTROLLER FUNCTIONS ---
@@ -179,21 +138,12 @@ export const trackQuestController = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    // Get quest and user id
-    const questId = Number(req.params.id);
-    const userId = req.user.id;
+  // Get quest and user id
+  const questId = Number(req.params.id);
+  const userId = req.user.id;
 
-    // Start the quest tracking process
-    const trackedQuest = await trackQuestService(questId, userId);
-
-    // Get and return service results
-    const { ok, status, message, data } = trackedQuest;
-
-    return handleResponse(res, ok, status, message, data);
-  } catch (err) {
-    next(err);
-  }
+  // Start the quest tracking process
+  return processServiceRequest(res, next, trackQuestService(questId, userId));
 };
 
 // Completes a quest
@@ -202,21 +152,16 @@ export const completeQuestController = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    // Get user id needed to identify the quest's owner
-    const userId = req.user.id;
+  // Get user id needed to identify the quest's owner
+  const userId = req.user.id;
 
-    // Get quest id
-    const questId = Number(req.params.id);
+  // Get quest id
+  const questId = Number(req.params.id);
 
-    // Pass down the quest id from parameters and the user's level in the service function
-    const completedQuest = await completeQuestService(questId, userId);
-
-    const { ok, status, message, data } = completedQuest;
-
-    // Return results
-    return handleResponse(res, ok, status, message, data);
-  } catch (err) {
-    next(err);
-  }
+  // Pass down the quest id from parameters and the user's level in the service function
+  return processServiceRequest(
+    res,
+    next,
+    completeQuestService(questId, userId),
+  );
 };
