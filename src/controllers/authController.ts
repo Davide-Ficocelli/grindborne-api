@@ -85,7 +85,7 @@ export const logOutUser = (req: Request, res: Response, next: NextFunction) => {
       return handleResponse(res, false, 404, "Refresh Token not found");
     // Normally you would delete refresh tokens from the database but since they're currently being stored in a local array they just get filtered out
     refreshTokens = refreshTokens.filter((token) => token !== req.body.token);
-    handleResponse(res, true, 204, "Refresh token successfuly deleted");
+    return handleResponse(res, true, 200, "Refresh token successfuly deleted");
   } catch (err) {
     next(err);
   }

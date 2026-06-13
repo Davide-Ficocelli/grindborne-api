@@ -1,6 +1,6 @@
 // Importing types
 import type ServiceValidation from "../types/serviceValidation.ts";
-import type { UpdatedUser, UserInDb } from "../types/user.ts";
+import type { UpdatedUser } from "../types/user.ts";
 
 // Importing global variables
 import { SALT_ROUNDS } from "../config/globals.ts";
@@ -13,6 +13,7 @@ import {
   getUserByIdModel,
   updateUserModel,
   deleteUserModel,
+  assignNewUserLvlModel,
 } from "../models/usersModel.ts";
 
 /*
@@ -189,5 +190,57 @@ export const deleteUserService = async (
     status: 200,
     message: "User deleted successfully",
     data: deletedUser,
+  };
+};
+
+// Assigns new user's overall level
+export const assignNewUserLvlService = async (
+  userId: number,
+  newUserLvl: number,
+): Promise<ServiceValidation> => {
+  // Get the user to be updated first
+  const userToBeUpdated = await getUserByIdModel(userId);
+
+  // Handle case in which the user to be updated is null
+  if (!userToBeUpdated)
+    return {
+      ok: false,
+      status: 404,
+      message: "User to be updated not found",
+    };
+
+  // Get user owner id
+  const userOwnerId = userToBeUpdated.id;
+
+  // Prevent IDOR
+
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    userOwnerId as number,
+  );
+
+  if (isIdorDetected)
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  // Update the user level
+  const updatedUser = await assignNewUserLvlModel(userId, newUserLvl);
+
+  // Handle case in which updated user is null
+  if (!updatedUser)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while updating the user level",
+    };
+
+  // Prevent hashed password from being returned in response
+  if (updatedUser.password_hash) delete updatedUser.password_hash;
+
+  // If everything went well return a successful state
+  return {
+    ok: true,
+    status: 200,
+    message: "User level updated successfully",
+    data: updatedUser,
   };
 };

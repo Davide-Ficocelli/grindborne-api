@@ -72,10 +72,7 @@ export const deleteUserModel = async (userId: number) => {
 // --- BUSINESS LOGIC MODEL METHODS ---
 
 // Assigns new user's overall level
-export const assignNewUserLvlService = async (
-  id: number,
-  newUserLvl: number,
-) => {
+export const assignNewUserLvlModel = async (id: number, newUserLvl: number) => {
   const result = await pool.query<UserInDb>(
     `
     UPDATE users
@@ -86,23 +83,4 @@ export const assignNewUserLvlService = async (
     [id, newUserLvl],
   );
   return result.rows[0] ?? null;
-};
-
-// Calculate user's level
-export const calculateUserLvl = function (
-  userAttributesLvls: number[],
-): number {
-  // Perform the calculation to get user level
-  // Sum all of the levels
-
-  const attributesLvlTotal = userAttributesLvls.reduce(
-    (sum, lvl) => sum + lvl,
-    0,
-  );
-  console.log(`attributesLvlTotal: ${attributesLvlTotal}`);
-
-  // Subtract to the total the number of the attributes minus 1
-  const userLevel = attributesLvlTotal - (userAttributesLvls.length - 1);
-
-  return userLevel;
 };

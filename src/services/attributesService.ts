@@ -13,12 +13,10 @@ import {
   getAllAttributesToQuestModel,
   setAttributeLvlAndXpModel,
 } from "../models/attributesModel.ts";
-import {
-  calculateUserLvl,
-  assignNewUserLvlService,
-  getUserByIdModel,
-} from "../models/usersModel.ts";
+import { assignNewUserLvlService } from "../services/usersService.ts";
+import { getUserByIdModel } from "../models/usersModel.ts";
 import preventIdor from "../utils/preventIdor.ts";
+import { calculateUserLvlHelper } from "../shared/usersHelpers.ts";
 
 // Importing global variables
 import {
@@ -359,7 +357,7 @@ export const assignXpToAttrsAndUserService = async (
   );
 
   // Calculate new user level after quest was completed
-  const newUserLvl = calculateUserLvl(userAttributesLvls);
+  const newUserLvl = calculateUserLvlHelper(userAttributesLvls);
 
   // Get user to level up
   const userToLevelUp = await getUserByIdModel(userId);
