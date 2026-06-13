@@ -9,7 +9,6 @@ export const calculateUserLvlHelper = function (
     (sum, lvl) => sum + lvl,
     0,
   );
-  console.log(`attributesLvlTotal: ${attributesLvlTotal}`);
 
   // Subtract to the total the number of the attributes minus 1
   const userLevel = attributesLvlTotal - (userAttributesLvls.length - 1);
