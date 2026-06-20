@@ -22,7 +22,7 @@ export const createNewAttributeController = async (
   const { name, description, icon } = req.body;
 
   // Gets user's id for attributes_id field
-  const users_id: number = req.user.id;
+  const users_id: string = req.user.id;
 
   // Let's create the object compliant with the NewAttribute interface
   const newAttrDataObj: NewAttribute = {
@@ -47,7 +47,7 @@ export const getAttributesByUserIdController = async (
   next: NextFunction,
 ) => {
   // Gets user id
-  const userId: number = req.user.id;
+  const userId: string = req.user.id;
 
   // Retrieves and saves all user's attributes
   return processServiceRequest(res, next, getAttributesByUserIdService(userId));
@@ -60,13 +60,14 @@ export const deleteAttributeController = async (
   next: NextFunction,
 ) => {
   // Gets user id
-  const userId: number = req.user.id;
+  const userId: string = req.user.id;
+  const attributeId = req.params.id ? req.params.id.toString() : "";
 
   // Get deleted attribute
   return processServiceRequest(
     res,
     next,
-    deleteAttributeService(userId, Number(req.params.id)),
+    deleteAttributeService(userId, attributeId),
   );
 };
 
@@ -77,14 +78,15 @@ export const updateAttributeController = async (
   next: NextFunction,
 ) => {
   const { name, description, icon } = req.body;
-  // Gets user id
-  const userId: number = req.user.id;
+  // Gets user and attribute id
+  const userId: string = req.user.id;
+  const attributeId: string = req.params.id ? req.params.id.toString() : "";
 
   // Get updated attribute
   return processServiceRequest(
     res,
     next,
-    updateAttributeService(userId, Number(req.params.id), {
+    updateAttributeService(userId, attributeId, {
       name,
       description,
       icon,
@@ -99,8 +101,10 @@ export const getAllAttributesToQuestController = async (
   next: NextFunction,
 ) => {
   // Gets user and quest id
-  const userId: number = req.user.id;
-  const questId: number = Number(req.params.questId);
+  const userId: string = req.user.id;
+  const questId: string = req.params.questId
+    ? req.params.questId.toString()
+    : "";
 
   // Get all attributes to quest
   return processServiceRequest(

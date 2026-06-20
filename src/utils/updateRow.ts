@@ -4,14 +4,14 @@
 */
 export default function updateRow(
   tableName: string,
-  id: number,
+  id: string,
   paramsObj: Object,
   errorMsg: string,
 ) {
   // Checking for eventual data flaws
   if (!tableName)
     throw new Error("A table's name to be updated must be specified");
-  if (id === null || id === undefined)
+  if (id === null || id === undefined || !id)
     throw new Error("An id for the row to be updated must be specified");
   if (errorMsg === null || errorMsg === undefined)
     throw new Error(

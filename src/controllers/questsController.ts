@@ -33,7 +33,7 @@ export const getQuestByIdController = async (
   next: NextFunction,
 ) => {
   // Get quest and user id
-  const questId = Number(req.params.id);
+  const questId = req.params.id ? req.params.id.toString() : "";
   const userId = req.user.id;
   // Get quest
   return processServiceRequest(res, next, getQuestByIdService(questId, userId));
@@ -72,7 +72,7 @@ export const createNewQuestController = async (
   } = req.body;
 
   // Gets user's id for users_id field
-  const userId: number = req.user.id;
+  const userId: string = req.user.id;
 
   // Starts the quest creation process with the appropriate async function created in the questsModel.ts file
   return processServiceRequest(
@@ -99,7 +99,7 @@ export const updateQuestController = async (
   const { name, description, icon, is_rewardable, estimated_time } = req.body;
 
   // Get quest and user id
-  const questId = Number(req.params.id);
+  const questId = req.params.id ? req.params.id.toString() : "";
   const userId = req.user.id;
 
   // Pass down parameters for new quest's values
@@ -123,7 +123,7 @@ export const deleteQuestController = async (
   next: NextFunction,
 ) => {
   // Get quest and user id
-  const questId = Number(req.params.id);
+  const questId = req.params.id ? req.params.id.toString() : "";
   const userId = req.user.id;
 
   // Start the quest deletion process in the service
@@ -139,7 +139,7 @@ export const trackQuestController = async (
   next: NextFunction,
 ) => {
   // Get quest and user id
-  const questId = Number(req.params.id);
+  const questId = req.params.id ? req.params.id.toString() : "";
   const userId = req.user.id;
 
   // Start the quest tracking process
@@ -156,7 +156,7 @@ export const completeQuestController = async (
   const userId = req.user.id;
 
   // Get quest id
-  const questId = Number(req.params.id);
+  const questId = req.params.id ? req.params.id.toString() : "";
 
   // Pass down the quest id from parameters and the user's level in the service function
   return processServiceRequest(

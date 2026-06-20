@@ -1,7 +1,7 @@
 // 1. The Base interface (Corresponds to your full record in the DB)
 export interface AttributeInDb {
-  id: number;
-  users_id: number;
+  id: string;
+  users_id: string;
   name: string;
   description?: string | null;
   icon?: Buffer | null;
@@ -26,6 +26,6 @@ export type UpdatedAttribute = Partial<Omit<AttributeInDb, "id" | "users_id">>;
 export type Attribute = AttributeInDb | UpdatedAttribute | NewAttribute;
 
 export type AttributesLvlsPerUser = {
-  userId: number;
+  userId: string;
   attributeLevels: number[];
 };

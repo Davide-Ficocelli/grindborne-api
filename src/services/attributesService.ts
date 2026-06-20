@@ -1,12 +1,9 @@
 // Importing types
-import type {
-  AttributeInDb,
-  NewAttribute,
-  UpdatedAttribute,
-} from "../types/attribute.ts";
+import type { NewAttribute, UpdatedAttribute } from "../types/attribute.ts";
 import type ServiceValidation from "../types/serviceValidation.ts";
 
-// Importing methods
+// Importing functions
+import { nanoid } from "nanoid";
 import {
   createNewAttributeModel,
   getAttributesByUserIdModel,
@@ -23,11 +20,6 @@ import { calculateUserLvlHelper } from "../shared/usersHelpers.ts";
 
 // Importing global variables
 import {
-  INITIAL_XP_TO_NEXT_LEVEL,
-  NEW_ATTR_LEVEL_XP_COST_SCALING,
-} from "../config/globals.ts";
-import {
-  calculateNextAttrLevelThreshold,
   calculateXpPerAttribute,
   calculateAttributeXpProgress,
   extractUserAttributesLvls,
@@ -51,8 +43,11 @@ import {
 export const createNewAttributeService = async (
   newAttrObj: NewAttribute,
 ): Promise<ServiceValidation> => {
+  // Generate nano id
+  const id = nanoid();
+
   // Get new attribute
-  const newAttribute = await createNewAttributeModel(newAttrObj);
+  const newAttribute = await createNewAttributeModel({ id, ...newAttrObj });
 
   if (!newAttribute)
     return {
@@ -71,7 +66,7 @@ export const createNewAttributeService = async (
 
 // Gets all user attributes by user id
 export const getAttributesByUserIdService = async (
-  userId: number,
+  userId: string,
 ): Promise<ServiceValidation> => {
   // Get all attributes by user id
   const allUserAttributes = await getAttributesByUserIdModel(userId);
@@ -87,7 +82,7 @@ export const getAttributesByUserIdService = async (
 
   const { isIdorDetected, status, message } = preventIdor(
     userId,
-    attributeOwnerId as number,
+    attributeOwnerId as string,
   );
 
   if (
@@ -107,8 +102,8 @@ export const getAttributesByUserIdService = async (
 
 // Deletes a specific attribute
 export const deleteAttributeService = async (
-  userId: number,
-  attributeId: number,
+  userId: string,
+  attributeId: string,
 ): Promise<ServiceValidation> => {
   // Get the attribute to be deleted first
   const attributeToBeDeleted = await getAttributeByIdModel(attributeId);
@@ -128,7 +123,7 @@ export const deleteAttributeService = async (
 
   const { isIdorDetected, status, message } = preventIdor(
     userId,
-    attributeOwnerId as number,
+    attributeOwnerId as string,
   );
 
   if (isIdorDetected)
@@ -156,8 +151,8 @@ export const deleteAttributeService = async (
 
 // Updates a specific attribute by id
 export const updateAttributeService = async (
-  userId: number,
-  attributeId: number,
+  userId: string,
+  attributeId: string,
   updatedAttrProps: UpdatedAttribute,
 ): Promise<ServiceValidation> => {
   // Get the attribute to be updated first
@@ -178,7 +173,7 @@ export const updateAttributeService = async (
 
   const { isIdorDetected, status, message } = preventIdor(
     userId,
-    attributeOwnerId as number,
+    attributeOwnerId as string,
   );
 
   if (isIdorDetected)
@@ -213,8 +208,8 @@ export const updateAttributeService = async (
 
 // Gets all attributes involved in a specific quest
 export const getAllAttributesToQuestService = async (
-  questId: number,
-  userId: number,
+  questId: string,
+  userId: string,
 ): Promise<ServiceValidation> => {
   // Get all attributes by user id
   const allAttrsToQuest = await getAllAttributesToQuestModel(questId);
@@ -234,7 +229,7 @@ export const getAllAttributesToQuestService = async (
 
   const { isIdorDetected, status, message } = preventIdor(
     userId,
-    attributeOwnerId as number,
+    attributeOwnerId as string,
   );
 
   if (isIdorDetected)
@@ -251,9 +246,9 @@ export const getAllAttributesToQuestService = async (
 
 // Assigns XP to attributes involved in a specific quest while completing it
 export const assignXpToAttrsAndUserService = async (
-  questId: number,
+  questId: string,
   questTotalXp: number,
-  userId: number,
+  userId: string,
 ): Promise<ServiceValidation> => {
   // Get all user's attributes related to the quest to be completed
   const userAttrsToBeComQuest = await getAllAttributesToQuestModel(questId);

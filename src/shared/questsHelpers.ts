@@ -163,11 +163,11 @@ export const calculateQuestTotalXP = function (
 // Validates all checks before completing a quest and returns all values needed to calculate the total xp reward
 export const validateQuestToBeCompleted = async function (
   questToBeCompleted: QuestInDb,
-  userId: number,
+  userId: string,
 ): Promise<ServiceValidation> {
   const { isIdorDetected, status, message } = preventIdor(
     userId,
-    questToBeCompleted.users_id as number,
+    questToBeCompleted.users_id,
   );
   if (isIdorDetected)
     return { ok: false, status: status ?? 0, message: message ?? "" };
@@ -214,7 +214,7 @@ export const validateQuestToBeCompleted = async function (
     status: attrsToQuestStatus,
     message: attrsToQuestMessage,
     data: attrsToQuestData,
-  } = await getAllAttributesToQuestService(questId as number, userId);
+  } = await getAllAttributesToQuestService(questId, userId);
   if (!attrsToQuestOk)
     return {
       ok: attrsToQuestOk,

@@ -7,7 +7,7 @@ import { type UserInDb, type UpdatedUser } from "../types/user.ts";
 // --- GENERAL CRUD METHODS ---
 
 export const getUserByIdModel = async (
-  userId: number,
+  userId: string,
 ): Promise<UserInDb | null> => {
   const result = await pool.query<UserInDb>(
     "SELECT * FROM users WHERE id = $1",
@@ -33,19 +33,20 @@ export const getUserByEmailModel = async (
     For more details check https://www.postgresql.org/docs/current/dml-returning.html
 */
 export const createNewUserModel = async (
+  id: string,
   name: string,
   email: string,
   passwordHash: string,
 ): Promise<UserInDb | null> => {
   const result = await pool.query<UserInDb>(
-    "INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING *",
-    [name, email, passwordHash],
+    "INSERT INTO users (id, name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING *",
+    [id, name, email, passwordHash],
   );
   return result.rows[0] ?? null;
 };
 
 export const updateUserModel = async (
-  id: number,
+  id: string,
   updatedUserProps: UpdatedUser,
 ): Promise<UserInDb | null> => {
   const { query, values } = updateRow(
@@ -61,7 +62,7 @@ export const updateUserModel = async (
   return result.rows[0] ?? null;
 };
 
-export const deleteUserModel = async (userId: number) => {
+export const deleteUserModel = async (userId: string) => {
   const result = await pool.query<UserInDb>(
     "DELETE FROM users WHERE id = $1 RETURNING *",
     [userId],
@@ -72,7 +73,7 @@ export const deleteUserModel = async (userId: number) => {
 // --- BUSINESS LOGIC MODEL METHODS ---
 
 // Assigns new user's overall level
-export const assignNewUserLvlModel = async (id: number, newUserLvl: number) => {
+export const assignNewUserLvlModel = async (id: string, newUserLvl: number) => {
   const result = await pool.query<UserInDb>(
     `
     UPDATE users

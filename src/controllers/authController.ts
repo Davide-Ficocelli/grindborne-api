@@ -26,7 +26,7 @@ export const logInUser = async (
     const user = await getUserByEmailModel(req.body.email);
 
     // If user was not found then stop response and send an error message to the client
-    if (!user) return handleResponse(res, false, 404, "User not found");
+    if (!user) return handleResponse(res, false, 404, "Incorrect credentials");
 
     // Save sent password from the request body
     const inputPassword = req.body.password;

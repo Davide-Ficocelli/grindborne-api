@@ -2,10 +2,7 @@ import {
   INITIAL_XP_TO_NEXT_LEVEL,
   NEW_ATTR_LEVEL_XP_COST_SCALING,
 } from "../config/globals.ts";
-import type {
-  AttributeInDb,
-  AttributesLvlsPerUser,
-} from "../types/attribute.ts";
+import type { AttributeInDb } from "../types/attribute.ts";
 
 // import pool from "../config/db.ts";
 // import { getAllAttributesModel } from "../models/attributesModel.ts";

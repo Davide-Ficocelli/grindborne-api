@@ -12,7 +12,7 @@ import {
 
 // Gets a quest based on its id
 export const getQuestByIdModel = async (
-  questId: number,
+  questId: string,
 ): Promise<QuestInDb | null> => {
   const result = await pool.query<QuestInDb>(
     "SELECT * FROM quests WHERE id = $1",
@@ -23,7 +23,7 @@ export const getQuestByIdModel = async (
 
 // Gets all quests based on user's id
 export const getQuestsByUserIdModel = async (
-  userId: number,
+  userId: string,
 ): Promise<QuestInDb[] | null> => {
   const result = await pool.query<QuestInDb>(
     "SELECT quests.id, quests.users_id, quests.name, quests.description, quests.icon, quests.is_rewardable, quests.estimated_time, quests.actual_time, quests.is_tracked, quests.is_completed FROM quests JOIN users ON quests.users_id = users.id WHERE quests.users_id = $1",
@@ -34,11 +34,12 @@ export const getQuestsByUserIdModel = async (
 
 // Creates a quest
 export const createNewQuestModel = async (
-  questObj: NewQuest,
+  questObj: NewQuest & { id: string },
 ): Promise<QuestInDb | null> => {
   const result = await pool.query<QuestInDb>(
-    "INSERT INTO quests (users_id, name, description, icon, is_rewardable, estimated_time) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+    "INSERT INTO quests (id, users_id, name, description, icon, is_rewardable, estimated_time) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
     [
+      questObj.id,
       questObj.users_id,
       questObj.name,
       questObj.description,
@@ -52,7 +53,7 @@ export const createNewQuestModel = async (
 
 // Updates a specific quest by id
 export const updateQuestModel = async (
-  questId: number,
+  questId: string,
   questObj: UpdatedQuest,
 ): Promise<QuestInDb | null> => {
   const { query, values } = updateRow(
@@ -68,7 +69,7 @@ export const updateQuestModel = async (
 
 // Deletes a specific quest by id
 export const deleteQuestModel = async (
-  questId: number,
+  questId: string,
 ): Promise<QuestInDb | null> => {
   const result = await pool.query<QuestInDb>(
     "DELETE FROM quests WHERE id = $1 RETURNING *",
@@ -81,7 +82,7 @@ export const deleteQuestModel = async (
 
 // Tracks a quest
 export const trackQuestModel = async (
-  questId: number,
+  questId: string,
 ): Promise<QuestInDb | null> => {
   const result = await pool.query<QuestInDb>(
     "UPDATE quests SET is_tracked = true, tracked_at = NOW() WHERE id = $1 RETURNING *",
@@ -94,7 +95,7 @@ export const trackQuestModel = async (
 export const addAttributesToQuestModel = async (
   valuePlaceholders: any[],
   values: string[],
-): Promise<{ quests_id: number; attributes_id: number }[]> => {
+): Promise<{ quests_id: string; attributes_id: string }[]> => {
   const result = await pool.query(
     `INSERT INTO quests_attributes (quests_id, attributes_id) VALUES ${valuePlaceholders.join(", ")} RETURNING *`,
     values,

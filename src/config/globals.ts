@@ -7,6 +7,7 @@ const STARTING_GRACE_PERIOD_IN_DAYS: number = 7;
   Can represent based on the context: 
   1. the required xp to go from level 1 to level 2 upon attribute next level threshold calculation
   2. xp_to_next_level value to start with in database upon attribute creation
+  Note: Changing this value will also affect how much xp is required for the next level
 */
 export const INITIAL_XP_TO_NEXT_LEVEL: number = 100;
 
