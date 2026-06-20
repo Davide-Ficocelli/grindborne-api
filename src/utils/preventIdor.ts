@@ -1,8 +1,8 @@
 import handleResponse from "./handleResponse.ts";
 
 const preventIdor = function (
-  authenticatedUserId: number,
-  dataOwnerId: number,
+  authenticatedUserId: string,
+  dataOwnerId: string,
 ): { isIdorDetected: boolean; status?: number; message?: string } {
   if (authenticatedUserId !== dataOwnerId) {
     return {

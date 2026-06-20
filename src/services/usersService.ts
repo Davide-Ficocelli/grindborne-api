@@ -6,6 +6,7 @@ import type { UpdatedUser } from "../types/user.ts";
 import { SALT_ROUNDS } from "../config/globals.ts";
 
 // Importing functions
+import { nanoid } from "nanoid";
 import preventIdor from "../utils/preventIdor.ts";
 import bcrypt from "bcrypt";
 import {
@@ -33,11 +34,14 @@ export const createNewUserService = async (
   email: string,
   password: string,
 ): Promise<ServiceValidation> => {
+  // Generate nano id
+  const id = nanoid();
+
   // Hash user password
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
   // Get new user
-  const newUser = await createNewUserModel(name, email, passwordHash);
+  const newUser = await createNewUserModel(id, name, email, passwordHash);
 
   // If user creation failed return an error state
   if (!newUser)
@@ -61,8 +65,8 @@ export const createNewUserService = async (
 
 // Gets a user by id
 export const getUserByIdService = async (
-  userId: number,
-  authUserId: number,
+  userId: string,
+  authUserId: string,
 ): Promise<ServiceValidation> => {
   // Get user by id
   const user = await getUserByIdModel(userId);
@@ -90,8 +94,8 @@ export const getUserByIdService = async (
 
 // Updates a specific user
 export const updateUserService = async (
-  userId: number,
-  authUserId: number,
+  userId: string,
+  authUserId: string,
   updatedUserProps: UpdatedUser,
 ): Promise<ServiceValidation> => {
   // Get the user to be updated first
@@ -112,7 +116,7 @@ export const updateUserService = async (
 
   const { isIdorDetected, status, message } = preventIdor(
     authUserId,
-    userOwnerId as number,
+    userOwnerId,
   );
 
   if (isIdorDetected)
@@ -143,8 +147,8 @@ export const updateUserService = async (
 
 // Deletes a specific user
 export const deleteUserService = async (
-  userId: number,
-  authUserId: number,
+  userId: string,
+  authUserId: string,
 ): Promise<ServiceValidation> => {
   // Get the user to be deleted first
   const userToBeDeleted = await getUserByIdModel(userId);
@@ -164,7 +168,7 @@ export const deleteUserService = async (
 
   const { isIdorDetected, status, message } = preventIdor(
     authUserId,
-    userOwnerId as number,
+    userOwnerId,
   );
 
   if (isIdorDetected)
@@ -195,7 +199,7 @@ export const deleteUserService = async (
 
 // Assigns new user's overall level
 export const assignNewUserLvlService = async (
-  userId: number,
+  userId: string,
   newUserLvl: number,
 ): Promise<ServiceValidation> => {
   // Get the user to be updated first
@@ -214,10 +218,7 @@ export const assignNewUserLvlService = async (
 
   // Prevent IDOR
 
-  const { isIdorDetected, status, message } = preventIdor(
-    userId,
-    userOwnerId as number,
-  );
+  const { isIdorDetected, status, message } = preventIdor(userId, userOwnerId);
 
   if (isIdorDetected)
     return { ok: false, status: status ?? 0, message: message ?? "" };

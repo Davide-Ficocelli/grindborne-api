@@ -1,7 +1,7 @@
 // 1. The Base interface (Corresponds to your full record in the DB)
 export interface QuestInDb {
-  id: number;
-  users_id: number;
+  id: string;
+  users_id: string;
   name: string;
   description?: string | null;
   icon?: Buffer | null; // bytea -> Buffer

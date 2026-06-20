@@ -29,7 +29,7 @@ export const getUserByIdController = async (
   next: NextFunction,
 ) => {
   // Get authenticated user and db user id
-  const userId = Number(req.params.id);
+  const userId = req.params.id ? req.params.id.toString() : "";
   const authUserId = req.user.id;
 
   // Get user
@@ -48,7 +48,7 @@ export const updateUserController = async (
   const { name, email, level, stamina } = req.body;
 
   // Get authenticated and passed user id
-  const userId = Number(req.params.id);
+  const userId = req.params.id ? req.params.id.toString() : "";
   const authUserid = req.user.id;
   return processServiceRequest(
     res,
@@ -68,7 +68,7 @@ export const deleteUserController = async (
   next: NextFunction,
 ) => {
   // Get authenticated and passed user id
-  const userId = Number(req.params.id);
+  const userId = req.params.id ? req.params.id.toString() : "";
   const authUserid = req.user.id;
 
   return processServiceRequest(

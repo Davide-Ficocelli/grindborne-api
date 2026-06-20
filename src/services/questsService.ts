@@ -1,13 +1,5 @@
 // Importing types
 import type ServiceValidation from "../types/serviceValidation.ts";
-import { type AttributeInDatabase } from "../types/attribute.ts";
-
-// Importing global variables
-import {
-  REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING,
-  ESTIMATED_TIME_BREAKPOINTS,
-  AVG_QUEST_LVL_UP_WORTH,
-} from "../config/globals.ts";
 
 // Importing types
 import {
@@ -17,6 +9,7 @@ import {
 } from "../types/quest.ts";
 
 // Importing functions
+import { nanoid } from "nanoid";
 import preventIdor from "../utils/preventIdor.ts";
 import {
   getQuestByIdModel,
@@ -28,11 +21,6 @@ import {
   deleteQuestModel,
 } from "../models/questsModel.ts";
 import { assignXpToAttrsAndUserService } from "../services/attributesService.ts";
-import { getUserByIdModel } from "../models/usersModel.ts";
-import {
-  getAttributesByUserIdService,
-  getAllAttributesToQuestService,
-} from "../services/attributesService.ts";
 import {
   calculateDatesDiff,
   calculateQuestTotalXP,
@@ -56,8 +44,8 @@ import {
 
 // Gets quest by its quest
 export const getQuestByIdService = async (
-  questId: number,
-  userId: number,
+  questId: string,
+  userId: string,
 ): Promise<ServiceValidation> => {
   // Get quest by id
   const quest = await getQuestByIdModel(questId);
@@ -85,7 +73,7 @@ export const getQuestByIdService = async (
 
 // Gets quest by user's id
 export const getQuestsByUserIdService = async (
-  userId: number,
+  userId: string,
 ): Promise<ServiceValidation> => {
   // Get quest by id
   const userQuests = await getQuestsByUserIdModel(userId);
@@ -115,8 +103,8 @@ export const getQuestsByUserIdService = async (
 
 // Updates a quest
 export const updateQuestService = async (
-  questId: number,
-  userId: number,
+  questId: string,
+  userId: string,
   updatedQuestProps: UpdatedQuest,
 ): Promise<ServiceValidation> => {
   // Get the quest to be updated first
@@ -137,7 +125,7 @@ export const updateQuestService = async (
 
   const { isIdorDetected, status, message } = preventIdor(
     userId,
-    questOwnerId as number,
+    questOwnerId as string,
   );
 
   if (isIdorDetected)
@@ -181,8 +169,8 @@ export const updateQuestService = async (
 
 // Deletes a quest
 export const deleteQuestService = async (
-  questId: number,
-  userId: number,
+  questId: string,
+  userId: string,
 ): Promise<ServiceValidation> => {
   // Get the quest to be deleted first
   const questToBeDeleted = await getQuestByIdModel(questId);
@@ -200,10 +188,7 @@ export const deleteQuestService = async (
 
   // Prevent IDOR
 
-  const { isIdorDetected, status, message } = preventIdor(
-    userId,
-    questOwnerId as number,
-  );
+  const { isIdorDetected, status, message } = preventIdor(userId, questOwnerId);
 
   if (isIdorDetected)
     return { ok: false, status: status ?? 0, message: message ?? "" };
@@ -230,10 +215,13 @@ export const deleteQuestService = async (
 
 // Creates a new quest
 export const createNewQuestService = async (
-  attributes_ids: number[],
+  attributes_ids: string[],
   isTracked: boolean,
   questObj: NewQuest,
 ) => {
+  // Generate nanoid
+  const id = nanoid();
+
   // Validating new quest request
   if (questObj.is_rewardable) {
     // If attributes_id is either not an array or an empty one stop execution
@@ -263,7 +251,7 @@ export const createNewQuestService = async (
     };
 
   // Once all validations are passed, create the new quest in the db
-  const newQuest = await createNewQuestModel({ ...questObj });
+  const newQuest = await createNewQuestModel({ id, ...questObj });
 
   if (!newQuest)
     return {
@@ -277,8 +265,8 @@ export const createNewQuestService = async (
 
   if (isTracked) {
     const trackedQuest = await trackQuestService(
-      (newQuest as QuestInDb).id,
-      (newQuest as QuestInDb).users_id,
+      newQuest.id,
+      newQuest.users_id,
     );
     if (!trackedQuest.ok)
       return {
@@ -312,7 +300,7 @@ export const createNewQuestService = async (
 // ─────────────────────────────────────────────
 
 // Tracks an existing quest
-export const trackQuestService = async (questId: number, userId: number) => {
+export const trackQuestService = async (questId: string, userId: string) => {
   // Get quest to be tracked by its id
   const questToBeTracked = await getQuestByIdModel(questId);
 
@@ -369,8 +357,8 @@ export const trackQuestService = async (questId: number, userId: number) => {
 
 // Adds attributes to a specific quest upon creation
 const addAttributesToQuestService = async function (
-  questId: number,
-  attributes_ids: number[],
+  questId: string,
+  attributes_ids: string[],
 ): Promise<ServiceValidation> {
   if (!attributes_ids || attributes_ids.length === 0)
     return {
@@ -411,8 +399,8 @@ const addAttributesToQuestService = async function (
 
 // Completes a quest
 export const completeQuestService = async (
-  questId: number,
-  userId: number,
+  questId: string,
+  userId: string,
 ): Promise<ServiceValidation> => {
   // Get quest to be completed
   const questToBeCompleted = await getQuestByIdModel(questId);

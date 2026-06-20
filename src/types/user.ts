@@ -1,5 +1,5 @@
 export interface UserInDb {
-  id: number;
+  id: string;
   name: string;
   email: string;
   password_hash?: string | null;

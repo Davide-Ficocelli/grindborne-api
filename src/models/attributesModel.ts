@@ -23,11 +23,12 @@ import type {
 
 // Inserts new attribute in the attributes table given the params from the request body and user's id from the JWT token
 export const createNewAttributeModel = async (
-  newAttributeObj: NewAttribute,
+  newAttributeObj: NewAttribute & { id: string }, // <-- Inject ID requirement
 ): Promise<AttributeInDb | null> => {
   const result = await pool.query<AttributeInDb>(
-    "INSERT INTO attributes (name, description, icon, users_id, xp_to_next_level) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+    "INSERT INTO attributes (id, name, description, icon, users_id, xp_to_next_level) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
     [
+      newAttributeObj.id,
       newAttributeObj.name,
       newAttributeObj.description,
       newAttributeObj.icon,
@@ -40,7 +41,7 @@ export const createNewAttributeModel = async (
 
 // Gets a specific attribute by its id
 export const getAttributeByIdModel = async (
-  id: number,
+  id: string,
 ): Promise<AttributeInDb | null> => {
   const result = await pool.query<AttributeInDb>(
     "SELECT * FROM attributes WHERE id = $1",
@@ -59,7 +60,7 @@ export const getAllAttributesModel = async (): Promise<
 
 // Gets all user attributes by user id
 export const getAttributesByUserIdModel = async (
-  userId: number,
+  userId: string,
 ): Promise<AttributeInDb[] | null> => {
   const result = await pool.query<AttributeInDb>(
     `SELECT
@@ -82,7 +83,7 @@ export const getAttributesByUserIdModel = async (
 
 // Deletes a specific attribute by id
 export const deleteAttributeModel = async (
-  id: number,
+  id: string,
 ): Promise<AttributeInDb | null> => {
   const result = await pool.query<AttributeInDb>(
     "DELETE FROM attributes WHERE id = $1 RETURNING *",
@@ -93,7 +94,7 @@ export const deleteAttributeModel = async (
 
 // Updates a specific attribute by id
 export const updateAttributeModel = async (
-  id: number,
+  id: string,
   updatedAttrProps: UpdatedAttribute,
 ): Promise<AttributeInDb | null> => {
   const { query, values } = updateRow(
@@ -113,7 +114,7 @@ export const updateAttributeModel = async (
 
 // Gets all attributes involved in a specific quest
 export const getAllAttributesToQuestModel = async (
-  questId: number,
+  questId: string,
 ): Promise<AttributeInDb[] | null> => {
   const result = await pool.query<AttributeInDb>(
     `SELECT 
@@ -147,7 +148,7 @@ export const setAttributeLvlAndXpModel = async (
   level: number,
   xp: number,
   xpToNextLvl: number,
-  attributeId: number,
+  attributeId: string,
 ): Promise<AttributeInDb | null> => {
   const { query, values } = updateRow(
     "attributes",
