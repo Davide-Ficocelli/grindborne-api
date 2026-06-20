@@ -2,9 +2,18 @@ import {
   REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING,
   ESTIMATED_TIME_BREAKPOINTS,
   AVG_QUEST_LVL_UP_WORTH,
+  MS_IN_A_MINUTE,
+  LEVEL_COST_SCALE_START,
+  LEVEL_COST_SCALE_FACTOR,
+  LEVEL_COST_BASE_MULTIPLIER,
+  LEVEL_COST_OFFSET,
+  LEVEL_COST_BASE_ADDITION,
+  QUEST_ATTR_AVG_DIVISOR,
+  TIME_DEVIATION_PENALTY_FACTOR,
+  MIN_TIME_ACCURACY_MULTIPLIER,
 } from "../config/globals.ts";
 import { type QuestInDb } from "../types/quest.ts";
-import { type AttributeInDatabase } from "../types/attribute.ts";
+import { type AttributeInDb } from "../types/attribute.ts";
 import preventIdor from "../utils/preventIdor.ts";
 import { getUserByIdModel } from "../models/usersModel.ts";
 import {
@@ -21,15 +30,18 @@ export const calculateDatesDiff = function (
   startDate: Date,
 ): number {
   const msDiff = endDate.getTime() - startDate.getTime();
-  const diffInMinutes = Math.floor(msDiff / (1000 * 60)); // ms -> minutes
+  const diffInMinutes = Math.floor(msDiff / MS_IN_A_MINUTE); // ms -> minutes
   return Math.max(0, diffInMinutes);
 };
 
 // Calculates how much XP, in broad terms, a LEVEL-UP for the USER is worth.
 export function calculateLevelCost(level: number): number {
-  const x = (level - 11) * 0.02;
+  const x = (level - LEVEL_COST_SCALE_START) * LEVEL_COST_SCALE_FACTOR;
   const xClamped = Math.max(0, x);
-  const cost = (xClamped + 0.1) * Math.pow(level + 81, 2) + 1;
+  const cost =
+    (xClamped + LEVEL_COST_BASE_MULTIPLIER) *
+      Math.pow(level + LEVEL_COST_OFFSET, 2) +
+    LEVEL_COST_BASE_ADDITION;
   return Math.floor(cost);
 }
 
@@ -77,7 +89,7 @@ export const questAttributesMultiplier = function (
     questAttributeLevels.length;
 
   // Example: average 20 → 1.2 ( +20% XP compared to base )
-  return 1 + avgQuest / 100;
+  return 1 + avgQuest / QUEST_ATTR_AVG_DIVISOR;
 };
 
 // Calculates how accurately the USER estimated the time needed for the quest.
@@ -93,8 +105,8 @@ export const timeAccuracyMultiplier = function (
   // 0% deviation → 1.0 (100% XP)
   // 50% deviation → 1 - 0.5 * 0.6 = 0.7 (70% XP)
   // 100%+ deviation → clamped to 0.4 (40% minimum XP)
-  const multiplier = 1 - relativeDiff * 0.6;
-  return Math.max(0.4, multiplier);
+  const multiplier = 1 - relativeDiff * TIME_DEVIATION_PENALTY_FACTOR;
+  return Math.max(MIN_TIME_ACCURACY_MULTIPLIER, multiplier);
 };
 
 // Calculates an XP multiplier based on the AVERAGE LEVEL of ALL user attributes.
@@ -194,7 +206,7 @@ export const validateQuestToBeCompleted = async function (
       message: userAttrsMessage,
     };
 
-  const userAttributes = userAttrsData as AttributeInDatabase[];
+  const userAttributes = userAttrsData as AttributeInDb[];
   const { id: questId } = questToBeCompleted;
 
   const {
@@ -211,7 +223,7 @@ export const validateQuestToBeCompleted = async function (
       data: attrsToQuestData,
     };
 
-  const attributesToBeComQuest = attrsToQuestData as AttributeInDatabase[];
+  const attributesToBeComQuest = attrsToQuestData as AttributeInDb[];
   const { level: userLevel } = user;
   const userAttributesLvls = userAttributes.map((attr) => Number(attr.level));
   const attributesToQuestLvls = attributesToBeComQuest.map((attr) =>

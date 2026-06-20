@@ -1,4 +1,5 @@
 export const SALT_ROUNDS: number = 10;
+
 // Represents in days the starting grace period before attributes start decaying
 const STARTING_GRACE_PERIOD_IN_DAYS: number = 7;
 
@@ -35,6 +36,33 @@ export const REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING: number = 10;
 
 // Represents the percentage with which a new attribute scales the required xp cost to go to the next level
 export const NEW_ATTR_LEVEL_XP_COST_SCALING: number = 0.2;
+
+// Represents the amount of milliseconds in a minute, used for time difference calculations
+export const MS_IN_A_MINUTE: number = 60000; // 1000 * 60
+
+// The level threshold at which the dynamic user level cost scaling begins to apply
+export const LEVEL_COST_SCALE_START: number = 11;
+
+// The rate at which the user level cost scaling increases per level
+export const LEVEL_COST_SCALE_FACTOR: number = 0.02;
+
+// The base multiplier applied to the level calculation before adding the dynamic scale
+export const LEVEL_COST_BASE_MULTIPLIER: number = 0.1;
+
+// The offset added to the user's level before squaring it in the level cost formula
+export const LEVEL_COST_OFFSET: number = 81;
+
+// A flat baseline addition applied to the final calculated user level cost
+export const LEVEL_COST_BASE_ADDITION: number = 1;
+
+// Divisor used to convert the average quest attributes level into a multiplier increment
+export const QUEST_ATTR_AVG_DIVISOR: number = 100;
+
+// The severity factor applied to the relative difference in estimated vs actual time
+export const TIME_DEVIATION_PENALTY_FACTOR: number = 0.6;
+
+// The absolute minimum xp multiplier that can be applied due to poor time estimation accuracy
+export const MIN_TIME_ACCURACY_MULTIPLIER: number = 0.4;
 
 // Represents the percent amount of xp to next level to be removed from an attribute per decay tick
 export const DECAY_BASE_PERCENT = 0.2; // 20% of xp_to_next_level per decay tick
