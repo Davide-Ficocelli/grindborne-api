@@ -2,10 +2,12 @@ import {
   INITIAL_XP_TO_NEXT_LEVEL,
   NEW_ATTR_LEVEL_XP_COST_SCALING,
 } from "../config/globals.ts";
-import type { AttributeInDatabase } from "../types/attribute.ts";
+import type {
+  AttributeInDb,
+  AttributesLvlsPerUser,
+} from "../types/attribute.ts";
 
 // import pool from "../config/db.ts";
-// import { type AttributeInDatabase } from "../types/attribute.ts";
 // import { getAllAttributesModel } from "../models/attributesModel.ts";
 // import { STARTING_GRACE_PERIOD_IN_DAYS, DECAY_BASE_PERCENT } from "../config/globals.ts";
 // import { overallAttributesMultiplier } from "./questsHelpers.ts";
@@ -40,7 +42,7 @@ export const calculateXpPerAttribute = (
 
 // Processes the XP gain for a single attribute, handling level ups
 export const calculateAttributeXpProgress = (
-  attr: AttributeInDatabase,
+  attr: AttributeInDb,
   xpToAdd: number,
 ) => {
   let remainingXpToDistributePerAttr = xpToAdd;
@@ -67,7 +69,7 @@ export const calculateAttributeXpProgress = (
 
 // Extracts an array of levels from an array of user attributes
 export const extractUserAttributesLvls = (
-  userAttributes: AttributeInDatabase[],
+  userAttributes: AttributeInDb[],
 ): number[] => {
   return userAttributes.map((attr) => attr.level as number);
 };
@@ -76,8 +78,8 @@ export const extractUserAttributesLvls = (
 // export const assignStartingDecayDateToAttributeService = async (
 //   id: number,
 //   startingDecayDate: number,
-// ): Promise<AttributeInDatabase | null> => {
-//   const result = await pool.query<AttributeInDatabase>(
+// ): Promise<AttributeInDb | null> => {
+//   const result = await pool.query<AttributeInDb>(
 //     "UPDATE attributes SET decay_date = $2 WHERE id = $1 RETURNING *",
 //     [id, startingDecayDate],
 //   );
@@ -133,7 +135,7 @@ export const extractUserAttributesLvls = (
 
 // // Checks if decay would eventually be applicable
 // export const isDecayApplicable = function (
-//   allAttributes: AttributeInDatabase[],
+//   allAttributes: AttributeInDb[],
 // ): boolean | Error {
 //   // Handling case in which allAttributes is null
 //   if (!allAttributes) return new Error("Attributes could not be fetched");
@@ -152,7 +154,7 @@ export const extractUserAttributesLvls = (
 // };
 
 // // Gets all user attributes levels
-// export const getAllUserAttrLvls = function (allAttributes: AttributeInDatabase[]) {
+// export const getAllUserAttrLvls = function (allAttributes: AttributeInDb[]) {
 //   // Split every attribute per owner
 //   const everyUserAttributes: AttributesLvlsPerUser[] = [];
 

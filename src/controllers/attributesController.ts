@@ -10,7 +10,7 @@ import processServiceRequest from "../utils/processServiceRequest.ts";
 // Importing types
 import { type Response, type NextFunction } from "express";
 import { type AuthRequest } from "../types/auth.ts";
-import type Attribute from "../types/attribute.ts";
+import type { NewAttribute } from "../types/attribute.ts";
 
 // Creates a new attribute with user's inputs
 export const createNewAttributeController = async (
@@ -25,8 +25,7 @@ export const createNewAttributeController = async (
   const users_id: number = req.user.id;
 
   // Let's create the object compliant with the NewAttribute interface
-  const newAttrDataObj: Attribute = {
-    status: "new", // TypeScript is now happy because NewAttribute requires it
+  const newAttrDataObj: NewAttribute = {
     name,
     description,
     icon,

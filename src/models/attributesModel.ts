@@ -3,8 +3,11 @@ import updateRow from "../utils/updateRow.ts";
 import { INITIAL_XP_TO_NEXT_LEVEL } from "../config/globals.ts";
 
 // Importing types
-import type Attribute from "../types/attribute.ts";
-import type { AttributeInDatabase } from "../types/attribute.ts";
+import type {
+  AttributeInDb,
+  NewAttribute,
+  UpdatedAttribute,
+} from "../types/attribute.ts";
 
 // File's index
 
@@ -20,9 +23,9 @@ import type { AttributeInDatabase } from "../types/attribute.ts";
 
 // Inserts new attribute in the attributes table given the params from the request body and user's id from the JWT token
 export const createNewAttributeModel = async (
-  newAttributeObj: Attribute,
-): Promise<AttributeInDatabase | null> => {
-  const result = await pool.query<AttributeInDatabase>(
+  newAttributeObj: NewAttribute,
+): Promise<AttributeInDb | null> => {
+  const result = await pool.query<AttributeInDb>(
     "INSERT INTO attributes (name, description, icon, users_id, xp_to_next_level) VALUES ($1, $2, $3, $4, $5) RETURNING *",
     [
       newAttributeObj.name,
@@ -38,8 +41,8 @@ export const createNewAttributeModel = async (
 // Gets a specific attribute by its id
 export const getAttributeByIdModel = async (
   id: number,
-): Promise<AttributeInDatabase | null> => {
-  const result = await pool.query<AttributeInDatabase>(
+): Promise<AttributeInDb | null> => {
+  const result = await pool.query<AttributeInDb>(
     "SELECT * FROM attributes WHERE id = $1",
     [id],
   );
@@ -48,19 +51,17 @@ export const getAttributeByIdModel = async (
 
 // Gets all attributes
 export const getAllAttributesModel = async (): Promise<
-  AttributeInDatabase[] | null
+  AttributeInDb[] | null
 > => {
-  const result = await pool.query<AttributeInDatabase>(
-    `SELECT * FROM attributes`,
-  );
+  const result = await pool.query<AttributeInDb>(`SELECT * FROM attributes`);
   return result.rows.length ? result.rows : null;
 };
 
 // Gets all user attributes by user id
 export const getAttributesByUserIdModel = async (
   userId: number,
-): Promise<AttributeInDatabase[] | null> => {
-  const result = await pool.query<AttributeInDatabase>(
+): Promise<AttributeInDb[] | null> => {
+  const result = await pool.query<AttributeInDb>(
     `SELECT
     attributes.id,
     attributes.users_id,
@@ -82,8 +83,8 @@ export const getAttributesByUserIdModel = async (
 // Deletes a specific attribute by id
 export const deleteAttributeModel = async (
   id: number,
-): Promise<AttributeInDatabase | null> => {
-  const result = await pool.query<AttributeInDatabase>(
+): Promise<AttributeInDb | null> => {
+  const result = await pool.query<AttributeInDb>(
     "DELETE FROM attributes WHERE id = $1 RETURNING *",
     [id],
   );
@@ -93,8 +94,8 @@ export const deleteAttributeModel = async (
 // Updates a specific attribute by id
 export const updateAttributeModel = async (
   id: number,
-  updatedAttrProps: { name: string; description?: string; icon?: Buffer },
-): Promise<Attribute | null> => {
+  updatedAttrProps: UpdatedAttribute,
+): Promise<AttributeInDb | null> => {
   const { query, values } = updateRow(
     "attributes",
     id,
@@ -104,7 +105,7 @@ export const updateAttributeModel = async (
     "No parameters for attribute update were provided",
   );
 
-  const result = await pool.query<AttributeInDatabase>(query, values);
+  const result = await pool.query<AttributeInDb>(query, values);
   return result.rows[0] ?? null;
 };
 
@@ -113,8 +114,8 @@ export const updateAttributeModel = async (
 // Gets all attributes involved in a specific quest
 export const getAllAttributesToQuestModel = async (
   questId: number,
-): Promise<AttributeInDatabase[] | null> => {
-  const result = await pool.query<AttributeInDatabase>(
+): Promise<AttributeInDb[] | null> => {
+  const result = await pool.query<AttributeInDb>(
     `SELECT 
     attributes.id,
     attributes.users_id,
@@ -147,7 +148,7 @@ export const setAttributeLvlAndXpModel = async (
   xp: number,
   xpToNextLvl: number,
   attributeId: number,
-): Promise<Attribute | null> => {
+): Promise<AttributeInDb | null> => {
   const { query, values } = updateRow(
     "attributes",
     attributeId,
@@ -155,6 +156,6 @@ export const setAttributeLvlAndXpModel = async (
     "Something went wrong during attribute update",
   );
 
-  const result = await pool.query<Attribute>(query, values);
+  const result = await pool.query<AttributeInDb>(query, values);
   return result.rows[0] ?? null;
 };

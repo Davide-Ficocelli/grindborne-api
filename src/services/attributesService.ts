@@ -1,6 +1,9 @@
 // Importing types
-import type Attribute from "../types/attribute.ts";
-import type { AttributeInDatabase } from "../types/attribute.ts";
+import type {
+  AttributeInDb,
+  NewAttribute,
+  UpdatedAttribute,
+} from "../types/attribute.ts";
 import type ServiceValidation from "../types/serviceValidation.ts";
 
 // Importing methods
@@ -46,7 +49,7 @@ import {
 
 // Inserts new attribute in the attributes table given the params from the request body and user's id from the JWT token
 export const createNewAttributeService = async (
-  newAttrObj: Attribute,
+  newAttrObj: NewAttribute,
 ): Promise<ServiceValidation> => {
   // Get new attribute
   const newAttribute = await createNewAttributeModel(newAttrObj);
@@ -155,11 +158,7 @@ export const deleteAttributeService = async (
 export const updateAttributeService = async (
   userId: number,
   attributeId: number,
-  updatedAttrProps: {
-    name: string;
-    description?: string;
-    icon?: Buffer;
-  },
+  updatedAttrProps: UpdatedAttribute,
 ): Promise<ServiceValidation> => {
   // Get the attribute to be updated first
   const attributeToBeUpdated = await getAttributeByIdModel(attributeId);
