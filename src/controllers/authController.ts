@@ -1,5 +1,10 @@
 import jwt from "jsonwebtoken";
 import { getUserByEmailModel } from "../models/usersModel.ts";
+import {
+  addRefreshTokenModel,
+  getRefreshTokenModel,
+  deleteRefreshTokenModel,
+} from "../models/authModel.ts";
 import handleResponse from "../utils/handleResponse.ts";
 import bcrypt from "bcrypt";
 
@@ -9,12 +14,6 @@ import { type AuthPayload, type AuthRequest } from "../types/auth.ts";
 
 const generateAccessToken = (user: Object) =>
   jwt.sign(user, process.env.ACCESS_TOKEN_SECRET as string); // Here it's possible to set an expiration time for the token in an object e. g. {expiresIn: "1h"} token doesn't expire in development
-
-// Refresh tokens
-// WARNING: refresh tokens must be stored either in a database or in cache, using this variable is for testing purposes only
-// CHANGE THIS IN PRODUCTION
-
-export let refreshTokens: string[] = [];
 
 export const logInUser = async (
   req: Request,
@@ -64,27 +63,31 @@ export const logInUser = async (
       process.env.REFRESH_TOKEN_SECRET as string,
     );
 
-    // Pushing new refresh token in refresh tokens array
-    refreshTokens.push(refreshToken);
+    // Save the new refresh token in the database
+    await addRefreshTokenModel(refreshToken, user.id);
 
-    // Returning a success message and access token if passwords match
-    if (doPasswordsMatch)
-      return handleResponse(res, true, 200, "Successfully logged in", {
-        accessToken,
-        refreshToken,
-      });
+    return handleResponse(res, true, 200, "Successfully logged in", {
+      accessToken,
+      refreshToken,
+    });
   } catch (err) {
     next(err);
   }
 };
 
-// Logs user out
-export const logOutUser = (req: Request, res: Response, next: NextFunction) => {
+// Made this function async to handle the database deletion
+export const logOutUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     if (!req.body.token)
       return handleResponse(res, false, 404, "Refresh Token not found");
-    // Normally you would delete refresh tokens from the database but since they're currently being stored in a local array they just get filtered out
-    refreshTokens = refreshTokens.filter((token) => token !== req.body.token);
+
+    // Delete the token from the database
+    await deleteRefreshTokenModel(req.body.token);
+
     return handleResponse(res, true, 200, "Refresh token successfuly deleted");
   } catch (err) {
     next(err);
@@ -127,7 +130,8 @@ export const authenticateToken = (
   }
 };
 
-export const createNewAccessToken = (
+// Made this function async to handle the database lookup
+export const createNewAccessToken = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -138,7 +142,10 @@ export const createNewAccessToken = (
     // If either no refresh token exists or no refresh codes are available then return an error status code
     if (!refreshToken)
       return handleResponse(res, false, 401, "Refresh token not provided");
-    if (!refreshTokens.includes(refreshToken))
+
+    // Check if the token exists in the database
+    const tokenExists = await getRefreshTokenModel(refreshToken);
+    if (!tokenExists)
       return handleResponse(res, false, 404, "Refresh token not found");
     // Verifying refresh token validity
     jwt.verify(
