@@ -1,12 +1,9 @@
-/*
-  Function that can be used whenever you have to update values in a row.
-  WARNING: the keys in the paramsObj parameter must match the table's columns' names
-*/
 export default function updateRow(
   tableName: string,
   id: string,
   paramsObj: Object,
   errorMsg: string,
+  updatedByUser: boolean = false, // <-- Added parameter, defaults to false
 ) {
   // Checking for eventual data flaws
   if (!tableName)
@@ -18,14 +15,12 @@ export default function updateRow(
       "An error message for no fields to be updated available must be provided",
     );
 
-  const updates: Object = { ...paramsObj };
-
   const setClauses: string[] = [];
   const values: any[] = [id]; // $1 is ALWAYS id
-  let paramIndex = 2; // from second position on for updateable fields
+  let paramIndex = 2;
 
-  // 2. Dynamically build SET and values
-  for (const [keyName, keyValue] of Object.entries(updates)) {
+  // 1. Loop ONLY over the provided payload
+  for (const [keyName, keyValue] of Object.entries(paramsObj)) {
     // Object.entries() returns a map [["name", "Strength"], ["description", "Lifting capacity"]]
     if (keyValue === undefined) continue; // skip fields not present
 
@@ -34,10 +29,14 @@ export default function updateRow(
     paramIndex++;
   }
 
-  // 3. If there are no fields to update, throw error
+  // 2. Safety Check: Throw error if the user provided no valid fields
   if (setClauses.length === 0) {
     throw new Error(errorMsg);
   }
+
+  // 3. Now that we know a valid update is happening, append our audit column
+  setClauses.push(`updated_by_user = $${paramIndex}`);
+  values.push(updatedByUser);
 
   // 4. Mount the final query
   const query: string = `

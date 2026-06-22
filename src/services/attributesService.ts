@@ -183,6 +183,7 @@ export const updateAttributeService = async (
   const updatedAttribute = await updateAttributeModel(
     attributeId,
     updatedAttrProps,
+    true,
   );
 
   // Handle case in which updated attribute is null
@@ -326,7 +327,7 @@ export const assignXpToAttrsAndUserService = async (
     message: "Xp was distributed successfully",
     data: {
       user: leveledUpUser,
-      attrsToComQuest: await getAllAttributesToQuestModel(questId),
+      attributesToCompletedQuest: await getAllAttributesToQuestModel(questId),
     },
   };
 };

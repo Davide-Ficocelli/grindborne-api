@@ -48,14 +48,14 @@ export const createNewUserModel = async (
 export const updateUserModel = async (
   id: string,
   updatedUserProps: UpdatedUser,
+  isUserAction: boolean = false,
 ): Promise<UserInDb | null> => {
   const { query, values } = updateRow(
     "users",
     id,
-    {
-      ...updatedUserProps,
-    },
+    updatedUserProps, // Just pass the props directly
     "No parameters for user update were provided",
+    isUserAction,
   );
 
   const result = await pool.query<UserInDb>(query, values);

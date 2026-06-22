@@ -123,7 +123,7 @@ export const updateUserService = async (
     return { ok: false, status: status ?? 0, message: message ?? "" };
 
   // Update the user
-  const updatedUser = await updateUserModel(userId, updatedUserProps);
+  const updatedUser = await updateUserModel(userId, updatedUserProps, true);
 
   // Handle case in which updated user is null
   if (!updatedUser)

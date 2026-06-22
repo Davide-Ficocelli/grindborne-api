@@ -96,6 +96,7 @@ export const deleteAttributeModel = async (
 export const updateAttributeModel = async (
   id: string,
   updatedAttrProps: UpdatedAttribute,
+  isUserAction: boolean = false,
 ): Promise<AttributeInDb | null> => {
   const { query, values } = updateRow(
     "attributes",
@@ -104,6 +105,7 @@ export const updateAttributeModel = async (
       ...updatedAttrProps,
     },
     "No parameters for attribute update were provided",
+    isUserAction,
   );
 
   const result = await pool.query<AttributeInDb>(query, values);

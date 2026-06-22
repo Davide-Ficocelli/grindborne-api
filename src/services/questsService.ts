@@ -148,7 +148,7 @@ export const updateQuestService = async (
     };
 
   // Update quest and save the result
-  const updatedQuest = await updateQuestModel(questId, updatedQuestProps);
+  const updatedQuest = await updateQuestModel(questId, updatedQuestProps, true);
 
   // Handling case in which updated quest is null
   if (!updatedQuest)

@@ -55,12 +55,14 @@ export const createNewQuestModel = async (
 export const updateQuestModel = async (
   questId: string,
   questObj: UpdatedQuest,
+  isUserAction: boolean = false,
 ): Promise<QuestInDb | null> => {
   const { query, values } = updateRow(
     "quests",
     questId,
     questObj,
     "No parameters for quest update were provided",
+    isUserAction,
   );
 
   const result = await pool.query<QuestInDb>(query, values);
