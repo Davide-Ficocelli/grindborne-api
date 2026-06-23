@@ -70,6 +70,17 @@ export const deleteUserModel = async (userId: string) => {
   return result.rows[0] ?? null;
 };
 
+// Soft-deletes a user
+export const softDeleteUserModel = async (
+  userId: string,
+): Promise<UserInDb | null> => {
+  const result = await pool.query<UserInDb>(
+    "UPDATE users SET deleted_at = NOW() WHERE id = $1 RETURNING *",
+    [userId],
+  );
+  return result.rows[0] ?? null;
+};
+
 // --- BUSINESS LOGIC MODEL METHODS ---
 
 // Assigns new user's overall level

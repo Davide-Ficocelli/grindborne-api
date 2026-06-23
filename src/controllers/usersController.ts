@@ -4,6 +4,7 @@ import {
   getUserByIdService,
   updateUserService,
   deleteUserService,
+  softDeleteUserService,
 } from "../services/usersService.ts";
 
 // Importing types
@@ -75,5 +76,21 @@ export const deleteUserController = async (
     res,
     next,
     deleteUserService(userId, authUserid),
+  );
+};
+
+// Soft deletes a user
+export const softDeleteUserController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  const userId = req.params.id ? req.params.id.toString() : "";
+  const authUserId = req.user.id;
+
+  return processServiceRequest(
+    res,
+    next,
+    softDeleteUserService(userId, authUserId),
   );
 };

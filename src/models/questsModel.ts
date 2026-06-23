@@ -80,6 +80,17 @@ export const deleteQuestModel = async (
   return result.rows[0] ?? null;
 };
 
+// Softs deletes a specific quest by id
+export const softDeleteQuestModel = async (
+  questId: string,
+): Promise<QuestInDb | null> => {
+  const result = await pool.query<QuestInDb>(
+    "UPDATE quests SET deleted_at = NOW() WHERE id = $1 RETURNING *",
+    [questId],
+  );
+  return result.rows[0] ?? null;
+};
+
 // --- BUSINESS LOGIC MODEL FUNCTIONS ---
 
 // Tracks a quest

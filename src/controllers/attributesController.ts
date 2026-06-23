@@ -4,6 +4,7 @@ import {
   deleteAttributeService,
   updateAttributeService,
   getAllAttributesToQuestService,
+  softDeleteAttributeService,
 } from "../services/attributesService.ts";
 import processServiceRequest from "../utils/processServiceRequest.ts";
 
@@ -68,6 +69,22 @@ export const deleteAttributeController = async (
     res,
     next,
     deleteAttributeService(userId, attributeId),
+  );
+};
+
+// Soft-deletes an attribute
+export const softDeleteAttributeController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  const userId = req.user.id;
+  const attributeId = req.params.id ? req.params.id.toString() : "";
+
+  return processServiceRequest(
+    res,
+    next,
+    softDeleteAttributeService(userId, attributeId),
   );
 };
 

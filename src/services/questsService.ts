@@ -19,6 +19,7 @@ import {
   addAttributesToQuestModel,
   trackQuestModel,
   deleteQuestModel,
+  softDeleteQuestModel,
 } from "../models/questsModel.ts";
 import { assignXpToAttrsAndUserService } from "../services/attributesService.ts";
 import {
@@ -209,6 +210,44 @@ export const deleteQuestService = async (
     ok: true,
     status: 200,
     message: "Quest deleted successfully",
+    data: deletedQuest,
+  };
+};
+
+// Soft-deletes a quest
+export const softDeleteQuestService = async (
+  questId: string,
+  userId: string,
+): Promise<ServiceValidation> => {
+  const questToBeDeleted = await getQuestByIdModel(questId);
+
+  if (!questToBeDeleted)
+    return {
+      ok: false,
+      status: 404,
+      message: "Quest to be soft-deleted not found",
+    };
+
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    questToBeDeleted.users_id as string,
+  );
+  if (isIdorDetected)
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  const deletedQuest = await softDeleteQuestModel(questId);
+
+  if (!deletedQuest)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while soft-deleting the quest",
+    };
+
+  return {
+    ok: true,
+    status: 200,
+    message: "Quest soft-deleted successfully",
     data: deletedQuest,
   };
 };

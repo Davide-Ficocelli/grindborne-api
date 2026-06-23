@@ -92,6 +92,17 @@ export const deleteAttributeModel = async (
   return result.rows[0] ?? null;
 };
 
+// Soft deletes a specific attribute by id
+export const softDeleteAttributeModel = async (
+  id: string,
+): Promise<AttributeInDb | null> => {
+  const result = await pool.query<AttributeInDb>(
+    "UPDATE attributes SET deleted_at = NOW() WHERE id = $1 RETURNING *",
+    [id],
+  );
+  return result.rows[0] ?? null;
+};
+
 // Updates a specific attribute by id
 export const updateAttributeModel = async (
   id: string,

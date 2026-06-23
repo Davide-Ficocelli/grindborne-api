@@ -12,6 +12,7 @@ import {
   deleteQuestController,
   trackQuestController,
   completeQuestController,
+  softDeleteQuestController,
 } from "../controllers/questsController.ts";
 
 const router = Router();
@@ -45,6 +46,13 @@ router.delete(
   "/quests/:id",
   authenticateToken,
   deleteQuestController as RequestHandler,
+);
+
+// Soft-deletes an existing quest
+router.patch(
+  "/quests/:id",
+  authenticateToken,
+  softDeleteQuestController as RequestHandler,
 );
 
 // Route for new quest creation

@@ -5,6 +5,7 @@ import {
   getUserByIdController,
   updateUserController,
   deleteUserController,
+  softDeleteUserController,
 } from "../controllers/usersController.ts";
 import {
   validateNewUser,
@@ -36,6 +37,13 @@ router.delete(
   "/:id",
   authenticateToken,
   deleteUserController as RequestHandler,
+);
+
+// Soft-deletes a user
+router.patch(
+  "/:id",
+  authenticateToken,
+  softDeleteUserController as RequestHandler,
 );
 
 export default router;

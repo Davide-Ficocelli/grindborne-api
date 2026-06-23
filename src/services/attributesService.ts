@@ -12,6 +12,7 @@ import {
   updateAttributeModel,
   getAllAttributesToQuestModel,
   setAttributeLvlAndXpModel,
+  softDeleteAttributeModel,
 } from "../models/attributesModel.ts";
 import { assignNewUserLvlService } from "../services/usersService.ts";
 import { getUserByIdModel } from "../models/usersModel.ts";
@@ -145,6 +146,44 @@ export const deleteAttributeService = async (
     ok: true,
     status: 200,
     message: "Attribute deleted successfully",
+    data: deletedAttribute,
+  };
+};
+
+// Soft-deletes an attribute
+export const softDeleteAttributeService = async (
+  userId: string,
+  attributeId: string,
+): Promise<ServiceValidation> => {
+  const attributeToBeDeleted = await getAttributeByIdModel(attributeId);
+
+  if (!attributeToBeDeleted)
+    return {
+      ok: false,
+      status: 404,
+      message: "Attribute to be soft-deleted wasn't found",
+    };
+
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    attributeToBeDeleted.users_id as string,
+  );
+  if (isIdorDetected)
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  const deletedAttribute = await softDeleteAttributeModel(attributeId);
+
+  if (!deletedAttribute)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while soft-deleting attribute",
+    };
+
+  return {
+    ok: true,
+    status: 200,
+    message: "Attribute soft-deleted successfully",
     data: deletedAttribute,
   };
 };

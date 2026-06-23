@@ -15,6 +15,7 @@ import {
   updateUserModel,
   deleteUserModel,
   assignNewUserLvlModel,
+  softDeleteUserModel,
 } from "../models/usersModel.ts";
 
 /*
@@ -193,6 +194,46 @@ export const deleteUserService = async (
     ok: true,
     status: 200,
     message: "User deleted successfully",
+    data: deletedUser,
+  };
+};
+
+// Soft-deletes user
+export const softDeleteUserService = async (
+  userId: string,
+  authUserId: string,
+): Promise<ServiceValidation> => {
+  const userToBeDeleted = await getUserByIdModel(userId);
+
+  if (!userToBeDeleted)
+    return {
+      ok: false,
+      status: 404,
+      message: "User to be soft-deleted not found",
+    };
+
+  const { isIdorDetected, status, message } = preventIdor(
+    authUserId,
+    userToBeDeleted.id,
+  );
+  if (isIdorDetected)
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  const deletedUser = await softDeleteUserModel(userId);
+
+  if (!deletedUser)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while soft-deleting user",
+    };
+
+  if (deletedUser.password_hash) delete deletedUser.password_hash;
+
+  return {
+    ok: true,
+    status: 200,
+    message: "User soft-deleted successfully",
     data: deletedUser,
   };
 };

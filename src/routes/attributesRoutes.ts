@@ -6,6 +6,7 @@ import {
   getAttributesByUserIdController,
   updateAttributeController,
   getAllAttributesToQuestController,
+  softDeleteAttributeController,
 } from "../controllers/attributesController.ts";
 import {
   validateNewAttribute,
@@ -35,6 +36,13 @@ router.delete(
   "/attributes/:id",
   authenticateToken,
   deleteAttributeController as RequestHandler,
+);
+
+// Soft-deletes an existing attribute
+router.patch(
+  "/attributes/:id",
+  authenticateToken,
+  softDeleteAttributeController as RequestHandler,
 );
 
 // Endpoint for user attribute update

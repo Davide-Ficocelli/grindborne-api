@@ -7,6 +7,7 @@ import {
   deleteQuestService,
   trackQuestService,
   updateQuestService,
+  softDeleteQuestService,
 } from "../services/questsService.ts";
 
 // Importing types
@@ -128,6 +129,22 @@ export const deleteQuestController = async (
 
   // Start the quest deletion process in the service
   return processServiceRequest(res, next, deleteQuestService(questId, userId));
+};
+
+// Soft-deletes a quest
+export const softDeleteQuestController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  const questId = req.params.id ? req.params.id.toString() : "";
+  const userId = req.user.id;
+
+  return processServiceRequest(
+    res,
+    next,
+    softDeleteQuestService(questId, userId),
+  );
 };
 
 // --- BUSINESS LOGIC CONTROLLER FUNCTIONS ---
