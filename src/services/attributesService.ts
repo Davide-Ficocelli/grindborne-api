@@ -8,10 +8,10 @@ import {
   createNewAttributeModel,
   getAttributesByUserIdModel,
   getAttributeByIdModel,
-  deleteAttributeModel,
   updateAttributeModel,
   getAllAttributesToQuestModel,
   setAttributeLvlAndXpModel,
+  softDeleteAttributeModel,
 } from "../models/attributesModel.ts";
 import { assignNewUserLvlService } from "../services/usersService.ts";
 import { getUserByIdModel } from "../models/usersModel.ts";
@@ -100,51 +100,40 @@ export const getAttributesByUserIdService = async (
   };
 };
 
-// Deletes a specific attribute
-export const deleteAttributeService = async (
+// Soft-deletes an attribute
+export const softDeleteAttributeService = async (
   userId: string,
   attributeId: string,
 ): Promise<ServiceValidation> => {
-  // Get the attribute to be deleted first
   const attributeToBeDeleted = await getAttributeByIdModel(attributeId);
 
-  // Handle case in which the attribute to be deleted is null
   if (!attributeToBeDeleted)
     return {
       ok: false,
       status: 404,
-      message: "Attribute to be deleted wasn't found",
+      message: "Attribute to be soft-deleted wasn't found",
     };
-
-  // Get attribute owner id
-  const attributeOwnerId = attributeToBeDeleted?.users_id;
-
-  // Prevent IDOR
 
   const { isIdorDetected, status, message } = preventIdor(
     userId,
-    attributeOwnerId as string,
+    attributeToBeDeleted.users_id as string,
   );
-
   if (isIdorDetected)
     return { ok: false, status: status ?? 0, message: message ?? "" };
 
-  // Delete the attribute
-  const deletedAttribute = await deleteAttributeModel(attributeId);
+  const deletedAttribute = await softDeleteAttributeModel(attributeId);
 
-  // Handle case in which deleted attribute is null
   if (!deletedAttribute)
     return {
       ok: false,
       status: 500,
-      message: "Something went wrong while deleting attribute",
+      message: "Something went wrong while soft-deleting attribute",
     };
 
-  // If everything went well return a successful state
   return {
     ok: true,
     status: 200,
-    message: "Attribute deleted successfully",
+    message: "Attribute soft-deleted successfully",
     data: deletedAttribute,
   };
 };
@@ -183,6 +172,7 @@ export const updateAttributeService = async (
   const updatedAttribute = await updateAttributeModel(
     attributeId,
     updatedAttrProps,
+    true,
   );
 
   // Handle case in which updated attribute is null
@@ -326,7 +316,7 @@ export const assignXpToAttrsAndUserService = async (
     message: "Xp was distributed successfully",
     data: {
       user: leveledUpUser,
-      attrsToComQuest: await getAllAttributesToQuestModel(questId),
+      attributesToCompletedQuest: await getAllAttributesToQuestModel(questId),
     },
   };
 };

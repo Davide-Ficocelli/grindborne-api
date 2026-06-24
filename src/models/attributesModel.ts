@@ -81,12 +81,12 @@ export const getAttributesByUserIdModel = async (
   return result.rows.length ? result.rows : null;
 };
 
-// Deletes a specific attribute by id
-export const deleteAttributeModel = async (
+// Soft deletes a specific attribute by id
+export const softDeleteAttributeModel = async (
   id: string,
 ): Promise<AttributeInDb | null> => {
   const result = await pool.query<AttributeInDb>(
-    "DELETE FROM attributes WHERE id = $1 RETURNING *",
+    "UPDATE attributes SET deleted_at = NOW() WHERE id = $1 RETURNING *",
     [id],
   );
   return result.rows[0] ?? null;
@@ -96,6 +96,7 @@ export const deleteAttributeModel = async (
 export const updateAttributeModel = async (
   id: string,
   updatedAttrProps: UpdatedAttribute,
+  isUserAction: boolean = false,
 ): Promise<AttributeInDb | null> => {
   const { query, values } = updateRow(
     "attributes",
@@ -104,6 +105,7 @@ export const updateAttributeModel = async (
       ...updatedAttrProps,
     },
     "No parameters for attribute update were provided",
+    isUserAction,
   );
 
   const result = await pool.query<AttributeInDb>(query, values);

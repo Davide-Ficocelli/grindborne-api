@@ -55,24 +55,26 @@ export const createNewQuestModel = async (
 export const updateQuestModel = async (
   questId: string,
   questObj: UpdatedQuest,
+  isUserAction: boolean = false,
 ): Promise<QuestInDb | null> => {
   const { query, values } = updateRow(
     "quests",
     questId,
     questObj,
     "No parameters for quest update were provided",
+    isUserAction,
   );
 
   const result = await pool.query<QuestInDb>(query, values);
   return result.rows[0] ?? null;
 };
 
-// Deletes a specific quest by id
-export const deleteQuestModel = async (
+// Softs deletes a specific quest by id
+export const softDeleteQuestModel = async (
   questId: string,
 ): Promise<QuestInDb | null> => {
   const result = await pool.query<QuestInDb>(
-    "DELETE FROM quests WHERE id = $1 RETURNING *",
+    "UPDATE quests SET deleted_at = NOW() WHERE id = $1 RETURNING *",
     [questId],
   );
   return result.rows[0] ?? null;

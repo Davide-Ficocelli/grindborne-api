@@ -48,23 +48,26 @@ export const createNewUserModel = async (
 export const updateUserModel = async (
   id: string,
   updatedUserProps: UpdatedUser,
+  isUserAction: boolean = false,
 ): Promise<UserInDb | null> => {
   const { query, values } = updateRow(
     "users",
     id,
-    {
-      ...updatedUserProps,
-    },
+    updatedUserProps, // Just pass the props directly
     "No parameters for user update were provided",
+    isUserAction,
   );
 
   const result = await pool.query<UserInDb>(query, values);
   return result.rows[0] ?? null;
 };
 
-export const deleteUserModel = async (userId: string) => {
+// Soft-deletes a user
+export const softDeleteUserModel = async (
+  userId: string,
+): Promise<UserInDb | null> => {
   const result = await pool.query<UserInDb>(
-    "DELETE FROM users WHERE id = $1 RETURNING *",
+    "UPDATE users SET deleted_at = NOW() WHERE id = $1 RETURNING *",
     [userId],
   );
   return result.rows[0] ?? null;

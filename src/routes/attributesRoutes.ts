@@ -2,10 +2,10 @@ import { Router, type RequestHandler } from "express";
 import { authenticateToken } from "../controllers/authController.ts";
 import {
   createNewAttributeController,
-  deleteAttributeController,
   getAttributesByUserIdController,
   updateAttributeController,
   getAllAttributesToQuestController,
+  softDeleteAttributeController,
 } from "../controllers/attributesController.ts";
 import {
   validateNewAttribute,
@@ -30,11 +30,11 @@ router.post(
   createNewAttributeController as RequestHandler,
 );
 
-// Endpoint for user attribute deletion
-router.delete(
+// Soft-deletes an existing attribute
+router.patch(
   "/attributes/:id",
   authenticateToken,
-  deleteAttributeController as RequestHandler,
+  softDeleteAttributeController as RequestHandler,
 );
 
 // Endpoint for user attribute update

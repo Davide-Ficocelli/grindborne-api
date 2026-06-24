@@ -18,7 +18,7 @@ import {
   createNewQuestModel,
   addAttributesToQuestModel,
   trackQuestModel,
-  deleteQuestModel,
+  softDeleteQuestModel,
 } from "../models/questsModel.ts";
 import { assignXpToAttrsAndUserService } from "../services/attributesService.ts";
 import {
@@ -148,7 +148,7 @@ export const updateQuestService = async (
     };
 
   // Update quest and save the result
-  const updatedQuest = await updateQuestModel(questId, updatedQuestProps);
+  const updatedQuest = await updateQuestModel(questId, updatedQuestProps, true);
 
   // Handling case in which updated quest is null
   if (!updatedQuest)
@@ -167,48 +167,40 @@ export const updateQuestService = async (
   };
 };
 
-// Deletes a quest
-export const deleteQuestService = async (
+// Soft-deletes a quest
+export const softDeleteQuestService = async (
   questId: string,
   userId: string,
 ): Promise<ServiceValidation> => {
-  // Get the quest to be deleted first
   const questToBeDeleted = await getQuestByIdModel(questId);
 
-  // Handle case in which the quest to be deleted is null
   if (!questToBeDeleted)
     return {
       ok: false,
       status: 404,
-      message: "Quest to be deleted not found",
+      message: "Quest to be soft-deleted not found",
     };
 
-  // Get quest owner id
-  const questOwnerId = questToBeDeleted?.users_id;
-
-  // Prevent IDOR
-
-  const { isIdorDetected, status, message } = preventIdor(userId, questOwnerId);
-
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    questToBeDeleted.users_id as string,
+  );
   if (isIdorDetected)
     return { ok: false, status: status ?? 0, message: message ?? "" };
 
-  // Delete the quest and save the result
-  const deletedQuest = await deleteQuestModel(questId);
+  const deletedQuest = await softDeleteQuestModel(questId);
 
-  // Handling case in which deleted quest is null
   if (!deletedQuest)
     return {
       ok: false,
       status: 500,
-      message: "Something went wrong while deleting the quest",
+      message: "Something went wrong while soft-deleting the quest",
     };
 
-  // Delete the quest and return it
   return {
     ok: true,
     status: 200,
-    message: "Quest deleted successfully",
+    message: "Quest soft-deleted successfully",
     data: deletedQuest,
   };
 };

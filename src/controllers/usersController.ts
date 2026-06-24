@@ -3,7 +3,7 @@ import {
   createNewUserService,
   getUserByIdService,
   updateUserService,
-  deleteUserService,
+  softDeleteUserService,
 } from "../services/usersService.ts";
 
 // Importing types
@@ -62,18 +62,18 @@ export const updateUserController = async (
   );
 };
 
-export const deleteUserController = async (
+// Soft deletes a user
+export const softDeleteUserController = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
-  // Get authenticated and passed user id
   const userId = req.params.id ? req.params.id.toString() : "";
-  const authUserid = req.user.id;
+  const authUserId = req.user.id;
 
   return processServiceRequest(
     res,
     next,
-    deleteUserService(userId, authUserid),
+    softDeleteUserService(userId, authUserId),
   );
 };

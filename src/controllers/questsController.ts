@@ -4,15 +4,14 @@ import {
   getQuestByIdService,
   getQuestsByUserIdService,
   createNewQuestService,
-  deleteQuestService,
   trackQuestService,
   updateQuestService,
+  softDeleteQuestService,
 } from "../services/questsService.ts";
 
 // Importing types
-import { type Request, type Response, type NextFunction } from "express";
+import { type Response, type NextFunction } from "express";
 import { type AuthRequest } from "../types/auth.ts";
-import { type Quest } from "../types/quest.ts";
 
 // File's index
 
@@ -51,8 +50,6 @@ export const getQuestsByUserIdController = async (
   // Retrieves and saves all user's quests
   return processServiceRequest(res, next, getQuestsByUserIdService(userId));
 };
-
-// --- Helper functions for CreateNewQuestController ---
 
 // Creates a new quest
 export const createNewQuestController = async (
@@ -116,18 +113,20 @@ export const updateQuestController = async (
   );
 };
 
-// Deletes a quest
-export const deleteQuestController = async (
+// Soft-deletes a quest
+export const softDeleteQuestController = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
-  // Get quest and user id
   const questId = req.params.id ? req.params.id.toString() : "";
   const userId = req.user.id;
 
-  // Start the quest deletion process in the service
-  return processServiceRequest(res, next, deleteQuestService(questId, userId));
+  return processServiceRequest(
+    res,
+    next,
+    softDeleteQuestService(questId, userId),
+  );
 };
 
 // --- BUSINESS LOGIC CONTROLLER FUNCTIONS ---
