@@ -8,6 +8,7 @@ import attributesRoutes from "./routes/attributesRoutes.ts";
 import grindsRoutes from "./routes/grindsRoutes.ts";
 import questsRoutes from "./routes/questsRoutes.ts";
 import usersRoutes from "./routes/usersRoutes.ts";
+import { startCleanupJob } from "./jobs/cleanupJob.ts";
 
 // Importing types for request and response
 import { type Request, type Response } from "express";
@@ -59,6 +60,9 @@ app.get("/", async (req: Request, res: Response) => {
   const result = await pool.query("SELECT current_database()");
   res.send(`The database name is: ${result.rows[0].current_database}`);
 });
+
+// ---> Initialize the cron job <---
+startCleanupJob();
 
 // Server running
 app.listen(port, () => {
