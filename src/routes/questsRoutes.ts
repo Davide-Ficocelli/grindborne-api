@@ -9,7 +9,6 @@ import {
   getQuestByIdController,
   getQuestsByUserIdController,
   updateQuestController,
-  deleteQuestController,
   trackQuestController,
   completeQuestController,
   softDeleteQuestController,
@@ -39,13 +38,6 @@ router.put(
   authenticateToken,
   validateUpdatedQuest,
   updateQuestController as RequestHandler,
-);
-
-// Route to delete an existing quest
-router.delete(
-  "/quests/:id",
-  authenticateToken,
-  deleteQuestController as RequestHandler,
 );
 
 // Soft-deletes an existing quest

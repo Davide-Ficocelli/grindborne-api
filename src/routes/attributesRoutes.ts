@@ -2,7 +2,6 @@ import { Router, type RequestHandler } from "express";
 import { authenticateToken } from "../controllers/authController.ts";
 import {
   createNewAttributeController,
-  deleteAttributeController,
   getAttributesByUserIdController,
   updateAttributeController,
   getAllAttributesToQuestController,
@@ -29,13 +28,6 @@ router.post(
   authenticateToken,
   validateNewAttribute,
   createNewAttributeController as RequestHandler,
-);
-
-// Endpoint for user attribute deletion
-router.delete(
-  "/attributes/:id",
-  authenticateToken,
-  deleteAttributeController as RequestHandler,
 );
 
 // Soft-deletes an existing attribute

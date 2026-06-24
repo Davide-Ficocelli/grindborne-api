@@ -81,17 +81,6 @@ export const getAttributesByUserIdModel = async (
   return result.rows.length ? result.rows : null;
 };
 
-// Deletes a specific attribute by id
-export const deleteAttributeModel = async (
-  id: string,
-): Promise<AttributeInDb | null> => {
-  const result = await pool.query<AttributeInDb>(
-    "DELETE FROM attributes WHERE id = $1 RETURNING *",
-    [id],
-  );
-  return result.rows[0] ?? null;
-};
-
 // Soft deletes a specific attribute by id
 export const softDeleteAttributeModel = async (
   id: string,

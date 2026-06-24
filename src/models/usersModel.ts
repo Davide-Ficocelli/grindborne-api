@@ -62,14 +62,6 @@ export const updateUserModel = async (
   return result.rows[0] ?? null;
 };
 
-export const deleteUserModel = async (userId: string) => {
-  const result = await pool.query<UserInDb>(
-    "DELETE FROM users WHERE id = $1 RETURNING *",
-    [userId],
-  );
-  return result.rows[0] ?? null;
-};
-
 // Soft-deletes a user
 export const softDeleteUserModel = async (
   userId: string,

@@ -1,7 +1,6 @@
 import {
   createNewAttributeService,
   getAttributesByUserIdService,
-  deleteAttributeService,
   updateAttributeService,
   getAllAttributesToQuestService,
   softDeleteAttributeService,
@@ -52,24 +51,6 @@ export const getAttributesByUserIdController = async (
 
   // Retrieves and saves all user's attributes
   return processServiceRequest(res, next, getAttributesByUserIdService(userId));
-};
-
-// Deletes an attribute
-export const deleteAttributeController = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  // Gets user id
-  const userId: string = req.user.id;
-  const attributeId = req.params.id ? req.params.id.toString() : "";
-
-  // Get deleted attribute
-  return processServiceRequest(
-    res,
-    next,
-    deleteAttributeService(userId, attributeId),
-  );
 };
 
 // Soft-deletes an attribute

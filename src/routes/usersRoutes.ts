@@ -4,7 +4,6 @@ import {
   createNewUserController,
   getUserByIdController,
   updateUserController,
-  deleteUserController,
   softDeleteUserController,
 } from "../controllers/usersController.ts";
 import {
@@ -30,13 +29,6 @@ router.put(
   authenticateToken,
   validateUpdatedUser,
   updateUserController as RequestHandler,
-);
-
-// Deletes a user
-router.delete(
-  "/:id",
-  authenticateToken,
-  deleteUserController as RequestHandler,
 );
 
 // Soft-deletes a user

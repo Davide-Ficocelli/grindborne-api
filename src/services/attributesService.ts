@@ -8,7 +8,6 @@ import {
   createNewAttributeModel,
   getAttributesByUserIdModel,
   getAttributeByIdModel,
-  deleteAttributeModel,
   updateAttributeModel,
   getAllAttributesToQuestModel,
   setAttributeLvlAndXpModel,
@@ -98,55 +97,6 @@ export const getAttributesByUserIdService = async (
     status: 200,
     message: "All user attributes successfully retrieved",
     data: allUserAttributes,
-  };
-};
-
-// Deletes a specific attribute
-export const deleteAttributeService = async (
-  userId: string,
-  attributeId: string,
-): Promise<ServiceValidation> => {
-  // Get the attribute to be deleted first
-  const attributeToBeDeleted = await getAttributeByIdModel(attributeId);
-
-  // Handle case in which the attribute to be deleted is null
-  if (!attributeToBeDeleted)
-    return {
-      ok: false,
-      status: 404,
-      message: "Attribute to be deleted wasn't found",
-    };
-
-  // Get attribute owner id
-  const attributeOwnerId = attributeToBeDeleted?.users_id;
-
-  // Prevent IDOR
-
-  const { isIdorDetected, status, message } = preventIdor(
-    userId,
-    attributeOwnerId as string,
-  );
-
-  if (isIdorDetected)
-    return { ok: false, status: status ?? 0, message: message ?? "" };
-
-  // Delete the attribute
-  const deletedAttribute = await deleteAttributeModel(attributeId);
-
-  // Handle case in which deleted attribute is null
-  if (!deletedAttribute)
-    return {
-      ok: false,
-      status: 500,
-      message: "Something went wrong while deleting attribute",
-    };
-
-  // If everything went well return a successful state
-  return {
-    ok: true,
-    status: 200,
-    message: "Attribute deleted successfully",
-    data: deletedAttribute,
   };
 };
 

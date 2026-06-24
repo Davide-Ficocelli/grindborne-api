@@ -3,7 +3,6 @@ import {
   createNewUserService,
   getUserByIdService,
   updateUserService,
-  deleteUserService,
   softDeleteUserService,
 } from "../services/usersService.ts";
 
@@ -60,22 +59,6 @@ export const updateUserController = async (
       level,
       stamina,
     }),
-  );
-};
-
-export const deleteUserController = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  // Get authenticated and passed user id
-  const userId = req.params.id ? req.params.id.toString() : "";
-  const authUserid = req.user.id;
-
-  return processServiceRequest(
-    res,
-    next,
-    deleteUserService(userId, authUserid),
   );
 };
 

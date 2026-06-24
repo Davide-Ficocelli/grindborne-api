@@ -18,7 +18,6 @@ import {
   createNewQuestModel,
   addAttributesToQuestModel,
   trackQuestModel,
-  deleteQuestModel,
   softDeleteQuestModel,
 } from "../models/questsModel.ts";
 import { assignXpToAttrsAndUserService } from "../services/attributesService.ts";
@@ -165,52 +164,6 @@ export const updateQuestService = async (
     status: 200,
     message: "Quest updated successfully",
     data: updatedQuest,
-  };
-};
-
-// Deletes a quest
-export const deleteQuestService = async (
-  questId: string,
-  userId: string,
-): Promise<ServiceValidation> => {
-  // Get the quest to be deleted first
-  const questToBeDeleted = await getQuestByIdModel(questId);
-
-  // Handle case in which the quest to be deleted is null
-  if (!questToBeDeleted)
-    return {
-      ok: false,
-      status: 404,
-      message: "Quest to be deleted not found",
-    };
-
-  // Get quest owner id
-  const questOwnerId = questToBeDeleted?.users_id;
-
-  // Prevent IDOR
-
-  const { isIdorDetected, status, message } = preventIdor(userId, questOwnerId);
-
-  if (isIdorDetected)
-    return { ok: false, status: status ?? 0, message: message ?? "" };
-
-  // Delete the quest and save the result
-  const deletedQuest = await deleteQuestModel(questId);
-
-  // Handling case in which deleted quest is null
-  if (!deletedQuest)
-    return {
-      ok: false,
-      status: 500,
-      message: "Something went wrong while deleting the quest",
-    };
-
-  // Delete the quest and return it
-  return {
-    ok: true,
-    status: 200,
-    message: "Quest deleted successfully",
-    data: deletedQuest,
   };
 };
 

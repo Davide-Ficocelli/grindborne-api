@@ -13,7 +13,6 @@ import {
   createNewUserModel,
   getUserByIdModel,
   updateUserModel,
-  deleteUserModel,
   assignNewUserLvlModel,
   softDeleteUserModel,
 } from "../models/usersModel.ts";
@@ -143,58 +142,6 @@ export const updateUserService = async (
     status: 200,
     message: "User updated successfully",
     data: updatedUser,
-  };
-};
-
-// Deletes a specific user
-export const deleteUserService = async (
-  userId: string,
-  authUserId: string,
-): Promise<ServiceValidation> => {
-  // Get the user to be deleted first
-  const userToBeDeleted = await getUserByIdModel(userId);
-
-  // Handle case in which the user to be deleted is null
-  if (!userToBeDeleted)
-    return {
-      ok: false,
-      status: 404,
-      message: "User to be deleted not found",
-    };
-
-  // Get user owner id
-  const userOwnerId = userToBeDeleted?.id;
-
-  // Prevent IDOR
-
-  const { isIdorDetected, status, message } = preventIdor(
-    authUserId,
-    userOwnerId,
-  );
-
-  if (isIdorDetected)
-    return { ok: false, status: status ?? 0, message: message ?? "" };
-
-  // Delete the user
-  const deletedUser = await deleteUserModel(userId);
-
-  // Handle case in which deleted user is null
-  if (!deletedUser)
-    return {
-      ok: false,
-      status: 500,
-      message: "Something went wrong while deleting user",
-    };
-
-  // Prevent hashed password from being returned in response
-  if (deletedUser.password_hash) delete deletedUser.password_hash;
-
-  // If everything went well return a successful state
-  return {
-    ok: true,
-    status: 200,
-    message: "User deleted successfully",
-    data: deletedUser,
   };
 };
 
