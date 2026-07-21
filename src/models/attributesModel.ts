@@ -162,3 +162,14 @@ export const setAttributeLvlAndXpModel = async (
   const result = await pool.query<AttributeInDb>(query, values);
   return result.rows[0] ?? null;
 };
+
+// Assigns starting decay date to all attributes with xp
+export const assignStartingDecayDateToAttributeModel = async (
+  startingDecayDate: Date,
+): Promise<AttributeInDb[] | null> => {
+  const result = await pool.query<AttributeInDb>(
+    "UPDATE attributes SET decay_date = $1 WHERE decay_date IS NULL AND xp > 0 RETURNING *",
+    [startingDecayDate],
+  );
+  return result.rows.length ? result.rows : null;
+};

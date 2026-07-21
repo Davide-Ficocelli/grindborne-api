@@ -1,12 +1,13 @@
 // Importing types
 import type ServiceValidation from "../types/serviceValidation.ts";
-
-// Importing types
 import {
   type NewQuest,
   type QuestInDb,
   type UpdatedQuest,
 } from "../types/quest.ts";
+
+// Importing constants
+import { STARTING_GRACE_PERIOD_IN_DAYS } from "../config/globals.ts";
 
 // Importing functions
 import { nanoid } from "nanoid";
@@ -21,12 +22,14 @@ import {
   softDeleteQuestModel,
 } from "../models/questsModel.ts";
 import { assignXpToAttrsAndUserService } from "../services/attributesService.ts";
+import { assignStartingDecayDateToAttributeModel } from "../models/attributesModel.ts";
 import {
   calculateDatesDiff,
   calculateQuestTotalXP,
   validateQuestToBeCompleted,
   type DataForXp,
 } from "../shared/questsHelpers.ts";
+import toUTCDate from "../utils/toUTCDate.ts";
 
 // File index
 
@@ -42,7 +45,7 @@ import {
 // --- GENERAL CRUD SERVICE FUNCTIONS ---
 // ─────────────────────────────────────────────
 
-// Gets quest by its quest
+// Gets quest by its quest id
 export const getQuestByIdService = async (
   questId: string,
   userId: string,
@@ -478,8 +481,18 @@ export const completeQuestService = async (
       data: userData,
     } = await assignXpToAttrsAndUserService(questId, questTotalXp, userId);
 
-    // If xp assig went wrong stop execution
+    // If xp assignment went wrong stop execution
     if (!ok) return { ok, status, message };
+
+    // Get today's date
+    const today = toUTCDate(new Date());
+
+    // Calculate starting decay date by adding the grace period
+    const startingDecayDate = new Date(today);
+    startingDecayDate.setDate(today.getDate() + STARTING_GRACE_PERIOD_IN_DAYS);
+
+    // Assign a starting decay date to all involved attributes if they don't already have one
+    await assignStartingDecayDateToAttributeModel(startingDecayDate);
 
     // Update the quest data accordingly
     result = await updateQuestModel(questId, {

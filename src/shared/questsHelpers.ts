@@ -1,5 +1,4 @@
 import {
-  REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING,
   ESTIMATED_TIME_BREAKPOINTS,
   AVG_QUEST_LVL_UP_WORTH,
   MS_IN_A_MINUTE,
@@ -14,13 +13,14 @@ import {
 } from "../config/globals.ts";
 import { type QuestInDb } from "../types/quest.ts";
 import { type AttributeInDb } from "../types/attribute.ts";
+import type ServiceValidation from "../types/serviceValidation.ts";
 import preventIdor from "../utils/preventIdor.ts";
 import { getUserByIdModel } from "../models/usersModel.ts";
 import {
   getAttributesByUserIdService,
   getAllAttributesToQuestService,
 } from "../services/attributesService.ts";
-import type ServiceValidation from "../types/serviceValidation.ts";
+import { overallAttributesMultiplier } from "../shared/attributesHelpers.ts";
 
 // --- Helper functions for completeQuestService ---
 
@@ -107,21 +107,6 @@ export const timeAccuracyMultiplier = function (
   // 100%+ deviation → clamped to 0.4 (40% minimum XP)
   const multiplier = 1 - relativeDiff * TIME_DEVIATION_PENALTY_FACTOR;
   return Math.max(MIN_TIME_ACCURACY_MULTIPLIER, multiplier);
-};
-
-// Calculates an XP multiplier based on the AVERAGE LEVEL of ALL user attributes.
-export const overallAttributesMultiplier = function (
-  allAttributeLevels: number[],
-): number {
-  if (allAttributeLevels.length === 0) return 1;
-
-  const avgAll =
-    allAttributeLevels.reduce((sum, lvl) => sum + lvl, 0) /
-    allAttributeLevels.length;
-
-  // Example: average 10 → 1 + 10/10 = 2.0 (x2)
-  //          average 20 → 1 + 20/10 = 3.0 (x3)
-  return 1 + avgAll / REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING;
 };
 
 // Calculates the TOTAL XP reward for a completed quest.

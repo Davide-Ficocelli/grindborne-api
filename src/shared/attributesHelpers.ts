@@ -1,13 +1,32 @@
 import {
   INITIAL_XP_TO_NEXT_LEVEL,
   NEW_ATTR_LEVEL_XP_COST_SCALING,
+  DECAY_BASE_PERCENT,
+  REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING,
+  STARTING_GRACE_PERIOD_IN_DAYS,
 } from "../config/globals.ts";
-import type { AttributeInDb } from "../types/attribute.ts";
+import type {
+  AttributeInDb,
+  AttributesLvlsPerUser,
+} from "../types/attribute.ts";
+import type ServiceValidation from "../types/serviceValidation.ts";
+import { updateAttributeModel } from "../models/attributesModel.ts";
+import toUTCDate from "../utils/toUTCDate.ts";
 
-// import pool from "../config/db.ts";
-// import { getAllAttributesModel } from "../models/attributesModel.ts";
-// import { STARTING_GRACE_PERIOD_IN_DAYS, DECAY_BASE_PERCENT } from "../config/globals.ts";
-// import { overallAttributesMultiplier } from "./questsHelpers.ts";
+// Calculates an XP multiplier based on the AVERAGE LEVEL of ALL user attributes.
+export const overallAttributesMultiplier = function (
+  allAttributeLevels: number[],
+): number {
+  if (allAttributeLevels.length === 0) return 1;
+
+  const avgAll =
+    allAttributeLevels.reduce((sum, lvl) => sum + lvl, 0) /
+    allAttributeLevels.length;
+
+  // Example: average 10 → 1 + 10/10 = 2.0 (x2)
+  //          average 20 → 1 + 20/10 = 3.0 (x3)
+  return 1 + avgAll / REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING;
+};
 
 // --- Helper functions for assignXpToAttrsAndUserService ---
 
@@ -71,256 +90,203 @@ export const extractUserAttributesLvls = (
   return userAttributes.map((attr) => attr.level as number);
 };
 
-// // Assigns starting decay date to all attributes with xp
-// export const assignStartingDecayDateToAttributeService = async (
-//   id: number,
-//   startingDecayDate: number,
-// ): Promise<AttributeInDb | null> => {
-//   const result = await pool.query<AttributeInDb>(
-//     "UPDATE attributes SET decay_date = $2 WHERE id = $1 RETURNING *",
-//     [id, startingDecayDate],
-//   );
-//   return result.rows[0] ?? null;
-// };
-
-// // Assigns a decay date if the attribute has no decays date and the attribute actually has xp
-// export const assignStartingDecayDateToAttribute = async () => {
-//   // Get all attributes
-//   const allAttributes = await getAllAttributesModel();
-
-//   // Handling case in which allAttributes is null
-//   if (!allAttributes) return new Error("Attributes could not be fetched");
-
-//   // Checking if at least an attribute hasn't got a decay date and has xp
-//   const hasXpAndNotDecayDate: boolean = allAttributes.some(
-//     (attr) =>
-//       !attr.decay_date &&
-//       attr.xp !== null &&
-//       attr.xp > 0 &&
-//       attr.level !== null &&
-//       attr.level >= 1,
-//   );
-
-//   // If no attributes have xp nor a decay date then stop execution
-//   if (!hasXpAndNotDecayDate) return;
-
-//   // Otherwise loop over the attributes and set the default decay date for whichever is the case
-
-//   // Calculate today's UTC date
-//   const today = new Date();
-//   const todayUTC = new Date(
-//     Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()),
-//   );
-
-//   // Calculate starting decay date
-//   const startingDecayDate = todayUTC.setUTCDate(
-//     todayUTC.getUTCDate() + STARTING_GRACE_PERIOD_IN_DAYS,
-//   );
-
-//   // Looping over all attributes
-//   for (const attribute of allAttributes) {
-//     if (attribute.xp !== null && attribute.xp < 1) continue;
-//     else
-//       await assignStartingDecayDateToAttributeService(
-//         attribute.id,
-//         startingDecayDate,
-//       );
-//   }
-// };
-
 // // --- Helper functions for decayAttributes ---
 
-// // Checks if decay would eventually be applicable
-// export const isDecayApplicable = function (
-//   allAttributes: AttributeInDb[],
-// ): boolean | Error {
-//   // Handling case in which allAttributes is null
-//   if (!allAttributes) return new Error("Attributes could not be fetched");
+// Gets all user attributes levels
+export const getAllUserAttrLvls = function (allAttributes: AttributeInDb[]) {
+  // Split every attribute per owner
+  const allAttrsForEachUser: AttributesLvlsPerUser[] = [];
 
-//   /*
-//     Checks whether at least an attribute has a decay date
-//     Knowing this will determine whether the decay date check should start in the first place
-//   */
-//   const doAttributesHaveDecayDate: boolean = allAttributes.some(
-//     (attr) => attr.decay_date,
-//   );
+  // Otherwise loop over the attributes array
+  // Looping over all attributes
+  for (const attribute of allAttributes) {
+    // Skip all attributes with no decay date
+    if (!attribute.decay_date) continue;
 
-//   // If no attributes have a decay date then stop execution, otherwise flag decay as applicable
-//   if (!doAttributesHaveDecayDate) return false;
-//   else return true;
-// };
+    // Save user id and attribute level
+    const userId = attribute.users_id;
+    const level = attribute.level;
 
-// // Gets all user attributes levels
-// export const getAllUserAttrLvls = function (allAttributes: AttributeInDb[]) {
-//   // Split every attribute per owner
-//   const everyUserAttributes: AttributesLvlsPerUser[] = [];
+    // If either userId and attribute level doesn't exist the stop loop execution
+    if (!userId || !level) break;
 
-//   // Otherwise loop over the attributes array
-//   // Looping over all attributes
-//   for (const attribute of allAttributes) {
-//     // Skip all attributes with no decay date
-//     if (!attribute.decay_date) continue;
+    // Find if we already have an entry for this user
+    let entry = allAttrsForEachUser.find((user) => user.userId === userId);
 
-//     // Save user id and attribute level
-//     const userId = attribute.users_id;
-//     const level = attribute.level;
+    // If no entry then create an object for user id and attribute level
+    if (!entry) {
+      entry = { userId, attributeLevels: [] };
+      allAttrsForEachUser.push(entry);
+    }
 
-//     // If either userId and attribute level doesn't exist the stop loop execution
-//     if (!userId || !level) break;
+    // Push attribute level in the already initialized array
+    entry.attributeLevels.push(level);
+  }
 
-//     // Find if we already have an entry for this user
-//     let entry = everyUserAttributes.find((user) => user.userId === userId);
+  return allAttrsForEachUser;
+};
 
-//     // If no entry then create an object for user id and attribute level
-//     if (!entry) {
-//       entry = { userId, attributeLevels: [] };
-//       everyUserAttributes.push(entry);
-//     }
+// Calculates how much xp must be lost upon attribute decay
+export function calculateDecayLoss(
+  xpToNextLevel: number,
+  userBuildMultiplier: number,
+): number {
+  // The more built the pg, the harder the decay can be
+  const scaledPercent = DECAY_BASE_PERCENT * userBuildMultiplier;
+  const loss = Math.floor(xpToNextLevel * scaledPercent);
+  return Math.max(loss, 1); // almeno 1 xp
+}
 
-//     // Push attribute level in the already initialized array
-//     entry.attributeLevels.push(level);
-//   }
+export interface AttributeProgress {
+  level: number;
+  xp: number;
+  xp_to_next_level: number;
+}
 
-//   return everyUserAttributes;
-// };
+// Actually applies the decay to all attributes where is required
+export function applyDecayToAttribute(
+  attr: AttributeProgress,
+  lossXp: number,
+): AttributeProgress {
+  let { level, xp, xp_to_next_level } = attr;
+  let remainingLoss = lossXp;
 
-// // Calculates how much xp must be lost upon attribute decay
-// export function calculateDecayLoss(
-//   xpToNextLevel: number,
-//   userBuildMultiplier: number,
-// ): number {
-//   // The more built the pg, the harder the decay can be
-//   const scaledPercent = DECAY_BASE_PERCENT * userBuildMultiplier;
-//   const loss = Math.floor(xpToNextLevel * scaledPercent);
-//   return Math.max(loss, 1); // almeno 1 xp
-// }
+  // Edge case: attribute at level 1 with 0 XP → you can't go below
+  if (level === 1 && xp <= 0) {
+    return { level: 1, xp: 0, xp_to_next_level };
+  }
 
-// // Turns a local date in UTC format
-// export const toUTCDate = (localDate: Date) =>
-//   new Date(
-//     Date.UTC(
-//       localDate.getUTCFullYear(),
-//       localDate.getUTCMonth(),
-//       localDate.getUTCDate(),
-//     ),
-//   );
+  // Let's remove XP from the "hystory"
+  xp -= remainingLoss;
 
-// export interface AttributeProgress {
-//   level: number;
-//   xp: number;
-//   xp_to_next_level: number;
-// }
+  // If the value is below 0, this may mean multiplying the level
+  while (xp < 0 && level > 1) {
+    // To go down 1 level, we need to "return" the XP of the previous level
+    level -= 1;
 
-// // Actually applies the decay to all attributes where is required
-// export function applyDecayToAttribute(
-//   attr: AttributeProgress,
-//   lossXp: number,
-// ): AttributeProgress {
-//   let { level, xp, xp_to_next_level } = attr;
-//   let remainingLoss = lossXp;
+    const prevLevelThreshold = calculateNextAttrLevelThreshold(level);
 
-//   // Edge case: attribute at level 1 with 0 XP → you can't go below
-//   if (level === 1 && xp <= 0) {
-//     return { level: 1, xp: 0, xp_to_next_level };
-//   }
+    // If we lost more XP than we had in this level,
+    // we borrow from the previous level
+    xp += prevLevelThreshold;
+  }
 
-//   // Let's remove XP from the "hystory"
-//   xp -= remainingLoss;
+  // If we are back to level 1 and xp still < 0, clamp to 0
+  if (level === 1 && xp < 0) {
+    xp = 0;
+  }
 
-//   // Se scene sotto 0, può significare moltiplicare il livello
-//   while (xp < 0 && level > 1) {
-//     // To go down 1 level, we need to "return" the XP of the previous level
-//     level -= 1;
+  // Recalculate xp_to_next_level consistent with new values
+  const fullCostForCurrentLevel = calculateNextAttrLevelThreshold(level);
+  xp_to_next_level = fullCostForCurrentLevel - xp;
 
-//     const prevLevelThreshold = calculateNextAttrLevelThreshold(level);
+  return { level, xp, xp_to_next_level };
+}
 
-//     // If we lost more XP than we had in this level,
-//     // we borrow from the previous level
-//     xp += prevLevelThreshold;
-//   }
+// Compares dates and performs attributes decay
+const decayAttributes = async () => {
+  // const allAttributes = await getAllAttributesModel();
+  // if (!allAttributes) return new Error("No attribute exists");
+  // if (!isDecayApplicable(allAttributes)) return;
+  // const allUserAttrLvls = getAllUserAttrLvls(allAttributes);
+  // if (!allUserAttrLvls) return new Error("No user attribute level exists");
+  // const todayStr = toUTCDate(new Date()).toISOString().slice(0, 10);
+  // for (const attribute of allAttributes) {
+  // if (!attribute.decay_date) continue;
+  // const decayStr = attribute.decay_date
+  //   ? attribute.decay_date.toISOString().slice(0, 10)
+  //   : null;
+  // // 1) Only if today is the day of decay for this attribute
+  // if (!decayStr || decayStr !== todayStr) continue;
+  // 2) Find the levels of ALL attributes of this user
+  // const correspondingUserAttrLvls = allUserAttrLvls.find(
+  //   (attr) => attr.userId === attribute.users_id,
+  // );
+  // if (!correspondingUserAttrLvls)
+  //   return new Error("No corresponding user attribute level exists");
+  // const userBuildMultiplier = overallAttributesMultiplier(
+  //   correspondingUserAttrLvls.attributeLevels,
+  // );
+  // // 3) Calculate how much XP to lose
+  // const xpToNext =
+  //   attribute.xp_to_next_level ??
+  //   calculateNextAttrLevelThreshold(attribute.level ?? 1);
+  // const loss = calculateDecayLoss(xpToNext, userBuildMultiplier);
+  // // 4) Apply the decay to this attribute
+  // const current: AttributeProgress = {
+  //   level: attribute.level ?? 1,
+  //   xp: attribute.xp ?? 0,
+  //   xp_to_next_level: xpToNext,
+  // };
+  // const updated = applyDecayToAttribute(current, loss);
+  // // 5) Persist
+  // await pool.query(
+  //   `UPDATE attributes
+  //    SET level = $1,
+  //        xp = $2,
+  //        xp_to_next_level = $3
+  //    WHERE id = $4`,
+  //   [updated.level, updated.xp, updated.xp_to_next_level, attribute.id],
+  // );
+  // // 6) (optional) recalculates the new decay_date, e.g. starts again from the grace period
+  // const newDecayDate = toUTCDate(new Date());
+  // newDecayDate.setUTCDate(
+  //   newDecayDate.getUTCDate() + STARTING_GRACE_PERIOD_IN_DAYS,
+  // );
+  // await pool.query(
+  //   `UPDATE attributes
+  //    SET decay_date = $1
+  //    WHERE id = $2`,
+  //   [newDecayDate, attribute.id],
+  // );
+  // }
+};
 
-//   // If we are back to level 1 and xp still < 0, clamp to 0
-//   if (level === 1 && xp < 0) {
-//     xp = 0;
-//   }
+export const decayAttribute = async (
+  currentAttr: AttributeInDb,
+  allUserAttrLvls: AttributesLvlsPerUser[],
+) => {
+  // Find the levels of ALL attributes of this user
+  const correspondingUserAttrLvls = allUserAttrLvls.find(
+    (attr) => attr.userId === currentAttr.users_id,
+  );
 
-//   // Recalculate xp_to_next_level consistent with new values
-//   const fullCostForCurrentLevel = calculateNextAttrLevelThreshold(level);
-//   xp_to_next_level = fullCostForCurrentLevel - xp;
+  // Return an error status if no user attribute levels were found
+  if (!correspondingUserAttrLvls)
+    return {
+      ok: false,
+      status: 404,
+      message: "User not found",
+    };
 
-//   return { level, xp, xp_to_next_level };
-// }
+  const userBuildMultiplier = overallAttributesMultiplier(
+    correspondingUserAttrLvls.attributeLevels,
+  );
 
-// // Compares dates and performs attributes decay
-// export const decayAttributes = async () => {
-//   const allAttributes = await getAllAttributesModel();
-//   if (!allAttributes) return new Error("No attribute exists");
+  // Calculate how much XP to lose
+  const xpToNext =
+    currentAttr.xp_to_next_level ??
+    calculateNextAttrLevelThreshold(currentAttr.level ?? 1);
 
-//   if (!isDecayApplicable(allAttributes)) return;
+  const loss = calculateDecayLoss(xpToNext, userBuildMultiplier);
 
-//   const allUserAttrLvls = getAllUserAttrLvls(allAttributes);
-//   if (!allUserAttrLvls) return new Error("No user attribute level exists");
+  // Apply the decay to this attribute
+  const current: AttributeProgress = {
+    level: currentAttr.level ?? 1,
+    xp: currentAttr.xp ?? 0,
+    xp_to_next_level: xpToNext,
+  };
 
-//   const todayStr = toUTCDate(new Date()).toISOString().slice(0, 10);
+  const updated = applyDecayToAttribute(current, loss);
 
-//   for (const attribute of allAttributes) {
-//     if (!attribute.decay_date) continue;
+  // 5) Persist
+  await updateAttributeModel(currentAttr.id, updated);
 
-//     const decayStr = attribute.decay_date
-//       ? attribute.decay_date.toISOString().slice(0, 10)
-//       : null;
+  // 6) (optional) recalculates the new decay_date, e.g. starts again from the grace period
+  const newDecayDate = toUTCDate(new Date());
+  newDecayDate.setUTCDate(
+    newDecayDate.getUTCDate() + STARTING_GRACE_PERIOD_IN_DAYS,
+  );
 
-//     // 1) Only if today is the day of decay for this attribute
-//     if (!decayStr || decayStr !== todayStr) continue;
-
-//     // 2) Find the levels of ALL attributes of this user
-//     const correspondingUserAttrLvls = allUserAttrLvls.find(
-//       (attr) => attr.userId === attribute.users_id,
-//     );
-//     if (!correspondingUserAttrLvls)
-//       return new Error("No corresponding user attribute level exists");
-
-//     const userBuildMultiplier = overallAttributesMultiplier(
-//       correspondingUserAttrLvls.attributeLevels,
-//     );
-
-//     // 3) Calculate how much XP to lose
-//     const xpToNext =
-//       attribute.xp_to_next_level ??
-//       calculateNextAttrLevelThreshold(attribute.level ?? 1);
-
-//     const loss = calculateDecayLoss(xpToNext, userBuildMultiplier);
-
-//     // 4) Apply the decay to this attribute
-//     const current: AttributeProgress = {
-//       level: attribute.level ?? 1,
-//       xp: attribute.xp ?? 0,
-//       xp_to_next_level: xpToNext,
-//     };
-
-//     const updated = applyDecayToAttribute(current, loss);
-
-//     // 5) Persist
-//     await pool.query(
-//       `UPDATE attributes
-//        SET level = $1,
-//            xp = $2,
-//            xp_to_next_level = $3
-//        WHERE id = $4`,
-//       [updated.level, updated.xp, updated.xp_to_next_level, attribute.id],
-//     );
-
-//     // 6) (optional) recalculates the new decay_date, e.g. starts again from the grace period
-//     const newDecayDate = toUTCDate(new Date());
-//     newDecayDate.setUTCDate(
-//       newDecayDate.getUTCDate() + STARTING_GRACE_PERIOD_IN_DAYS,
-//     );
-
-//     await pool.query(
-//       `UPDATE attributes
-//        SET decay_date = $1
-//        WHERE id = $2`,
-//       [newDecayDate, attribute.id],
-//     );
-//   }
-// };
+  await updateAttributeModel(currentAttr.id, { decay_date: newDecayDate });
+};
