@@ -12,17 +12,11 @@ import {
   getAllAttributesToQuestModel,
   setAttributeLvlAndXpModel,
   softDeleteAttributeModel,
-  getAllAttributesModel,
 } from "../models/attributesModel.ts";
 import { assignNewUserLvlService } from "../services/usersService.ts";
 import { getUserByIdModel } from "../models/usersModel.ts";
 import preventIdor from "../utils/preventIdor.ts";
 import { calculateUserLvlHelper } from "../shared/usersHelpers.ts";
-import {
-  getAllUserAttrLvls,
-  decayAttribute,
-} from "../shared/attributesHelpers.ts";
-import toUTCDate from "../utils/toUTCDate.ts";
 
 // Importing global variables
 import {
@@ -325,40 +319,4 @@ export const assignXpToAttrsAndUserService = async (
       attributesToCompletedQuest: await getAllAttributesToQuestModel(questId),
     },
   };
-};
-
-// Decays an attribute
-export const decayAttributesService = async (): Promise<ServiceValidation> => {
-  // Get all attributes
-  const allAttributes = await getAllAttributesModel();
-
-  // Handle case in which attributes is null
-  if (!allAttributes || allAttributes.length === 0)
-    return { ok: false, status: 404, message: "No attributes found" };
-
-  // Get all user attibutes levels
-  const allUserAttrLvls = getAllUserAttrLvls(allAttributes);
-
-  if (!allUserAttrLvls)
-    return {
-      ok: false,
-      status: 500,
-      message: "Something went wrong",
-    };
-
-  const today = toUTCDate(new Date());
-
-  // Check for attribute decay eligibility
-  for (const attribute of allAttributes) {
-    // If attribute isn't eligible for decay then skip directly to the next one
-    if (
-      !attribute.decay_date ||
-      attribute.decay_date.getTime() > today.getTime()
-    )
-      continue;
-
-    decayAttribute(attribute, allUserAttrLvls);
-  }
-
-  return { ok: true, status: 200, message: "Attribute decay complete." };
 };

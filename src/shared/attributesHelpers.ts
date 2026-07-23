@@ -9,7 +9,6 @@ import type {
   AttributeInDb,
   AttributesLvlsPerUser,
 } from "../types/attribute.ts";
-import type ServiceValidation from "../types/serviceValidation.ts";
 import { updateAttributeModel } from "../models/attributesModel.ts";
 import toUTCDate from "../utils/toUTCDate.ts";
 
@@ -183,65 +182,7 @@ export function applyDecayToAttribute(
   return { level, xp, xp_to_next_level };
 }
 
-// Compares dates and performs attributes decay
-const decayAttributes = async () => {
-  // const allAttributes = await getAllAttributesModel();
-  // if (!allAttributes) return new Error("No attribute exists");
-  // if (!isDecayApplicable(allAttributes)) return;
-  // const allUserAttrLvls = getAllUserAttrLvls(allAttributes);
-  // if (!allUserAttrLvls) return new Error("No user attribute level exists");
-  // const todayStr = toUTCDate(new Date()).toISOString().slice(0, 10);
-  // for (const attribute of allAttributes) {
-  // if (!attribute.decay_date) continue;
-  // const decayStr = attribute.decay_date
-  //   ? attribute.decay_date.toISOString().slice(0, 10)
-  //   : null;
-  // // 1) Only if today is the day of decay for this attribute
-  // if (!decayStr || decayStr !== todayStr) continue;
-  // 2) Find the levels of ALL attributes of this user
-  // const correspondingUserAttrLvls = allUserAttrLvls.find(
-  //   (attr) => attr.userId === attribute.users_id,
-  // );
-  // if (!correspondingUserAttrLvls)
-  //   return new Error("No corresponding user attribute level exists");
-  // const userBuildMultiplier = overallAttributesMultiplier(
-  //   correspondingUserAttrLvls.attributeLevels,
-  // );
-  // // 3) Calculate how much XP to lose
-  // const xpToNext =
-  //   attribute.xp_to_next_level ??
-  //   calculateNextAttrLevelThreshold(attribute.level ?? 1);
-  // const loss = calculateDecayLoss(xpToNext, userBuildMultiplier);
-  // // 4) Apply the decay to this attribute
-  // const current: AttributeProgress = {
-  //   level: attribute.level ?? 1,
-  //   xp: attribute.xp ?? 0,
-  //   xp_to_next_level: xpToNext,
-  // };
-  // const updated = applyDecayToAttribute(current, loss);
-  // // 5) Persist
-  // await pool.query(
-  //   `UPDATE attributes
-  //    SET level = $1,
-  //        xp = $2,
-  //        xp_to_next_level = $3
-  //    WHERE id = $4`,
-  //   [updated.level, updated.xp, updated.xp_to_next_level, attribute.id],
-  // );
-  // // 6) (optional) recalculates the new decay_date, e.g. starts again from the grace period
-  // const newDecayDate = toUTCDate(new Date());
-  // newDecayDate.setUTCDate(
-  //   newDecayDate.getUTCDate() + STARTING_GRACE_PERIOD_IN_DAYS,
-  // );
-  // await pool.query(
-  //   `UPDATE attributes
-  //    SET decay_date = $1
-  //    WHERE id = $2`,
-  //   [newDecayDate, attribute.id],
-  // );
-  // }
-};
-
+// Checks for an attribute decay eligibility and applies decay if affermative
 export const decayAttribute = async (
   currentAttr: AttributeInDb,
   allUserAttrLvls: AttributesLvlsPerUser[],
@@ -252,12 +193,12 @@ export const decayAttribute = async (
   );
 
   // Return an error status if no user attribute levels were found
-  if (!correspondingUserAttrLvls)
-    return {
-      ok: false,
-      status: 404,
-      message: "User not found",
-    };
+  if (!correspondingUserAttrLvls) {
+    console.error(
+      `[Cron] Could not find user attribute levels for attribute ${currentAttr.id} (user: ${currentAttr.users_id}). Skipping decay for this attribute.`,
+    );
+    return;
+  }
 
   const userBuildMultiplier = overallAttributesMultiplier(
     correspondingUserAttrLvls.attributeLevels,
@@ -268,7 +209,10 @@ export const decayAttribute = async (
     currentAttr.xp_to_next_level ??
     calculateNextAttrLevelThreshold(currentAttr.level ?? 1);
 
-  const loss = calculateDecayLoss(xpToNext, userBuildMultiplier);
+  const totalXpToNextLvl = xpToNext + (currentAttr.xp ?? 0);
+  console.log(totalXpToNextLvl);
+
+  const loss = calculateDecayLoss(totalXpToNextLvl, userBuildMultiplier);
 
   // Apply the decay to this attribute
   const current: AttributeProgress = {
@@ -282,7 +226,7 @@ export const decayAttribute = async (
   // 5) Persist
   await updateAttributeModel(currentAttr.id, updated);
 
-  // 6) (optional) recalculates the new decay_date, e.g. starts again from the grace period
+  // 6) Recalculates the new decay_date, e.g. starts again from the grace period
   const newDecayDate = toUTCDate(new Date());
   newDecayDate.setUTCDate(
     newDecayDate.getUTCDate() + STARTING_GRACE_PERIOD_IN_DAYS,

@@ -1,4 +1,4 @@
-PORT=5001
+# PORT=5001
 
 # ==========================================
 # LOCAL DATABASE CONFIGURATION (Docker)
@@ -13,17 +13,17 @@ PORT=5001
 # ==========================================
 # CLOUD DATABASE CONFIGURATION (Neon)
 # ==========================================
-DB_USER=neondb_owner
+# DB_USER=neondb_owner
 # Replace "your-id-neon" with your project's real host on Neon
-DB_HOST=ep-your-id-neon.c-3.eu-central-1.aws.neon.tech
-DB_NAME=grindborne-db
-DB_ROLE=neondb_owner
-DB_PASSWORD=inserisci_password_neon_qui
-DB_PORT=5432
+# DB_HOST=ep-your-id-neon.c-3.eu-central-1.aws.neon.tech
+# DB_NAME=grindborne-db
+# DB_ROLE=neondb_owner
+# DB_PASSWORD=inserisci_password_neon_qui
+# DB_PORT=5432
 
 # ==========================================
 # AUTHENTICATION SECRETS
 # ==========================================
 # Generate long, secure strings for these values
-ACCESS_TOKEN_SECRET=inserisci_access_token_secret_qui
-REFRESH_TOKEN_SECRET=inserisci_refresh_token_secret_qui
+# ACCESS_TOKEN_SECRET=inserisci_access_token_secret_qui
+# REFRESH_TOKEN_SECRET=inserisci_refresh_token_secret_qui
