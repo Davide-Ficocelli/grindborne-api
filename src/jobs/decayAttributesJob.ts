@@ -47,7 +47,15 @@ const startDecayAttributesJob = (): void => {
         await decayAttribute(attribute, allUserAttrLvls);
         decayedCount++;
       }
-      console.log(`[Cron] Successfully decayed ${decayedCount} attributes.`);
+
+      // Constructing result message string
+      let resultStr: string = "";
+      if (decayedCount === 0) resultStr = "No attributes were decayed";
+      else if (decayedCount === 1)
+        resultStr = "Successfuly decayed 1 attrribute";
+      else resultStr = `Successfuly decayed ${decayedCount} attributes`;
+
+      console.log(`[Cron] ${resultStr}.`);
       console.log("[Cron] Nightly attribute decay finished successfully.");
     } catch (error) {
       console.error("[Cron] CRITICAL ERROR during attributes decay:", error);

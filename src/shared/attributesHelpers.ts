@@ -214,7 +214,7 @@ export const decayAttribute = async (
 
   const loss = calculateDecayLoss(totalXpToNextLvl, userBuildMultiplier);
 
-  // Apply the decay to this attribute
+  // Apply decay to this attribute
   const current: AttributeProgress = {
     level: currentAttr.level ?? 1,
     xp: currentAttr.xp ?? 0,
