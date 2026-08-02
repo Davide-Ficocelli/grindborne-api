@@ -11,6 +11,7 @@ import type {
 } from "../types/attribute.ts";
 import { updateAttributeModel } from "../models/attributesModel.ts";
 import toUTCDate from "../utils/toUTCDate.ts";
+import { calculateUserLvlHelper } from "./usersHelpers.ts";
 
 // Calculates an XP multiplier based on the AVERAGE LEVEL of ALL user attributes.
 export const overallAttributesMultiplier = function (
@@ -210,7 +211,6 @@ export const decayAttribute = async (
     calculateNextAttrLevelThreshold(currentAttr.level ?? 1);
 
   const totalXpToNextLvl = xpToNext + (currentAttr.xp ?? 0);
-  console.log(totalXpToNextLvl);
 
   const loss = calculateDecayLoss(totalXpToNextLvl, userBuildMultiplier);
 
