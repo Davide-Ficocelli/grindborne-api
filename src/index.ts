@@ -8,7 +8,8 @@ import attributesRoutes from "./routes/attributesRoutes.ts";
 import grindsRoutes from "./routes/grindsRoutes.ts";
 import questsRoutes from "./routes/questsRoutes.ts";
 import usersRoutes from "./routes/usersRoutes.ts";
-import { startCleanupJob } from "./jobs/cleanupJob.ts";
+import startCleanupJob from "./jobs/cleanupJob.ts";
+import startDecayAttributesJob from "./jobs/decayAttributesJob.ts";
 
 // Importing types for request and response
 import { type Request, type Response } from "express";
@@ -63,6 +64,7 @@ app.get("/", async (req: Request, res: Response) => {
 
 // ---> Initialize the cron job <---
 startCleanupJob();
+startDecayAttributesJob();
 
 // Server running
 app.listen(port, () => {

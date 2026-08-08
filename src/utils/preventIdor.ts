@@ -1,5 +1,3 @@
-import handleResponse from "./handleResponse.ts";
-
 const preventIdor = function (
   authenticatedUserId: string,
   dataOwnerId: string,

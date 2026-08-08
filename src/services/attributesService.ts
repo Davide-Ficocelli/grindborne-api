@@ -10,7 +10,6 @@ import {
   getAttributeByIdModel,
   updateAttributeModel,
   getAllAttributesToQuestModel,
-  setAttributeLvlAndXpModel,
   softDeleteAttributeModel,
 } from "../models/attributesModel.ts";
 import { assignNewUserLvlService } from "../services/usersService.ts";
@@ -20,9 +19,10 @@ import { calculateUserLvlHelper } from "../shared/usersHelpers.ts";
 
 // Importing global variables
 import {
-  calculateXpPerAttribute,
-  calculateAttributeXpProgress,
-  extractUserAttributesLvls,
+  calculateXpPerAttributeHelper,
+  calculateAttributeXpProgressHelper,
+  extractUserAttributesLvlsHelper,
+  extendAttrDecayDateHelper,
 } from "../shared/attributesHelpers.ts";
 
 // File's index
@@ -251,25 +251,37 @@ export const assignXpToAttrsAndUserService = async (
     };
 
   // XP per attribute (evenly split)
-  const xpForEachAttribute = calculateXpPerAttribute(
+  const xpForEachAttribute = calculateXpPerAttributeHelper(
     questTotalXp,
     userAttrsToBeComQuest.length,
   );
 
   // For each attribute, apply XP and handle possible multi-level-ups
   for (const attr of userAttrsToBeComQuest) {
-    const { level, xp, xpToNext } = calculateAttributeXpProgress(
+    const { level, xp, xpToNext } = calculateAttributeXpProgressHelper(
       attr,
       xpForEachAttribute,
     );
 
+    // Eventually extend attribute's decay date and save the new one if that's the case
+    const newDecayDate = extendAttrDecayDateHelper({
+      level,
+      attr,
+      xpForEachAttribute,
+    });
+
     // 4) Persist the updated values to the database
-    const updatedAttr = await setAttributeLvlAndXpModel(
+    const updatePayload: UpdatedAttribute = {
       level,
       xp,
-      xpToNext,
-      attr.id,
-    );
+      xp_to_next_level: xpToNext,
+    };
+
+    if (newDecayDate) {
+      updatePayload.decay_date = newDecayDate;
+    }
+
+    const updatedAttr = await updateAttributeModel(attr.id, updatePayload);
 
     if (!updatedAttr)
       return {
@@ -291,7 +303,7 @@ export const assignXpToAttrsAndUserService = async (
     };
 
   // Initialize array which will contain each user attribute's level
-  const userAttributesLvls = extractUserAttributesLvls(userAttributes);
+  const userAttributesLvls = extractUserAttributesLvlsHelper(userAttributes);
 
   // Calculate new user level after quest was completed
   const newUserLvl = calculateUserLvlHelper(userAttributesLvls);

@@ -1,5 +1,4 @@
 import {
-  REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING,
   ESTIMATED_TIME_BREAKPOINTS,
   AVG_QUEST_LVL_UP_WORTH,
   MS_IN_A_MINUTE,
@@ -14,18 +13,19 @@ import {
 } from "../config/globals.ts";
 import { type QuestInDb } from "../types/quest.ts";
 import { type AttributeInDb } from "../types/attribute.ts";
+import type ServiceValidation from "../types/serviceValidation.ts";
 import preventIdor from "../utils/preventIdor.ts";
 import { getUserByIdModel } from "../models/usersModel.ts";
 import {
   getAttributesByUserIdService,
   getAllAttributesToQuestService,
 } from "../services/attributesService.ts";
-import type ServiceValidation from "../types/serviceValidation.ts";
+import { overallAttributesMultiplierHelper } from "../shared/attributesHelpers.ts";
 
 // --- Helper functions for completeQuestService ---
 
 // Calculates the difference between two dates and returns it in minutes
-export const calculateDatesDiff = function (
+export const calculateDatesDiffHelper = function (
   endDate: Date = new Date(),
   startDate: Date,
 ): number {
@@ -35,7 +35,7 @@ export const calculateDatesDiff = function (
 };
 
 // Calculates how much XP, in broad terms, a LEVEL-UP for the USER is worth.
-export function calculateLevelCost(level: number): number {
+export function calculateLevelCostHelper(level: number): number {
   const x = (level - LEVEL_COST_SCALE_START) * LEVEL_COST_SCALE_FACTOR;
   const xClamped = Math.max(0, x);
   const cost =
@@ -46,7 +46,7 @@ export function calculateLevelCost(level: number): number {
 }
 
 // Returns the XP multiplier based on the quest's ESTIMATED duration (in minutes).
-export const durationMultiplier = function (
+export const durationMultiplierHelper = function (
   estimatedMinutes: number | null,
 ): number {
   if (!estimatedMinutes) return 0;
@@ -79,7 +79,7 @@ export const durationMultiplier = function (
 };
 
 // Calculates an XP multiplier based on the LEVELS of the attributes involved in this quest.
-export const questAttributesMultiplier = function (
+export const questAttributesMultiplierHelper = function (
   questAttributeLevels: number[],
 ): number {
   if (questAttributeLevels.length === 0) return 0; // rewardable quest without attributes = bug
@@ -93,7 +93,7 @@ export const questAttributesMultiplier = function (
 };
 
 // Calculates how accurately the USER estimated the time needed for the quest.
-export const timeAccuracyMultiplier = function (
+export const timeAccuracyMultiplierHelper = function (
   estimatedMinutes: number | null,
   actualMinutes: number | null,
 ): number {
@@ -109,23 +109,8 @@ export const timeAccuracyMultiplier = function (
   return Math.max(MIN_TIME_ACCURACY_MULTIPLIER, multiplier);
 };
 
-// Calculates an XP multiplier based on the AVERAGE LEVEL of ALL user attributes.
-export const overallAttributesMultiplier = function (
-  allAttributeLevels: number[],
-): number {
-  if (allAttributeLevels.length === 0) return 1;
-
-  const avgAll =
-    allAttributeLevels.reduce((sum, lvl) => sum + lvl, 0) /
-    allAttributeLevels.length;
-
-  // Example: average 10 → 1 + 10/10 = 2.0 (x2)
-  //          average 20 → 1 + 20/10 = 3.0 (x3)
-  return 1 + avgAll / REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING;
-};
-
 // Calculates the TOTAL XP reward for a completed quest.
-export const calculateQuestTotalXP = function (
+export const calculateQuestTotalXPHelper = function (
   userLevel: number,
   questAttributeLevels: number[],
   allAttributeLevels: number[],
@@ -137,22 +122,25 @@ export const calculateQuestTotalXP = function (
   }
 
   // Base scale: how much it "costs" to level up the user in XP
-  const levelCost = calculateLevelCost(userLevel);
+  const levelCost = calculateLevelCostHelper(userLevel);
 
   // Base reward: a "typical" quest is worth about 20% of a level-up
   const baseReward = levelCost * AVG_QUEST_LVL_UP_WORTH;
 
   // Multiplier based on the attributes involved in this quest
-  const questAttrMult = questAttributesMultiplier(questAttributeLevels);
+  const questAttrMult = questAttributesMultiplierHelper(questAttributeLevels);
 
   // Multiplier based on the user's overall build (all attributes)
-  const overallAttrMult = overallAttributesMultiplier(allAttributeLevels);
+  const overallAttrMult = overallAttributesMultiplierHelper(allAttributeLevels);
 
   // Time estimation bonus/malus
-  const timeMult = timeAccuracyMultiplier(estimatedMinutes, actualMinutes);
+  const timeMult = timeAccuracyMultiplierHelper(
+    estimatedMinutes,
+    actualMinutes,
+  );
 
   // Duration-based soft cap: longer quests have more potential XP
-  const durationMult = durationMultiplier(estimatedMinutes);
+  const durationMult = durationMultiplierHelper(estimatedMinutes);
 
   const totalExp =
     baseReward * questAttrMult * overallAttrMult * timeMult * durationMult;
@@ -161,7 +149,7 @@ export const calculateQuestTotalXP = function (
 };
 
 // Validates all checks before completing a quest and returns all values needed to calculate the total xp reward
-export const validateQuestToBeCompleted = async function (
+export const validateQuestToBeCompletedHelper = async function (
   questToBeCompleted: QuestInDb,
   userId: string,
 ): Promise<ServiceValidation> {
