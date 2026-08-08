@@ -10,7 +10,6 @@ import {
   getAttributeByIdModel,
   updateAttributeModel,
   getAllAttributesToQuestModel,
-  setAttributeLvlAndXpModel,
   softDeleteAttributeModel,
 } from "../models/attributesModel.ts";
 import { assignNewUserLvlService } from "../services/usersService.ts";
@@ -23,6 +22,7 @@ import {
   calculateXpPerAttribute,
   calculateAttributeXpProgress,
   extractUserAttributesLvls,
+  extendAttrDecayDateHelper,
 } from "../shared/attributesHelpers.ts";
 
 // File's index
@@ -263,13 +263,25 @@ export const assignXpToAttrsAndUserService = async (
       xpForEachAttribute,
     );
 
+    // Eventually extend attribute's decay date and save the new one if that's the case
+    const newDecayDate = extendAttrDecayDateHelper({
+      level,
+      attr,
+      xpForEachAttribute,
+    });
+
     // 4) Persist the updated values to the database
-    const updatedAttr = await setAttributeLvlAndXpModel(
+    const updatePayload: UpdatedAttribute = {
       level,
       xp,
-      xpToNext,
-      attr.id,
-    );
+      xp_to_next_level: xpToNext,
+    };
+
+    if (newDecayDate) {
+      updatePayload.decay_date = newDecayDate;
+    }
+
+    const updatedAttr = await updateAttributeModel(attr.id, updatePayload);
 
     if (!updatedAttr)
       return {

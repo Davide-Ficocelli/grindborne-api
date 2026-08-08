@@ -140,29 +140,6 @@ export const getAllAttributesToQuestModel = async (
   return result.rows.length ? result.rows : null;
 };
 
-/*
-  Sets the new level and xp values of a specific attribute
-
-  This function is used in the attributes service to update all attributes involved in a specific quest
-  upon quest completion and total xp rewards calculation for that quest
-*/
-export const setAttributeLvlAndXpModel = async (
-  level: number,
-  xp: number,
-  xpToNextLvl: number,
-  attributeId: string,
-): Promise<AttributeInDb | null> => {
-  const { query, values } = updateRow(
-    "attributes",
-    attributeId,
-    { level, xp, xp_to_next_level: xpToNextLvl },
-    "Something went wrong during attribute update",
-  );
-
-  const result = await pool.query<AttributeInDb>(query, values);
-  return result.rows[0] ?? null;
-};
-
 // Assigns starting decay date to all attributes with xp
 export const assignStartingDecayDateToAttributeModel = async (
   startingDecayDate: Date,

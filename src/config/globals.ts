@@ -68,8 +68,8 @@ export const MIN_TIME_ACCURACY_MULTIPLIER: number = 0.4;
 // Represents the percent amount of total xp to next level to be removed from an attribute per decay tick
 export const DECAY_BASE_PERCENT = 0.2;
 
-// Represents the percent amount of total xp to next level to reach in order for an attribute to have its decay date renewed
-const DECAY_DATE_RENEWAL_THRESHOLD = 0.2;
+// Represents the percent amount of remaining xp to next level to reach in order for an attribute to have its decay date renewed
+export const DECAY_DATE_RENEWAL_THRESHOLD = 0.5;
 
 // Represents the time period after which all soft-deleted records get permanently destroyed
 export const RETENTION_PERIOD: string = "30 days";

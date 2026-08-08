@@ -4,6 +4,7 @@ import {
   DECAY_BASE_PERCENT,
   REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING,
   STARTING_GRACE_PERIOD_IN_DAYS,
+  DECAY_DATE_RENEWAL_THRESHOLD,
 } from "../config/globals.ts";
 import type {
   AttributeInDb,
@@ -11,7 +12,6 @@ import type {
 } from "../types/attribute.ts";
 import { updateAttributeModel } from "../models/attributesModel.ts";
 import toUTCDate from "../utils/toUTCDate.ts";
-import { calculateUserLvlHelper } from "./usersHelpers.ts";
 
 // Calculates an XP multiplier based on the AVERAGE LEVEL of ALL user attributes.
 export const overallAttributesMultiplier = function (
@@ -88,6 +88,55 @@ export const extractUserAttributesLvls = (
   userAttributes: AttributeInDb[],
 ): number[] => {
   return userAttributes.map((attr) => attr.level as number);
+};
+
+// Determines if the attribute's decay date should be extended.
+// This happens if the attribute levels up or gains a significant amount of XP.
+export const extendAttrDecayDateHelper = function (attrDataObj: {
+  level: number;
+  attr: AttributeInDb;
+  xpForEachAttribute: number;
+}) {
+  // Check if the attribute has leveled up.
+  const leveledUp = attrDataObj.level > (attrDataObj.attr.level ?? 1);
+
+  // Calculate the XP threshold required for a "significant gain". This is a percentage
+  // of the XP needed for the attribute's next level, defined by DECAY_DATE_RENEWAL_THRESHOLD.
+  const xpThreshold =
+    attrDataObj.attr.xp_to_next_level * DECAY_DATE_RENEWAL_THRESHOLD;
+
+  // Check if the XP gained meets or exceeds the significant gain threshold.
+  const significantXpGain = attrDataObj.xpForEachAttribute >= xpThreshold;
+
+  let newDecayDate: Date | undefined = undefined;
+
+  // The decay date can only be renewed if the attribute has an existing decay date
+  // and has either leveled up or gained significant XP.
+  if ((leveledUp || significantXpGain) && attrDataObj.attr.decay_date) {
+    const today = toUTCDate(new Date());
+
+    // Calculate the maximum possible decay date, which is today + the standard grace period.
+    // The decay date cannot be extended beyond this cap.
+    const maxDecayDate = toUTCDate(new Date());
+    maxDecayDate.setUTCDate(today.getUTCDate() + STARTING_GRACE_PERIOD_IN_DAYS);
+
+    const currentDecayDate = toUTCDate(attrDataObj.attr.decay_date);
+
+    // Only extend the decay date if it's not already at its maximum.
+    if (currentDecayDate.getTime() < maxDecayDate.getTime()) {
+      // Calculate the potential new decay date by adding one day to the current one.
+      const potentialNewDecayDate = new Date(currentDecayDate);
+      potentialNewDecayDate.setUTCDate(currentDecayDate.getUTCDate() + 1);
+
+      // Clamp the new decay date to the maximum allowed value.
+      newDecayDate =
+        potentialNewDecayDate > maxDecayDate
+          ? maxDecayDate
+          : potentialNewDecayDate;
+
+      return newDecayDate;
+    }
+  }
 };
 
 // // --- Helper functions for decayAttributes ---
