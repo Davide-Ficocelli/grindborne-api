@@ -5,9 +5,9 @@ import {
 } from "../models/attributesModel.ts";
 import { assignNewUserLvlModel } from "../models/usersModel.ts";
 import {
-  decayAttribute,
-  getAllUserAttrLvls,
-  extractUserAttributesLvls,
+  decayAttributeHelper,
+  getAllUserAttrLvlsHelper,
+  extractUserAttributesLvlsHelper,
 } from "../shared/attributesHelpers.ts";
 import { calculateUserLvlHelper } from "../shared/usersHelpers.ts";
 import toUTCDate from "../utils/toUTCDate.ts";
@@ -29,7 +29,7 @@ const startDecayAttributesJob = (): void => {
       }
 
       // Get all user attibutes levels
-      const allUserAttrLvls = getAllUserAttrLvls(allAttributes);
+      const allUserAttrLvls = getAllUserAttrLvlsHelper(allAttributes);
 
       if (!allUserAttrLvls || allUserAttrLvls.length === 0) {
         console.log(
@@ -51,7 +51,7 @@ const startDecayAttributesJob = (): void => {
         )
           continue;
 
-        await decayAttribute(attribute, allUserAttrLvls);
+        await decayAttributeHelper(attribute, allUserAttrLvls);
         decayedCount++;
         decayedUsers.add(attribute.users_id);
       }
@@ -67,7 +67,8 @@ const startDecayAttributesJob = (): void => {
           continue;
         }
 
-        const userAttributeLevels = extractUserAttributesLvls(userAttributes);
+        const userAttributeLevels =
+          extractUserAttributesLvlsHelper(userAttributes);
         const newUserLvl = calculateUserLvlHelper(userAttributeLevels);
 
         await assignNewUserLvlModel(userId, newUserLvl);

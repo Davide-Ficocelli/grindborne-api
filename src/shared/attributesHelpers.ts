@@ -14,7 +14,7 @@ import { updateAttributeModel } from "../models/attributesModel.ts";
 import toUTCDate from "../utils/toUTCDate.ts";
 
 // Calculates an XP multiplier based on the AVERAGE LEVEL of ALL user attributes.
-export const overallAttributesMultiplier = function (
+export const overallAttributesMultiplierHelper = function (
   allAttributeLevels: number[],
 ): number {
   if (allAttributeLevels.length === 0) return 1;
@@ -31,7 +31,7 @@ export const overallAttributesMultiplier = function (
 // --- Helper functions for assignXpToAttrsAndUserService ---
 
 // Calculates how much XP is needed to go from current level to next level for an ATTRIBUTE
-export function calculateNextAttrLevelThreshold(level: number): number {
+export function calculateNextAttrLevelThresholdHelper(level: number): number {
   const base = INITIAL_XP_TO_NEXT_LEVEL; // XP needed to go from level 1 to 2
   const scale = NEW_ATTR_LEVEL_XP_COST_SCALING; // each new level increases the requirement by 20%
 
@@ -43,13 +43,13 @@ export function calculateNextAttrLevelThreshold(level: number): number {
 }
 
 // Determines whether a new level up is required
-export const isLevelUpRequired = (
+export const isLevelUpRequiredHelper = (
   remainingXpToDistribute: number,
   xpToNext: number,
 ): boolean => remainingXpToDistribute >= xpToNext;
 
 // Calculates the XP to be distributed to each attribute evenly
-export const calculateXpPerAttribute = (
+export const calculateXpPerAttributeHelper = (
   questTotalXp: number,
   numberOfAttributes: number,
 ): number => {
@@ -57,7 +57,7 @@ export const calculateXpPerAttribute = (
 };
 
 // Processes the XP gain for a single attribute, handling level ups
-export const calculateAttributeXpProgress = (
+export const calculateAttributeXpProgressHelper = (
   attr: AttributeInDb,
   xpToAdd: number,
 ) => {
@@ -65,16 +65,16 @@ export const calculateAttributeXpProgress = (
   let level = attr.level ?? 1;
   let xp = attr.xp ?? 0;
   let xpToNext =
-    attr.xp_to_next_level ?? calculateNextAttrLevelThreshold(level);
+    attr.xp_to_next_level ?? calculateNextAttrLevelThresholdHelper(level);
   let totalXpToNextLvl = xp + xpToNext;
 
   xp += remainingXpToDistributePerAttr;
 
-  while (isLevelUpRequired(remainingXpToDistributePerAttr, xpToNext)) {
+  while (isLevelUpRequiredHelper(remainingXpToDistributePerAttr, xpToNext)) {
     remainingXpToDistributePerAttr -= xpToNext;
     level += 1;
     xp -= totalXpToNextLvl;
-    xpToNext = calculateNextAttrLevelThreshold(level);
+    xpToNext = calculateNextAttrLevelThresholdHelper(level);
     totalXpToNextLvl = xpToNext;
   }
 
@@ -84,7 +84,7 @@ export const calculateAttributeXpProgress = (
 };
 
 // Extracts an array of levels from an array of user attributes
-export const extractUserAttributesLvls = (
+export const extractUserAttributesLvlsHelper = (
   userAttributes: AttributeInDb[],
 ): number[] => {
   return userAttributes.map((attr) => attr.level as number);
@@ -142,7 +142,9 @@ export const extendAttrDecayDateHelper = function (attrDataObj: {
 // // --- Helper functions for decayAttributes ---
 
 // Gets all user attributes levels
-export const getAllUserAttrLvls = function (allAttributes: AttributeInDb[]) {
+export const getAllUserAttrLvlsHelper = function (
+  allAttributes: AttributeInDb[],
+) {
   // Split every attribute per owner
   const allAttrsForEachUser: AttributesLvlsPerUser[] = [];
 
@@ -176,7 +178,7 @@ export const getAllUserAttrLvls = function (allAttributes: AttributeInDb[]) {
 };
 
 // Calculates how much xp must be lost upon attribute decay
-export function calculateDecayLoss(
+export function calculateDecayLossHelper(
   xpToNextLevel: number,
   userBuildMultiplier: number,
 ): number {
@@ -193,7 +195,7 @@ export interface AttributeProgress {
 }
 
 // Actually applies the decay to all attributes where is required
-export function applyDecayToAttribute(
+export function applyDecayToAttributeHelper(
   attr: AttributeProgress,
   lossXp: number,
 ): AttributeProgress {
@@ -213,7 +215,7 @@ export function applyDecayToAttribute(
     // To go down 1 level, we need to "return" the XP of the previous level
     level -= 1;
 
-    const prevLevelThreshold = calculateNextAttrLevelThreshold(level);
+    const prevLevelThreshold = calculateNextAttrLevelThresholdHelper(level);
 
     // If we lost more XP than we had in this level,
     // we borrow from the previous level
@@ -226,14 +228,14 @@ export function applyDecayToAttribute(
   }
 
   // Recalculate xp_to_next_level consistent with new values
-  const fullCostForCurrentLevel = calculateNextAttrLevelThreshold(level);
+  const fullCostForCurrentLevel = calculateNextAttrLevelThresholdHelper(level);
   xp_to_next_level = fullCostForCurrentLevel - xp;
 
   return { level, xp, xp_to_next_level };
 }
 
 // Checks for an attribute decay eligibility and applies decay if affermative
-export const decayAttribute = async (
+export const decayAttributeHelper = async (
   currentAttr: AttributeInDb,
   allUserAttrLvls: AttributesLvlsPerUser[],
 ) => {
@@ -250,18 +252,18 @@ export const decayAttribute = async (
     return;
   }
 
-  const userBuildMultiplier = overallAttributesMultiplier(
+  const userBuildMultiplier = overallAttributesMultiplierHelper(
     correspondingUserAttrLvls.attributeLevels,
   );
 
   // Calculate how much XP to lose
   const xpToNext =
     currentAttr.xp_to_next_level ??
-    calculateNextAttrLevelThreshold(currentAttr.level ?? 1);
+    calculateNextAttrLevelThresholdHelper(currentAttr.level ?? 1);
 
   const totalXpToNextLvl = xpToNext + (currentAttr.xp ?? 0);
 
-  const loss = calculateDecayLoss(totalXpToNextLvl, userBuildMultiplier);
+  const loss = calculateDecayLossHelper(totalXpToNextLvl, userBuildMultiplier);
 
   // Apply decay to this attribute
   const current: AttributeProgress = {
@@ -270,7 +272,7 @@ export const decayAttribute = async (
     xp_to_next_level: xpToNext,
   };
 
-  const updated = applyDecayToAttribute(current, loss);
+  const updated = applyDecayToAttributeHelper(current, loss);
 
   // 5) Persist
   await updateAttributeModel(currentAttr.id, updated);

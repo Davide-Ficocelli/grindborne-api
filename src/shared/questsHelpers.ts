@@ -20,12 +20,12 @@ import {
   getAttributesByUserIdService,
   getAllAttributesToQuestService,
 } from "../services/attributesService.ts";
-import { overallAttributesMultiplier } from "../shared/attributesHelpers.ts";
+import { overallAttributesMultiplierHelper } from "../shared/attributesHelpers.ts";
 
 // --- Helper functions for completeQuestService ---
 
 // Calculates the difference between two dates and returns it in minutes
-export const calculateDatesDiff = function (
+export const calculateDatesDiffHelper = function (
   endDate: Date = new Date(),
   startDate: Date,
 ): number {
@@ -35,7 +35,7 @@ export const calculateDatesDiff = function (
 };
 
 // Calculates how much XP, in broad terms, a LEVEL-UP for the USER is worth.
-export function calculateLevelCost(level: number): number {
+export function calculateLevelCostHelper(level: number): number {
   const x = (level - LEVEL_COST_SCALE_START) * LEVEL_COST_SCALE_FACTOR;
   const xClamped = Math.max(0, x);
   const cost =
@@ -46,7 +46,7 @@ export function calculateLevelCost(level: number): number {
 }
 
 // Returns the XP multiplier based on the quest's ESTIMATED duration (in minutes).
-export const durationMultiplier = function (
+export const durationMultiplierHelper = function (
   estimatedMinutes: number | null,
 ): number {
   if (!estimatedMinutes) return 0;
@@ -79,7 +79,7 @@ export const durationMultiplier = function (
 };
 
 // Calculates an XP multiplier based on the LEVELS of the attributes involved in this quest.
-export const questAttributesMultiplier = function (
+export const questAttributesMultiplierHelper = function (
   questAttributeLevels: number[],
 ): number {
   if (questAttributeLevels.length === 0) return 0; // rewardable quest without attributes = bug
@@ -93,7 +93,7 @@ export const questAttributesMultiplier = function (
 };
 
 // Calculates how accurately the USER estimated the time needed for the quest.
-export const timeAccuracyMultiplier = function (
+export const timeAccuracyMultiplierHelper = function (
   estimatedMinutes: number | null,
   actualMinutes: number | null,
 ): number {
@@ -110,7 +110,7 @@ export const timeAccuracyMultiplier = function (
 };
 
 // Calculates the TOTAL XP reward for a completed quest.
-export const calculateQuestTotalXP = function (
+export const calculateQuestTotalXPHelper = function (
   userLevel: number,
   questAttributeLevels: number[],
   allAttributeLevels: number[],
@@ -122,22 +122,25 @@ export const calculateQuestTotalXP = function (
   }
 
   // Base scale: how much it "costs" to level up the user in XP
-  const levelCost = calculateLevelCost(userLevel);
+  const levelCost = calculateLevelCostHelper(userLevel);
 
   // Base reward: a "typical" quest is worth about 20% of a level-up
   const baseReward = levelCost * AVG_QUEST_LVL_UP_WORTH;
 
   // Multiplier based on the attributes involved in this quest
-  const questAttrMult = questAttributesMultiplier(questAttributeLevels);
+  const questAttrMult = questAttributesMultiplierHelper(questAttributeLevels);
 
   // Multiplier based on the user's overall build (all attributes)
-  const overallAttrMult = overallAttributesMultiplier(allAttributeLevels);
+  const overallAttrMult = overallAttributesMultiplierHelper(allAttributeLevels);
 
   // Time estimation bonus/malus
-  const timeMult = timeAccuracyMultiplier(estimatedMinutes, actualMinutes);
+  const timeMult = timeAccuracyMultiplierHelper(
+    estimatedMinutes,
+    actualMinutes,
+  );
 
   // Duration-based soft cap: longer quests have more potential XP
-  const durationMult = durationMultiplier(estimatedMinutes);
+  const durationMult = durationMultiplierHelper(estimatedMinutes);
 
   const totalExp =
     baseReward * questAttrMult * overallAttrMult * timeMult * durationMult;
@@ -146,7 +149,7 @@ export const calculateQuestTotalXP = function (
 };
 
 // Validates all checks before completing a quest and returns all values needed to calculate the total xp reward
-export const validateQuestToBeCompleted = async function (
+export const validateQuestToBeCompletedHelper = async function (
   questToBeCompleted: QuestInDb,
   userId: string,
 ): Promise<ServiceValidation> {

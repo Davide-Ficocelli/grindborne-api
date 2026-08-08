@@ -24,9 +24,9 @@ import {
 import { assignXpToAttrsAndUserService } from "../services/attributesService.ts";
 import { assignStartingDecayDateToAttributeModel } from "../models/attributesModel.ts";
 import {
-  calculateDatesDiff,
-  calculateQuestTotalXP,
-  validateQuestToBeCompleted,
+  calculateDatesDiffHelper,
+  calculateQuestTotalXPHelper,
+  validateQuestToBeCompletedHelper,
   type DataForXp,
 } from "../shared/questsHelpers.ts";
 import toUTCDate from "../utils/toUTCDate.ts";
@@ -409,7 +409,7 @@ export const completeQuestService = async (
     };
 
   // Get quest validation results
-  const { ok, status, message, data } = await validateQuestToBeCompleted(
+  const { ok, status, message, data } = await validateQuestToBeCompletedHelper(
     questToBeCompleted,
     userId,
   );
@@ -450,7 +450,10 @@ export const completeQuestService = async (
   else if (is_rewardable) {
     // Calculate the actual time spent to complete the quest
     const completed_at = new Date();
-    const actual_time = calculateDatesDiff(completed_at, tracked_at as Date);
+    const actual_time = calculateDatesDiffHelper(
+      completed_at,
+      tracked_at as Date,
+    );
 
     // Get necessary data for total xp reward calculation
     const { userLevel, attributesToQuestLvls, userAttributesLvls } =
@@ -465,7 +468,7 @@ export const completeQuestService = async (
       };
 
     // Calculate total xp reward for quest
-    const questTotalXp: number = calculateQuestTotalXP(
+    const questTotalXp: number = calculateQuestTotalXPHelper(
       userLevel,
       attributesToQuestLvls,
       userAttributesLvls,

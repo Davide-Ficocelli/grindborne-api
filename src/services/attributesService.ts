@@ -19,9 +19,9 @@ import { calculateUserLvlHelper } from "../shared/usersHelpers.ts";
 
 // Importing global variables
 import {
-  calculateXpPerAttribute,
-  calculateAttributeXpProgress,
-  extractUserAttributesLvls,
+  calculateXpPerAttributeHelper,
+  calculateAttributeXpProgressHelper,
+  extractUserAttributesLvlsHelper,
   extendAttrDecayDateHelper,
 } from "../shared/attributesHelpers.ts";
 
@@ -251,14 +251,14 @@ export const assignXpToAttrsAndUserService = async (
     };
 
   // XP per attribute (evenly split)
-  const xpForEachAttribute = calculateXpPerAttribute(
+  const xpForEachAttribute = calculateXpPerAttributeHelper(
     questTotalXp,
     userAttrsToBeComQuest.length,
   );
 
   // For each attribute, apply XP and handle possible multi-level-ups
   for (const attr of userAttrsToBeComQuest) {
-    const { level, xp, xpToNext } = calculateAttributeXpProgress(
+    const { level, xp, xpToNext } = calculateAttributeXpProgressHelper(
       attr,
       xpForEachAttribute,
     );
@@ -303,7 +303,7 @@ export const assignXpToAttrsAndUserService = async (
     };
 
   // Initialize array which will contain each user attribute's level
-  const userAttributesLvls = extractUserAttributesLvls(userAttributes);
+  const userAttributesLvls = extractUserAttributesLvlsHelper(userAttributes);
 
   // Calculate new user level after quest was completed
   const newUserLvl = calculateUserLvlHelper(userAttributesLvls);
