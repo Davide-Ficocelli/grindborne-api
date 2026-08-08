@@ -1,9 +1,15 @@
 import cron from "node-cron";
-import { getAllAttributesModel } from "../models/attributesModel.ts";
+import {
+  getAllAttributesModel,
+  getAttributesByUserIdModel,
+} from "../models/attributesModel.ts";
+import { assignNewUserLvlModel } from "../models/usersModel.ts";
 import {
   decayAttribute,
   getAllUserAttrLvls,
+  extractUserAttributesLvls,
 } from "../shared/attributesHelpers.ts";
+import { calculateUserLvlHelper } from "../shared/usersHelpers.ts";
 import toUTCDate from "../utils/toUTCDate.ts";
 
 const startDecayAttributesJob = (): void => {
@@ -34,6 +40,7 @@ const startDecayAttributesJob = (): void => {
 
       const today = toUTCDate(new Date());
       let decayedCount = 0;
+      const decayedUsers = new Set<string>();
 
       // Check for attribute decay eligibility
       for (const attribute of allAttributes) {
@@ -46,14 +53,38 @@ const startDecayAttributesJob = (): void => {
 
         await decayAttribute(attribute, allUserAttrLvls);
         decayedCount++;
+        decayedUsers.add(attribute.users_id);
+      }
+
+      // Update user levels for all affected users
+      for (const userId of decayedUsers) {
+        const userAttributes = await getAttributesByUserIdModel(userId);
+
+        if (!userAttributes) {
+          console.error(
+            `[Cron] Could not retrieve attributes for user ${userId} after decay. Skipping level update.`,
+          );
+          continue;
+        }
+
+        const userAttributeLevels = extractUserAttributesLvls(userAttributes);
+        const newUserLvl = calculateUserLvlHelper(userAttributeLevels);
+
+        await assignNewUserLvlModel(userId, newUserLvl);
       }
 
       // Constructing result message string
-      let resultStr: string = "";
-      if (decayedCount === 0) resultStr = "No attributes were decayed";
-      else if (decayedCount === 1)
-        resultStr = "Successfuly decayed 1 attrribute";
-      else resultStr = `Successfuly decayed ${decayedCount} attributes`;
+      let resultStr: string;
+      if (decayedCount === 0) {
+        resultStr = "No attributes were decayed";
+      } else {
+        resultStr = `Successfully decayed ${decayedCount} attribute${
+          decayedCount > 1 ? "s" : ""
+        }`;
+        if (decayedUsers.size > 0) {
+          resultStr += ` and updated ${decayedUsers.size} user level(s)`;
+        }
+      }
 
       console.log(`[Cron] ${resultStr}.`);
       console.log("[Cron] Nightly attribute decay finished successfully.");
