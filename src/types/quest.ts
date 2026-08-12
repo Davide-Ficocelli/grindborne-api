@@ -11,6 +11,8 @@ export interface QuestInDb {
   tracked_at?: Date | null; // timestamp, but initially NULL
   is_completed: boolean;
   completed_at?: Date | null; // NULL until completed
+  is_failed: boolean;
+  failed_at?: Date | null; // NULL until failed
   estimated_time?: number | null; // integer minutes, can be NULL if not rewardable
   actual_time?: number | null; // integer minutes, NULL until complete
 }
@@ -26,6 +28,8 @@ export type NewQuest = Omit<
   | "completed_at"
   | "actual_time"
   | "total_xp"
+  | "is_failed"
+  | "failed_at"
 >;
 
 // 3. Update (UpdatedQuest)

@@ -529,3 +529,75 @@ export const completeQuestService = async (
       message: "Something went wrong during quest completion",
     };
 };
+
+// Fails a quest
+export const failQuestService = async (
+  questId: string,
+  userId: string,
+): Promise<ServiceValidation> => {
+  // Get quest to be failed by its id
+  const questToBeFailed = await getQuestByIdModel(questId);
+
+  // If quest wasn't found return an error message
+  if (!questToBeFailed)
+    return { ok: false, status: 404, message: "Quest to be failed not found" };
+
+  // Prevent IDOR
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    questToBeFailed.users_id,
+  );
+
+  if (isIdorDetected)
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  // Do not allow quest failing if this is already completed
+  if (questToBeFailed.is_completed)
+    return {
+      ok: false,
+      status: 400,
+      message: "Unable to fail quest, quest is completed",
+      data: questToBeFailed,
+    };
+
+  // Do not allow quest failing if this is not being tracked
+  if (!questToBeFailed.is_tracked)
+    return {
+      ok: false,
+      status: 400,
+      message: "Unable to fail quest, quest is not being tracked",
+      data: questToBeFailed,
+    };
+
+  // Do not allow quest failing if this is already failed
+  if (questToBeFailed.is_failed)
+    return {
+      ok: false,
+      status: 400,
+      message: "Unable to fail quest, quest is already failed",
+      data: questToBeFailed,
+    };
+
+  // Update the quest to be failed
+  const failedQuest = await updateQuestModel(questId, {
+    is_tracked: false,
+    is_failed: true,
+    failed_at: new Date(),
+  });
+
+  // Handle case in which failed quest is null
+  if (!failedQuest)
+    return {
+      ok: false,
+      status: 500,
+      message: "Something went wrong while trying to fail the quest",
+    };
+
+  // If everything went well then return a successfull response along with the data
+  return {
+    ok: true,
+    status: 200,
+    message: "Quest failed successfully",
+    data: failedQuest,
+  };
+};
