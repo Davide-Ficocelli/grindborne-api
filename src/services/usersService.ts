@@ -15,6 +15,7 @@ import {
   updateUserModel,
   assignNewUserLvlModel,
   softDeleteUserModel,
+  getUserByEmailModel,
 } from "../models/usersModel.ts";
 
 /*
@@ -34,6 +35,17 @@ export const createNewUserService = async (
   email: string,
   password: string,
 ): Promise<ServiceValidation> => {
+  // Look for an existing user by email
+  const existingUser = await getUserByEmailModel(email);
+
+  // If a user with that email is found, return an error
+  if (existingUser)
+    return {
+      ok: false,
+      status: 409,
+      message: "Email is already taken",
+    };
+
   // Generate nano id
   const id = nanoid();
 
