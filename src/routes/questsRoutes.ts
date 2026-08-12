@@ -12,6 +12,7 @@ import {
   trackQuestController,
   completeQuestController,
   softDeleteQuestController,
+  failQuestController,
 } from "../controllers/questsController.ts";
 
 const router = Router();
@@ -69,6 +70,13 @@ router.patch(
   "/quests/:id/complete",
   authenticateToken,
   completeQuestController as RequestHandler,
+);
+
+// Route to fail a quest
+router.patch(
+  "/quests/:id/fail",
+  authenticateToken,
+  failQuestController as RequestHandler,
 );
 
 export default router;

@@ -7,6 +7,7 @@ import {
   trackQuestService,
   updateQuestService,
   softDeleteQuestService,
+  failQuestService,
 } from "../services/questsService.ts";
 
 // Importing types
@@ -163,4 +164,18 @@ export const completeQuestController = async (
     next,
     completeQuestService(questId, userId),
   );
+};
+
+// Fails a quest
+export const failQuestController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  // Get quest and user id
+  const questId = req.params.id ? req.params.id.toString() : "";
+  const userId = req.user.id;
+
+  // Start the quest failing process
+  return processServiceRequest(res, next, failQuestService(questId, userId));
 };
