@@ -31,7 +31,7 @@ const inputSanitizationOptions = {
 // Schema for user creation
 const newUserSchema = Joi.object({
   name: Joi.string().min(3).max(50).trim().required(),
-  email: Joi.string().email().lowercase().trim().required(),
+  email: Joi.string().email().trim().required(),
   password: Joi.string().min(8).max(128).required(),
 }).options(
   // Inputs sanitization
@@ -41,7 +41,7 @@ const newUserSchema = Joi.object({
 // Schema fo user update
 const updatedUserSchema = Joi.object({
   name: Joi.string().min(3).max(50).trim().optional(),
-  email: Joi.string().email().lowercase().trim().optional(),
+  email: Joi.string().email().trim().optional(),
   level: Joi.number().optional(),
   stamina: Joi.number().optional(),
 }).options(
@@ -51,7 +51,7 @@ const updatedUserSchema = Joi.object({
 
 // Schema for input user credentials
 const userCredentialSchema = Joi.object({
-  email: Joi.string().email().lowercase().trim().required(),
+  email: Joi.string().email().trim().required(),
   password: Joi.string().min(8).max(128).required(),
 }).options(
   // Inputs sanitization
@@ -62,8 +62,8 @@ const userCredentialSchema = Joi.object({
 
 // Schema for attribute creation
 const newAttributeSchema = Joi.object({
-  name: Joi.string().lowercase().trim().required(),
-  description: Joi.string().lowercase().trim().optional(),
+  name: Joi.string().trim().required(),
+  description: Joi.string().trim().optional(),
   icon: Joi.optional(),
 }).options(
   // Inputs sanitization
@@ -72,8 +72,8 @@ const newAttributeSchema = Joi.object({
 
 // Schema for attribute update
 const updatedAttributeSchema = Joi.object({
-  name: Joi.string().lowercase().trim().optional(),
-  description: Joi.string().lowercase().trim().optional(),
+  name: Joi.string().trim().optional(),
+  description: Joi.string().trim().optional(),
   icon: Joi.optional(),
 }).options(
   // Inputs sanitization
