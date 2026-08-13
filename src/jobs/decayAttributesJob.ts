@@ -2,15 +2,15 @@ import cron from "node-cron";
 import {
   getAllAttributesModel,
   getAttributesByUserIdModel,
-} from "../models/attributesModel.ts";
-import { assignNewUserLvlModel } from "../models/usersModel.ts";
+} from "../models/attributesModel.js";
+import { assignNewUserLvlModel } from "../models/usersModel.js";
 import {
   decayAttributeHelper,
   getAllUserAttrLvlsHelper,
   extractUserAttributesLvlsHelper,
-} from "../shared/attributesHelpers.ts";
-import { calculateUserLvlHelper } from "../shared/usersHelpers.ts";
-import toUTCDate from "../utils/toUTCDate.ts";
+} from "../shared/attributesHelpers.js";
+import { calculateUserLvlHelper } from "../shared/usersHelpers.js";
+import toUTCDate from "../utils/toUTCDate.js";
 
 const startDecayAttributesJob = (): void => {
   // This cron expression ("0 3 * * *") means: Run at 3:00 AM every single day.

@@ -1,15 +1,15 @@
 import { Router } from "express";
-import { authenticateToken } from "../controllers/authController.ts";
+import { authenticateToken } from "../controllers/authController.js";
 import {
   createNewUserController,
   getUserByIdController,
   updateUserController,
   softDeleteUserController,
-} from "../controllers/usersController.ts";
+} from "../controllers/usersController.js";
 import {
   validateNewUser,
   validateUpdatedUser,
-} from "../middlewares/inputValidators.ts";
+} from "../middlewares/inputValidators.js";
 
 // Importing types
 import { type RequestHandler } from "express";

@@ -1,13 +1,13 @@
-import pool from "../config/db.ts";
-import updateRow from "../utils/updateRow.ts";
-import { INITIAL_XP_TO_NEXT_LEVEL } from "../config/globals.ts";
+import pool from "../config/db.js";
+import updateRow from "../utils/updateRow.js";
+import { INITIAL_XP_TO_NEXT_LEVEL } from "../config/globals.js";
 
 // Importing types
 import type {
   AttributeInDb,
   NewAttribute,
   UpdatedAttribute,
-} from "../types/attribute.ts";
+} from "../types/attribute.js";
 
 // File's index
 

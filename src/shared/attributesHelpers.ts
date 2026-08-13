@@ -5,13 +5,13 @@ import {
   REQUIRED_AVG_ATTR_LVLS_FOR_BUILD_SCALING,
   STARTING_GRACE_PERIOD_IN_DAYS,
   DECAY_DATE_RENEWAL_THRESHOLD,
-} from "../config/globals.ts";
+} from "../config/globals.js";
 import type {
   AttributeInDb,
   AttributesLvlsPerUser,
-} from "../types/attribute.ts";
-import { updateAttributeModel } from "../models/attributesModel.ts";
-import toUTCDate from "../utils/toUTCDate.ts";
+} from "../types/attribute.js";
+import { updateAttributeModel } from "../models/attributesModel.js";
+import toUTCDate from "../utils/toUTCDate.js";
 
 // Calculates an XP multiplier based on the AVERAGE LEVEL of ALL user attributes.
 export const overallAttributesMultiplierHelper = function (

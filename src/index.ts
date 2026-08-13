@@ -1,15 +1,15 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import pool from "./config/db.ts";
+import pool from "./config/db.js";
 // import compression from "compression";
-import authRoutes from "./routes/authRoutes.ts";
-import attributesRoutes from "./routes/attributesRoutes.ts";
-import grindsRoutes from "./routes/grindsRoutes.ts";
-import questsRoutes from "./routes/questsRoutes.ts";
-import usersRoutes from "./routes/usersRoutes.ts";
-import startCleanupJob from "./jobs/cleanupJob.ts";
-import startDecayAttributesJob from "./jobs/decayAttributesJob.ts";
+import authRoutes from "./routes/authRoutes.js";
+import attributesRoutes from "./routes/attributesRoutes.js";
+import grindsRoutes from "./routes/grindsRoutes.js";
+import questsRoutes from "./routes/questsRoutes.js";
+import usersRoutes from "./routes/usersRoutes.js";
+import startCleanupJob from "./jobs/cleanupJob.js";
+import startDecayAttributesJob from "./jobs/decayAttributesJob.js";
 
 // Importing types for request and response
 import { type Request, type Response } from "express";

@@ -1,14 +1,14 @@
-import processServiceRequest from "../utils/processServiceRequest.ts";
+import processServiceRequest from "../utils/processServiceRequest.js";
 import {
   createNewUserService,
   getUserByIdService,
   updateUserService,
   softDeleteUserService,
-} from "../services/usersService.ts";
+} from "../services/usersService.js";
 
 // Importing types
 import { type Request, type Response, type NextFunction } from "express";
-import { type AuthRequest } from "../types/auth.ts";
+import { type AuthRequest } from "../types/auth.js";
 
 export const createNewUserController = async (
   req: Request,

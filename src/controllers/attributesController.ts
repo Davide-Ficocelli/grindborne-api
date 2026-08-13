@@ -4,13 +4,13 @@ import {
   updateAttributeService,
   getAllAttributesToQuestService,
   softDeleteAttributeService,
-} from "../services/attributesService.ts";
-import processServiceRequest from "../utils/processServiceRequest.ts";
+} from "../services/attributesService.js";
+import processServiceRequest from "../utils/processServiceRequest.js";
 
 // Importing types
 import { type Response, type NextFunction } from "express";
-import { type AuthRequest } from "../types/auth.ts";
-import type { NewAttribute } from "../types/attribute.ts";
+import { type AuthRequest } from "../types/auth.js";
+import type { NewAttribute } from "../types/attribute.js";
 
 // Creates a new attribute with user's inputs
 export const createNewAttributeController = async (
@@ -32,7 +32,7 @@ export const createNewAttributeController = async (
     users_id,
   };
 
-  // Starts the attribute creation process with the appropriate async function created in the attributesService.ts file
+  // Starts the attribute creation process with the appropriate async function created in the attributesService.js file
   return processServiceRequest(
     res,
     next,

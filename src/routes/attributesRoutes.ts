@@ -1,16 +1,16 @@
 import { Router, type RequestHandler } from "express";
-import { authenticateToken } from "../controllers/authController.ts";
+import { authenticateToken } from "../controllers/authController.js";
 import {
   createNewAttributeController,
   getAttributesByUserIdController,
   updateAttributeController,
   getAllAttributesToQuestController,
   softDeleteAttributeController,
-} from "../controllers/attributesController.ts";
+} from "../controllers/attributesController.js";
 import {
   validateNewAttribute,
   validateUpdatedAttribute,
-} from "../middlewares/inputValidators.ts";
+} from "../middlewares/inputValidators.js";
 
 // Initialize and export express router for attributes routes
 const router = Router();

@@ -10,17 +10,17 @@ import {
   QUEST_ATTR_AVG_DIVISOR,
   TIME_DEVIATION_PENALTY_FACTOR,
   MIN_TIME_ACCURACY_MULTIPLIER,
-} from "../config/globals.ts";
-import { type QuestInDb } from "../types/quest.ts";
-import { type AttributeInDb } from "../types/attribute.ts";
-import type ServiceValidation from "../types/serviceValidation.ts";
-import preventIdor from "../utils/preventIdor.ts";
-import { getUserByIdModel } from "../models/usersModel.ts";
+} from "../config/globals.js";
+import { type QuestInDb } from "../types/quest.js";
+import { type AttributeInDb } from "../types/attribute.js";
+import type ServiceValidation from "../types/serviceValidation.js";
+import preventIdor from "../utils/preventIdor.js";
+import { getUserByIdModel } from "../models/usersModel.js";
 import {
   getAttributesByUserIdService,
   getAllAttributesToQuestService,
-} from "../services/attributesService.ts";
-import { overallAttributesMultiplierHelper } from "../shared/attributesHelpers.ts";
+} from "../services/attributesService.js";
+import { overallAttributesMultiplierHelper } from "../shared/attributesHelpers.js";
 
 // --- Helper functions for completeQuestService ---
 

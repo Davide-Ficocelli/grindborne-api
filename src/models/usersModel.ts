@@ -1,8 +1,8 @@
-import pool from "../config/db.ts";
-import updateRow from "../utils/updateRow.ts";
+import pool from "../config/db.js";
+import updateRow from "../utils/updateRow.js";
 
 // Importing types
-import { type UserInDb, type UpdatedUser } from "../types/user.ts";
+import { type UserInDb, type UpdatedUser } from "../types/user.js";
 
 // --- GENERAL CRUD METHODS ---
 

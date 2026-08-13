@@ -1,4 +1,4 @@
-import processServiceRequest from "../utils/processServiceRequest.ts";
+import processServiceRequest from "../utils/processServiceRequest.js";
 import {
   completeQuestService,
   getQuestByIdService,
@@ -8,11 +8,11 @@ import {
   updateQuestService,
   softDeleteQuestService,
   failQuestService,
-} from "../services/questsService.ts";
+} from "../services/questsService.js";
 
 // Importing types
 import { type Response, type NextFunction } from "express";
-import { type AuthRequest } from "../types/auth.ts";
+import { type AuthRequest } from "../types/auth.js";
 
 // File's index
 
@@ -72,7 +72,7 @@ export const createNewQuestController = async (
   // Gets user's id for users_id field
   const userId: string = req.user.id;
 
-  // Starts the quest creation process with the appropriate async function created in the questsModel.ts file
+  // Starts the quest creation process with the appropriate async function created in the questsModel.js file
   return processServiceRequest(
     res,
     next,
