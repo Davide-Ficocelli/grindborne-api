@@ -1,12 +1,12 @@
-import pool from "../config/db.ts";
-import updateRow from "../utils/updateRow.ts";
+import pool from "../config/db.js";
+import updateRow from "../utils/updateRow.js";
 
 // Importing types
 import {
   type QuestInDb,
   type NewQuest,
   type UpdatedQuest,
-} from "../types/quest.ts";
+} from "../types/quest.js";
 
 // --- GENERAL CRUD MODEL FUNCTIONS ---
 

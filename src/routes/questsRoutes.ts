@@ -2,8 +2,8 @@ import { Router, type RequestHandler } from "express";
 import {
   validateNewQuest,
   validateUpdatedQuest,
-} from "../middlewares/inputValidators.ts";
-import { authenticateToken } from "../controllers/authController.ts";
+} from "../middlewares/inputValidators.js";
+import { authenticateToken } from "../controllers/authController.js";
 import {
   createNewQuestController,
   getQuestByIdController,
@@ -13,7 +13,7 @@ import {
   completeQuestController,
   softDeleteQuestController,
   failQuestController,
-} from "../controllers/questsController.ts";
+} from "../controllers/questsController.js";
 
 const router = Router();
 

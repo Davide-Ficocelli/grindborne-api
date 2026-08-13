@@ -1,6 +1,6 @@
-import handleResponse from "./handleResponse.ts";
+import handleResponse from "./handleResponse.js";
 import { type Response, type NextFunction } from "express";
-import type ServiceValidation from "../types/serviceValidation.ts";
+import type ServiceValidation from "../types/serviceValidation.js";
 
 const processServiceRequest = async (
   res: Response,

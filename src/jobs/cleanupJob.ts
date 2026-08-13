@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import pool from "../config/db.ts";
-import { RETENTION_PERIOD } from "../config/globals.ts";
+import pool from "../config/db.js";
+import { RETENTION_PERIOD } from "../config/globals.js";
 
 const startCleanupJob = () => {
   // This cron expression ("0 3 * * *") means: Run at 3:00 AM every single day.

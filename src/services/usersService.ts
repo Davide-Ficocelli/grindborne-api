@@ -1,13 +1,13 @@
 // Importing types
-import type ServiceValidation from "../types/serviceValidation.ts";
-import type { UpdatedUser } from "../types/user.ts";
+import type ServiceValidation from "../types/serviceValidation.js";
+import type { UpdatedUser } from "../types/user.js";
 
 // Importing global variables
-import { SALT_ROUNDS } from "../config/globals.ts";
+import { SALT_ROUNDS } from "../config/globals.js";
 
 // Importing functions
 import { nanoid } from "nanoid";
-import preventIdor from "../utils/preventIdor.ts";
+import preventIdor from "../utils/preventIdor.js";
 import bcrypt from "bcrypt";
 import {
   createNewUserModel,
@@ -16,7 +16,7 @@ import {
   assignNewUserLvlModel,
   softDeleteUserModel,
   getUserByEmailModel,
-} from "../models/usersModel.ts";
+} from "../models/usersModel.js";
 
 /*
 |

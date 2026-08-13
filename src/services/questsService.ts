@@ -1,17 +1,17 @@
 // Importing types
-import type ServiceValidation from "../types/serviceValidation.ts";
+import type ServiceValidation from "../types/serviceValidation.js";
 import {
   type NewQuest,
   type QuestInDb,
   type UpdatedQuest,
-} from "../types/quest.ts";
+} from "../types/quest.js";
 
 // Importing constants
-import { STARTING_GRACE_PERIOD_IN_DAYS } from "../config/globals.ts";
+import { STARTING_GRACE_PERIOD_IN_DAYS } from "../config/globals.js";
 
 // Importing functions
 import { nanoid } from "nanoid";
-import preventIdor from "../utils/preventIdor.ts";
+import preventIdor from "../utils/preventIdor.js";
 import {
   getQuestByIdModel,
   getQuestsByUserIdModel,
@@ -20,16 +20,16 @@ import {
   addAttributesToQuestModel,
   trackQuestModel,
   softDeleteQuestModel,
-} from "../models/questsModel.ts";
-import { assignXpToAttrsAndUserService } from "../services/attributesService.ts";
-import { assignStartingDecayDateToAttributeModel } from "../models/attributesModel.ts";
+} from "../models/questsModel.js";
+import { assignXpToAttrsAndUserService } from "../services/attributesService.js";
+import { assignStartingDecayDateToAttributeModel } from "../models/attributesModel.js";
 import {
   calculateDatesDiffHelper,
   calculateQuestTotalXPHelper,
   validateQuestToBeCompletedHelper,
   type DataForXp,
-} from "../shared/questsHelpers.ts";
-import toUTCDate from "../utils/toUTCDate.ts";
+} from "../shared/questsHelpers.js";
+import toUTCDate from "../utils/toUTCDate.js";
 
 // File index
 

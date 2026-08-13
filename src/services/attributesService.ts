@@ -1,6 +1,6 @@
 // Importing types
-import type { NewAttribute, UpdatedAttribute } from "../types/attribute.ts";
-import type ServiceValidation from "../types/serviceValidation.ts";
+import type { NewAttribute, UpdatedAttribute } from "../types/attribute.js";
+import type ServiceValidation from "../types/serviceValidation.js";
 
 // Importing functions
 import { nanoid } from "nanoid";
@@ -11,11 +11,11 @@ import {
   updateAttributeModel,
   getAllAttributesToQuestModel,
   softDeleteAttributeModel,
-} from "../models/attributesModel.ts";
-import { assignNewUserLvlService } from "../services/usersService.ts";
-import { getUserByIdModel } from "../models/usersModel.ts";
-import preventIdor from "../utils/preventIdor.ts";
-import { calculateUserLvlHelper } from "../shared/usersHelpers.ts";
+} from "../models/attributesModel.js";
+import { assignNewUserLvlService } from "../services/usersService.js";
+import { getUserByIdModel } from "../models/usersModel.js";
+import preventIdor from "../utils/preventIdor.js";
+import { calculateUserLvlHelper } from "../shared/usersHelpers.js";
 
 // Importing global variables
 import {
@@ -23,7 +23,7 @@ import {
   calculateAttributeXpProgressHelper,
   extractUserAttributesLvlsHelper,
   extendAttrDecayDateHelper,
-} from "../shared/attributesHelpers.ts";
+} from "../shared/attributesHelpers.js";
 
 // File's index
 
