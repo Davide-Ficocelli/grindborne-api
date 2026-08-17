@@ -1,5 +1,8 @@
 export const SALT_ROUNDS: number = 10;
 
+// Represents the espiration time of access tokens
+export const TOKEN_EXPIRATION_TIME: string = "1w";
+
 // Represents in days the starting grace period before attributes start decaying
 export const STARTING_GRACE_PERIOD_IN_DAYS: number = 7;
 
