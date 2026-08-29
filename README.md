@@ -1,6 +1,6 @@
 # 🗡️ Grindborne — Documentazione tecnica
 
-> *Trasforma la tua routine quotidiana in un'avventura epica.*
+> _Trasforma la tua routine quotidiana in un'avventura epica._
 
 **Grindborne** è un'app di produttività personale gamificata: traduce obiettivi, attività e pratica costante nel linguaggio di un RPG souls-like. Il suo scopo non è rendere la produttività un gioco superficiale, ma rendere la crescita visibile, misurabile e sostenibile.
 
@@ -29,14 +29,14 @@ Nella vita reale gli obiettivi non arrivano con una quest principale, un indicat
 
 Grindborne affronta questo problema con un modello semplice:
 
-| Vita reale | Grindborne |
-| --- | --- |
-| Attività singola | Quest / Missione |
-| Pratica ricorrente | Grind |
-| Capacità personale | Attributo |
-| Esperienza accumulata | XP |
-| Crescita misurabile | Livello |
-| Perdita di costanza | Decadimento |
+| Vita reale            | Grindborne       |
+| --------------------- | ---------------- |
+| Attività singola      | Quest / Missione |
+| Pratica ricorrente    | Grind            |
+| Capacità personale    | Attributo        |
+| Esperienza accumulata | XP               |
+| Crescita misurabile   | Livello          |
+| Perdita di costanza   | Decadimento      |
 
 Il prodotto prende ispirazione dalla filosofia Soulsborne: un fallimento è informazione. Non è necessario "vincere sempre"; è necessario capire il proprio schema, modificare l'approccio e tornare a provarci.
 
@@ -56,18 +56,18 @@ Il prodotto prende ispirazione dalla filosofia Soulsborne: un fallimento è info
 
 Il backend è organizzato attorno ai domini `auth`, `users`, `attributes` e `quests`. La presenza di job dedicati al decadimento e alla pulizia indica che la crescita del giocatore non è unicamente reattiva alle richieste HTTP: alcune regole vengono applicate periodicamente dal sistema.
 
-| Concetto | Responsabilità |
-| --- | --- |
-| **Utente** | Proprietario dei dati, dell'identità applicativa e della progressione |
-| **Autenticazione** | Gestione dell'accesso e dell'identità dell'utente autenticato |
-| **Attributo** | Competenza configurabile dell'utente, associata a XP, livello e regole di mantenimento |
-| **Quest** | Attività orientata a un obiettivo, potenzialmente associata a uno o più attributi |
-| **Grind** | Abitudine ricorrente prevista dal prodotto; il relativo endpoint è presente nella struttura delle route, ma non risulta ancora un dominio backend implementato in modo equivalente a quest e attributi |
-| **Job pianificato** | Processo server-side eseguito a intervalli regolari, indipendente dall'interazione dell'utente |
+| Concetto            | Responsabilità                                                                                                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Utente**          | Proprietario dei dati, dell'identità applicativa e della progressione                                                                                                                                  |
+| **Autenticazione**  | Gestione dell'accesso e dell'identità dell'utente autenticato                                                                                                                                          |
+| **Attributo**       | Competenza configurabile dell'utente, associata a XP, livello e regole di mantenimento                                                                                                                 |
+| **Quest**           | Attività orientata a un obiettivo, potenzialmente associata a uno o più attributi                                                                                                                      |
+| **Grind**           | Abitudine ricorrente prevista dal prodotto; il relativo endpoint è presente nella struttura delle route, ma non risulta ancora un dominio backend implementato in modo equivalente a quest e attributi |
+| **Job pianificato** | Processo server-side eseguito a intervalli regolari, indipendente dall'interazione dell'utente                                                                                                         |
 
 ### Diagramma di classe concettuale
 
-![Concetti di dominio - diagramma di classe](./assets/concetti-di-dominio-diagramma-di-classe.svg)
+![Concetti di dominio - diagramma di classe](./assets/Concetti%20di%20dominio%20diagramma%20di%20classe.svg)
 
 ```plantuml
 @startuml
@@ -174,19 +174,19 @@ src/
 
 ### Responsabilità per livello
 
-| Livello | Responsabilità | Non deve contenere |
-| --- | --- | --- |
-| Route | Associare un endpoint a middleware e controller | Logica di business |
-| Middleware | Autorizzazione, validazione trasversale, normalizzazione errori | Query di dominio specifiche |
-| Controller | Leggere input HTTP, invocare servizi, restituire risposta HTTP | Calcoli di XP o query complesse |
-| Service | Applicare invarianti e coordinare più operazioni | Dipendenza diretta da `req` e `res` |
-| Model | Leggere e scrivere dati nel database | Decisioni di business |
-| Job | Applicare regole periodiche in modo idempotente | Logica di presentazione |
-| Config | Centralizzare integrazioni e parametri runtime | Regole del dominio |
+| Livello    | Responsabilità                                                  | Non deve contenere                  |
+| ---------- | --------------------------------------------------------------- | ----------------------------------- |
+| Route      | Associare un endpoint a middleware e controller                 | Logica di business                  |
+| Middleware | Autorizzazione, validazione trasversale, normalizzazione errori | Query di dominio specifiche         |
+| Controller | Leggere input HTTP, invocare servizi, restituire risposta HTTP  | Calcoli di XP o query complesse     |
+| Service    | Applicare invarianti e coordinare più operazioni                | Dipendenza diretta da `req` e `res` |
+| Model      | Leggere e scrivere dati nel database                            | Decisioni di business               |
+| Job        | Applicare regole periodiche in modo idempotente                 | Logica di presentazione             |
+| Config     | Centralizzare integrazioni e parametri runtime                  | Regole del dominio                  |
 
 ### Diagramma dei componenti
 
-![Architettura backend - diagramma dei componenti](./assets/architettura-backend-diagramma-dei-componenti.svg)
+![Architettura backend - diagramma dei componenti](./assets/Architettura%20backend%20diagramma%20dei%20componenti.svg)
 
 ```plantuml
 @startuml
@@ -246,7 +246,7 @@ Il dominio `auth` è separato da `users` perché l'identità e il profilo hanno 
 - `users` gestisce le informazioni del profilo e le operazioni legate all'utente;
 - i middleware proteggono gli endpoint che richiedono una sessione o un token valido.
 
-![Processi applicativi - diagramma di sequenza](./assets/diagramma-di-sequenza-processi-applicativi.svg)
+![Processi applicativi - diagramma di sequenza](./assets/Diagramma%20di%20sequenza%20processi%20applicativi.svg)
 
 ```plantuml
 @startuml
@@ -285,7 +285,7 @@ Flusso generale:
 5. Il service restituisce un risultato coerente con le regole del dominio.
 6. Il controller produce una risposta HTTP esplicita.
 
-![Gestione degli attributi - diagramma di attività](./assets/gestione-degli-attributi-diagramma-di-attivita.svg)
+![Gestione degli attributi - diagramma di attività](./assets/Gestione%20degli%20attributi%20diagramma%20di%20attività.svg)
 
 ```plantuml
 @startuml
@@ -323,7 +323,7 @@ Quando una quest influenza gli attributi, l'operazione deve essere trattata come
 5. salvare tutto in modo atomico;
 6. restituire lo stato finale.
 
-![Gestione delle quest - diagramma di attività](./assets/gestione-delle-quest-diagramma-di-attivita.svg)
+![Gestione delle quest - diagramma di attività](./assets/Gestione%20delle%20quest%20diagramma%20di%20attività.svg)
 
 ```plantuml
 @startuml
@@ -360,7 +360,7 @@ Il backend include un job specifico per il decadimento degli attributi. Questo j
 - **osservabile**: deve produrre log utili per rilevare errori o volumi anomali;
 - **scalabile**: deve poter elaborare attributi a batch, senza caricare l'intero dataset in memoria.
 
-![Decadimento attributi - diagramma di attività](./assets/decadimento-attributi-diagramma-di-attivita.svg)
+![Decadimento attributi - diagramma di attività](./assets/Decadimento%20attributi%20diagramma%20di%20attività.svg)
 
 ```plantuml
 @startuml
@@ -408,13 +408,13 @@ Le policy esatte devono restare configurabili e documentate prima di diventare d
 
 ### Moduli esposti
 
-| Modulo | Stato nel backend | Responsabilità |
-| --- | --- | --- |
-| `auth` | Implementato | Accesso e identità |
-| `users` | Implementato | Profilo e risorse dell'utente |
-| `attributes` | Implementato | CRUD e logica della progressione degli attributi |
-| `quests` | Implementato | Ciclo di vita delle quest |
-| `grinds` | Route presente, implementazione funzionale da completare | Abitudini ricorrenti e relativa progressione |
+| Modulo       | Stato nel backend                                        | Responsabilità                                   |
+| ------------ | -------------------------------------------------------- | ------------------------------------------------ |
+| `auth`       | Implementato                                             | Accesso e identità                               |
+| `users`      | Implementato                                             | Profilo e risorse dell'utente                    |
+| `attributes` | Implementato                                             | CRUD e logica della progressione degli attributi |
+| `quests`     | Implementato                                             | Ciclo di vita delle quest                        |
+| `grinds`     | Route presente, implementazione funzionale da completare | Abitudini ricorrenti e relativa progressione     |
 
 ### Convenzioni HTTP
 
@@ -433,16 +433,16 @@ La documentazione operativa degli endpoint deve essere mantenuta accanto alla co
 
 Le risposte devono adottare una struttura stabile, in modo che il frontend possa distinguere dati, errori di validazione, assenza della risorsa e problemi inattesi.
 
-| Categoria | Uso |
-| --- | --- |
-| `200 OK` | Lettura o modifica completata con successo |
-| `201 Created` | Nuova risorsa creata |
-| `204 No Content` | Eliminazione riuscita senza body |
-| `400 Bad Request` | Input non valido o incompleto |
-| `401 Unauthorized` | Utente non autenticato |
-| `403 Forbidden` | Utente autenticato ma non proprietario della risorsa |
-| `404 Not Found` | Risorsa inesistente o non visibile all'utente |
-| `409 Conflict` | Transizione di stato non consentita |
+| Categoria                   | Uso                                                         |
+| --------------------------- | ----------------------------------------------------------- |
+| `200 OK`                    | Lettura o modifica completata con successo                  |
+| `201 Created`               | Nuova risorsa creata                                        |
+| `204 No Content`            | Eliminazione riuscita senza body                            |
+| `400 Bad Request`           | Input non valido o incompleto                               |
+| `401 Unauthorized`          | Utente non autenticato                                      |
+| `403 Forbidden`             | Utente autenticato ma non proprietario della risorsa        |
+| `404 Not Found`             | Risorsa inesistente o non visibile all'utente               |
+| `409 Conflict`              | Transizione di stato non consentita                         |
 | `500 Internal Server Error` | Errore inatteso, senza dettagli sensibili esposti al client |
 
 Esempio di errore normalizzato:
@@ -473,12 +473,12 @@ dove $n$ è il numero di attributi dell'utente.
 
 Esempio:
 
-| Attributo | Livello |
-| --- | ---:|
-| Forza | 4 |
-| Intelligenza | 3 |
-| Carisma | 7 |
-| **Livello giocatore** | **12** |
+| Attributo             | Livello |
+| --------------------- | ------: |
+| Forza                 |       4 |
+| Intelligenza          |       3 |
+| Carisma               |       7 |
+| **Livello giocatore** |  **12** |
 
 $$
 4 + 3 + 7 - (3 - 1) = 12
@@ -496,13 +496,13 @@ $$
 
 ### Decisioni di prodotto
 
-| Decisione | Motivazione |
-| --- | --- |
-| Progressione per attributi | La crescita reale è multidimensionale: una persona può migliorare in un'area senza crescere allo stesso ritmo in tutte le altre |
-| Quest distinte dai Grind | Un'attività una tantum e un'abitudine ricorrente hanno cicli di vita e metriche diverse |
-| Decadimento controllato | Il sistema misura manutenzione della competenza, non un valore permanente acquisito una sola volta |
-| Backend come fonte di verità | XP, livelli, autorizzazioni e stato delle quest non devono dipendere da calcoli del client |
-| Job server-side | Le regole temporali devono continuare a funzionare anche quando l'utente non apre l'app |
+| Decisione                    | Motivazione                                                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Progressione per attributi   | La crescita reale è multidimensionale: una persona può migliorare in un'area senza crescere allo stesso ritmo in tutte le altre |
+| Quest distinte dai Grind     | Un'attività una tantum e un'abitudine ricorrente hanno cicli di vita e metriche diverse                                         |
+| Decadimento controllato      | Il sistema misura manutenzione della competenza, non un valore permanente acquisito una sola volta                              |
+| Backend come fonte di verità | XP, livelli, autorizzazioni e stato delle quest non devono dipendere da calcoli del client                                      |
+| Job server-side              | Le regole temporali devono continuare a funzionare anche quando l'utente non apre l'app                                         |
 
 ---
 
@@ -528,7 +528,7 @@ Non versionare mai un file `.env` contenente valori reali.
 
 Il bootstrap dell'applicazione avviene in `src/index.ts`. In un deployment affidabile, l'avvio deve rispettare questa sequenza:
 
-![Avvio dell'applicazione - diagramma di attività](./assets/avvio-dellapplicazione-diagramma-di-attivita.svg)
+![Avvio dell'applicazione - diagramma di attività](./assets/Avvio%20dell'applicazione%20diagramma%20di%20attività.svg)
 
 ```plantuml
 @startuml
@@ -592,7 +592,7 @@ stop
 
 ### Evoluzione consigliata
 
-![Evoluzione consigliata - diagramma di attività](./assets/evoluzione-consigliata-diagramma-di-attivita.svg)
+![Evoluzione consigliata - diagramma di attività](./assets/Evoluzione%20consigliata%20diagramma%20di%20attività.svg)
 
 ```plantuml
 @startuml
@@ -623,4 +623,4 @@ Ogni nuova funzionalità deve aggiornare nello stesso cambiamento:
 - eventuali job, metriche e log;
 - questa documentazione architetturale, se modifica il dominio o i flussi.
 
-In questo modo Grindborne conserva la propria lore tecnica: non solo *cosa* fa il sistema, ma anche *perché* lo fa e quali regole non devono essere spezzate.
+In questo modo Grindborne conserva la propria lore tecnica: non solo _cosa_ fa il sistema, ma anche _perché_ lo fa e quali regole non devono essere spezzate.
