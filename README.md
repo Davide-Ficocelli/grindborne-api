@@ -570,47 +570,6 @@ stop
 
 ## 📈 Scalabilità e manutenzione
 
-### Priorità tecniche
-
-1. **Specificare l'API con OpenAPI**
-   Rendere endpoint, request body, response e codici di errore verificabili e generabili automaticamente.
-
-2. **Completare il dominio Grind**
-   Prima di esporlo come funzionalità completa, implementare modello, service, controller, validazione, persistenza, test e job/eventuali regole di ricorrenza.
-
-3. **Transazioni per la progressione**
-   Il completamento di una quest e l'aggiornamento degli attributi devono essere atomici.
-
-4. **Indici database**
-   Indicizzare almeno le chiavi di proprietà utente, gli identificativi delle risorse e le date usate dai job.
-
-5. **Osservabilità**
-   Introdurre logging strutturato, correlation ID, metriche sui job e monitoraggio degli errori.
-
-6. **Test automatici**
-   Coprire i service con test unitari e le route con test di integrazione: autorizzazione, proprietà, completamento, decadimento e idempotenza.
-
-### Evoluzione consigliata
-
-![Evoluzione consigliata - diagramma di attività](./assets/Evoluzione%20consigliata%20diagramma%20di%20attività.svg)
-
-```plantuml
-@startuml
-rectangle "Fase 1\nStabilità" as Phase1
-rectangle "Fase 2\nContratto API" as Phase2
-rectangle "Fase 3\nDominio Grind" as Phase3
-rectangle "Fase 4\nOsservabilità" as Phase4
-rectangle "Fase 5\nScalabilità" as Phase5
-
-Phase1 --> Phase2 : test, error handling,\nconfig validation
-Phase2 --> Phase3 : OpenAPI,\nclient contract
-Phase3 --> Phase4 : complete feature set
-Phase4 --> Phase5 : logs, metrics,\nqueue/workers if needed
-@enduml
-```
-
-### Regola per le modifiche future
-
 Ogni nuova funzionalità deve aggiornare nello stesso cambiamento:
 
 - modello dati;
