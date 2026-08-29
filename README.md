@@ -69,72 +69,6 @@ Il backend è organizzato attorno ai domini `auth`, `users`, `attributes` e `que
 
 ![Concetti di dominio - diagramma di classe](./assets/Concetti%20di%20dominio%20diagramma%20di%20classe.svg)
 
-```plantuml
-@startuml
-skinparam classAttributeIconSize 0
-
-class User {
-  +id
-  +identity data
-  +createdAt
-}
-
-class Auth {
-  +register()
-  +login()
-  +authenticate()
-}
-
-class Attribute {
-  +id
-  +name
-  +xp
-  +level
-  +decay state
-}
-
-class Quest {
-  +id
-  +title
-  +description
-  +status
-  +deadline
-}
-
-class Grind {
-  +id
-  +name
-  +recurrence
-  +status
-}
-
-class AttributeDecayJob {
-  +run()
-}
-
-class CleanupJob {
-  +run()
-}
-
-User "1" *-- "0..*" Attribute : owns
-User "1" *-- "0..*" Quest : creates
-User "1" *-- "0..*" Grind : tracks
-
-Quest "0..*" --> "0..*" Attribute : contributes XP to
-Grind "0..*" --> "0..*" Attribute : contributes XP to
-
-Auth --> User : identifies
-AttributeDecayJob --> Attribute : evaluates / updates
-CleanupJob --> Quest : removes or archives stale data
-
-note right of Grind
-  Product-domain concept.
-  Its API implementation must be completed
-  before treating it as a supported backend feature.
-end note
-@enduml
-```
-
 ### Ownership dei dati
 
 Ogni risorsa di dominio deve appartenere a un singolo utente. Questa regola non è solo organizzativa: è una misura di sicurezza e privacy.
@@ -188,42 +122,6 @@ src/
 
 ![Architettura backend - diagramma dei componenti](./assets/Architettura%20backend%20diagramma%20dei%20componenti.svg)
 
-```plantuml
-@startuml
-left to right direction
-skinparam componentStyle rectangle
-
-actor Client
-
-component "Express Application\nsrc/index.ts" as App
-component "Routes" as Routes
-component "Middlewares" as Middleware
-component "Controllers" as Controllers
-component "Services" as Services
-component "Models" as Models
-database "PostgreSQL" as DB
-component "Attribute Decay Job" as DecayJob
-component "Cleanup Job" as CleanupJob
-component "Config" as Config
-
-Client --> App : HTTPS request
-App --> Routes
-Routes --> Middleware
-Middleware --> Controllers
-Controllers --> Services
-Services --> Models
-Models --> DB
-
-Config --> App
-Config --> Models
-Config --> DecayJob
-Config --> CleanupJob
-
-DecayJob --> Services : scheduled execution
-CleanupJob --> Services : scheduled execution
-@enduml
-```
-
 ### Principio guida
 
 La richiesta HTTP deve restare sottile:
@@ -248,30 +146,6 @@ Il dominio `auth` è separato da `users` perché l'identità e il profilo hanno 
 
 ![Processi applicativi - diagramma di sequenza](./assets/Diagramma%20di%20sequenza%20processi%20applicativi.svg)
 
-```plantuml
-@startuml
-actor User
-participant "Client" as Client
-participant "Auth Route" as Route
-participant "Auth Controller" as Controller
-participant "Auth Service" as Service
-participant "Auth Model" as Model
-database "PostgreSQL" as DB
-
-User -> Client : inserisce credenziali
-Client -> Route : richiesta di registrazione/login
-Route -> Controller : inoltra richiesta
-Controller -> Service : esegue caso d'uso
-Service -> Model : legge o crea identità
-Model -> DB : query persistente
-DB --> Model : risultato
-Model --> Service : record utente
-Service --> Controller : esito autenticazione
-Controller --> Client : risposta HTTP sicura
-Client --> User : utente autenticato
-@enduml
-```
-
 ### Gestione degli attributi
 
 Gli attributi costituiscono il nucleo della progressione. Ogni operazione su di essi deve rispettare la proprietà del dato e preservare la coerenza tra XP, livello e stato di decadimento.
@@ -286,29 +160,6 @@ Flusso generale:
 6. Il controller produce una risposta HTTP esplicita.
 
 ![Gestione degli attributi - diagramma di attività](./assets/Gestione%20degli%20attributi%20diagramma%20di%20attività.svg)
-
-```plantuml
-@startuml
-start
-:Utente autenticato invia una richiesta sugli attributi;
-
-if (Input valido?) then (sì)
-  :Ricava l'utente autenticato;
-  :Carica o crea l'attributo;
-  if (La risorsa appartiene all'utente?) then (sì)
-    :Applica le regole di business;
-    :Persiste la modifica;
-    :Restituisce la risorsa aggiornata;
-  else (no)
-    :Restituisce errore di autorizzazione;
-  endif
-else (no)
-  :Restituisce errore di validazione;
-endif
-
-stop
-@enduml
-```
 
 ### Quest e attribuzione della progressione
 
@@ -325,30 +176,6 @@ Quando una quest influenza gli attributi, l'operazione deve essere trattata come
 
 ![Gestione delle quest - diagramma di attività](./assets/Gestione%20delle%20quest%20diagramma%20di%20attività.svg)
 
-```plantuml
-@startuml
-start
-:Utente richiede il completamento di una quest;
-:Carica quest e utente proprietario;
-
-if (Quest esiste e appartiene all'utente?) then (sì)
-  if (Quest è completabile?) then (sì)
-    :Determina le modifiche di progressione;
-    :Aggiorna stato della quest;
-    :Aggiorna gli attributi collegati;
-    :Salva le modifiche in una transazione;
-    :Restituisce quest e progressione aggiornata;
-  else (no)
-    :Restituisce conflitto di stato;
-  endif
-else (no)
-  :Restituisce not found oppure forbidden;
-endif
-
-stop
-@enduml
-```
-
 ### Decadimento degli attributi
 
 Il decadimento evita che il livello comunichi una maestria immutabile. Una competenza coltivata cresce; una competenza ignorata può richiedere nuovo impegno.
@@ -361,34 +188,6 @@ Il backend include un job specifico per il decadimento degli attributi. Questo j
 - **scalabile**: deve poter elaborare attributi a batch, senza caricare l'intero dataset in memoria.
 
 ![Decadimento attributi - diagramma di attività](./assets/Decadimento%20attributi%20diagramma%20di%20attività.svg)
-
-```plantuml
-@startuml
-start
-:Il job pianificato viene avviato;
-:Recupera gli attributi candidati al controllo;
-
-while (Esistono attributi da elaborare?) is (sì)
-  :Carica attributo e stato di manutenzione;
-
-  if (Il controllo è già stato eseguito per il periodo corrente?) then (sì)
-    :Salta l'attributo;
-  else (no)
-    if (L'attributo è oltre il periodo di grazia?) then (sì)
-      :Calcola il decadimento;
-      :Aggiorna XP/livello e nuova data di controllo;
-      :Registra l'elaborazione;
-    else (no)
-      :Mantiene invariata la progressione;
-      :Aggiorna lo stato di controllo, se necessario;
-    endif
-  endif
-endwhile (no)
-
-:Termina il job;
-stop
-@enduml
-```
 
 ### Cleanup periodico
 
@@ -529,31 +328,6 @@ Non versionare mai un file `.env` contenente valori reali.
 Il bootstrap dell'applicazione avviene in `src/index.ts`. In un deployment affidabile, l'avvio deve rispettare questa sequenza:
 
 ![Avvio dell'applicazione - diagramma di attività](./assets/Avvio%20dell'applicazione%20diagramma%20di%20attività.svg)
-
-```plantuml
-@startuml
-start
-:Carica variabili d'ambiente;
-:Valida la configurazione;
-
-if (Configurazione valida?) then (sì)
-  :Inizializza la connessione al database;
-  if (Database disponibile?) then (sì)
-    :Crea l'applicazione HTTP;
-    :Registra middleware e route;
-    :Avvia job pianificati;
-    :Avvia il server;
-    :Espone health check;
-  else (no)
-    :Interrompe l'avvio con errore esplicito;
-  endif
-else (no)
-  :Interrompe l'avvio senza esporre il server;
-endif
-
-stop
-@enduml
-```
 
 ### Checklist post-deploy
 
