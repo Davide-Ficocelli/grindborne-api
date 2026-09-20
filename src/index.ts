@@ -27,9 +27,51 @@ const port = process.env.PORT ? Number(process.env.PORT) : 3001;
 const baseUrlPrefix: string = "/grindborne/api/v1";
 
 // Middlewares
+
+// CORS MUST run before express.json() and before any route handlers.
+// Two reasons:
+//   1. Preflight OPTIONS requests don't have a body, so running the JSON
+//      parser first does nothing useful—but it's cleaner to reject
+//      disallowed origins before any other middleware touches the request.
+//   2. If any middleware upstream throws on an OPTIONS request (e.g., a
+//      body-parsing error, an auth check), the preflight fails and the
+//      browser reports a CORS error—masking the real cause.
+//
+// The origin callback form is used (rather than a plain array) purely for
+// debuggability: we can log rejected origins during development.
+
+const allowedOrigins = [
+  "http://localhost:5173", // Vite dev server (default port)
+  // Add production frontend URL here when it's deployed, e.g.:
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Non-browser clients (curl, Postman, server-to-server, mobile apps)
+      // don't send an Origin header. The browser always does. We allow
+      // "no origin" requests through—they're not subject to the browser's
+      // CORS enforcement anyway, so blocking them here would just break
+      // local testing.
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Reject anything else. Logging here is invaluable when you deploy
+      // and discover your production frontend URL doesn't match what you
+      // thought it was.
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
+    credentials: true, // REQUIRED for withCredentials: true to work
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
 app.use(express.json());
-app.use(cors());
-// app.use(compression());
 
 // Routes
 
