@@ -189,3 +189,69 @@ export const createNewAccessToken = async (
     next(err);
   }
 };
+
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { token } = req.body;
+
+    // 1. Check if a token was provided
+    if (!token) {
+      return handleResponse(res, false, 400, "Refresh token is required");
+    }
+
+    // 2. Verify the token's signature and expiration
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string);
+    } catch (err) {
+      // This will catch expired or invalid tokens
+      return handleResponse(
+        res,
+        false,
+        401,
+        "Invalid or expired refresh token",
+      );
+    }
+
+    if (typeof decoded === "string" || typeof decoded.id !== "string") {
+      return handleResponse(res, false, 401, "Invalid refresh token payload");
+    }
+
+    // 3. Check if the token exists in the database (revocation check)
+    const storedToken = await getRefreshTokenModel(token);
+    if (!storedToken) {
+      return handleResponse(res, false, 401, "Refresh token not recognized");
+    }
+
+    // 4. (Recommended) Rotate the refresh token for better security
+    // Delete the old one from the database.
+    await deleteRefreshTokenModel(token);
+
+    // 5. Generate a new access token (and a new refresh token)
+    const userData: AuthPayload = { id: decoded.id };
+    const newAccessToken = generateAccessToken(userData);
+    const newRefreshToken = jwt.sign(
+      userData,
+      process.env.REFRESH_TOKEN_SECRET as string,
+      {
+        jwtid: randomUUID(), // Ensure the new token is unique
+        expiresIn: "7d", // Set an expiry for the new refresh token
+      },
+    );
+
+    // 6. Save the new refresh token to the database
+    await addRefreshTokenModel(newRefreshToken, decoded.id);
+
+    // 7. Send the new tokens back to the client
+    return handleResponse(res, true, 200, "Token refreshed successfully", {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken, // Send the new refresh token
+    });
+  } catch (err) {
+    next(err);
+  }
+};
