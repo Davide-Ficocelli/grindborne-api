@@ -6,8 +6,12 @@ import {
   deleteRefreshTokenModel,
 } from "../models/authModel.js";
 import handleResponse from "../utils/handleResponse.js";
-import { TOKEN_EXPIRATION_TIME } from "../config/globals.js";
+import {
+  ACCESS_TOKEN_EXPIRATION_TIME,
+  REFRESH_TOKEN_EXPIRATION_TIME,
+} from "../config/globals.js";
 import bcrypt from "bcrypt";
+import { randomUUID } from "crypto";
 
 // Importing types
 import { type Request, type Response, type NextFunction } from "express";
@@ -17,7 +21,7 @@ const generateAccessToken = (user: object) =>
   jwt.sign(
     user,
     process.env.ACCESS_TOKEN_SECRET as string,
-    { expiresIn: TOKEN_EXPIRATION_TIME } as jwt.SignOptions,
+    { expiresIn: ACCESS_TOKEN_EXPIRATION_TIME } as jwt.SignOptions,
   ); // Here it's possible to set an expiration time for the token in an object e. g. {expiresIn: "1h"} token doesn't expire in development
 
 export const logInUser = async (
@@ -66,6 +70,10 @@ export const logInUser = async (
     const refreshToken = jwt.sign(
       userData,
       process.env.REFRESH_TOKEN_SECRET as string,
+      {
+        jwtid: randomUUID(),
+        expiresIn: REFRESH_TOKEN_EXPIRATION_TIME,
+      } as jwt.SignOptions,
     );
 
     // Save the new refresh token in the database
