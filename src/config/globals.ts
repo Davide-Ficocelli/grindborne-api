@@ -6,6 +6,32 @@ export const ACCESS_TOKEN_EXPIRATION_TIME: string = "1w";
 // Represents the expiration time of refresh tokens
 export const REFRESH_TOKEN_EXPIRATION_TIME: string = "14d";
 
+// Name of the cookie carrying the refresh token.
+// Centralized because it must be identical in three places:
+// 1. when the backend sets the cookie (login, refresh)
+// 2. when the backend reads it (refresh, logout)
+// 3. when the backend clears it (logout, refresh failed)
+// A typo in just one of these places would cause a silent bug
+// (cookie set but never read, or never deleted). The constant avoids risk.
+export const REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+
+// Cookie duration in milliseconds, aligned with REFRESH_TOKEN_EXPIRATION_TIME.
+// It must be kept in sync with that constant: if the JWT expires before
+// the cookie, the client will present a useless cookie; if it expires after, the
+// browser will throw away the cookie while the JWT was still valid.
+// In both cases it works (fails with 401 and the user logs in again),
+// but keeping the two durations equal makes the behavior predictable.
+// 14 days = 14 * 24 * 60 * 60 * 1000.
+export const REFRESH_TOKEN_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
+
+// Cookie path: limited to authentication routes only.
+// Decision: We do NOT use "/" because the cookie would be sent to every
+// request (API, static, health check) increasing the exposed surface area
+// without any benefit. Restricting it to/grindborne/api/v1/auth the browser
+// attach it only where needed (refresh + logout).
+// Must match the baseUrlPrefix of index.ts.
+export const REFRESH_TOKEN_COOKIE_PATH = "/grindborne/api/v1/auth";
+
 // Represents in days the starting grace period before attributes start decaying
 export const STARTING_GRACE_PERIOD_IN_DAYS: number = 7;
 

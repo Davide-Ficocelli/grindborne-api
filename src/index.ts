@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import pool from "./config/db.js";
-// import compression from "compression";
+import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
 import attributesRoutes from "./routes/attributesRoutes.js";
 import grindsRoutes from "./routes/grindsRoutes.js";
@@ -72,6 +72,12 @@ app.use(
 );
 
 app.use(express.json());
+
+// The cookie-parser middleware populates req.cookies by reading the "Cookie" header.
+// Must be mounted BEFORE auth routes because authController reads req.cookies.
+// The order with respect to express.json() is indifferent (they say different things),
+// but keeping them close makes it obvious that they both prepare the request.
+app.use(cookieParser());
 
 // Routes
 
