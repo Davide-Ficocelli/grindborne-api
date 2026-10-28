@@ -2,7 +2,6 @@ import { Router } from "express";
 import {
   logInUser,
   logOutUser,
-  createNewAccessToken,
   refreshToken,
 } from "../controllers/authController.js";
 import { validateUserCredentials } from "../middlewares/inputValidators.js";
@@ -12,8 +11,6 @@ const router = Router();
 
 // Logs the user in
 router.post("/login", validateUserCredentials, logInUser);
-// Creates new access token
-router.post("/token", createNewAccessToken);
 // Logs the user out
 router.delete("/logout", logOutUser);
 // Processes refresh tokens received by the client
