@@ -30,7 +30,7 @@ import { type AuthPayload, type AuthRequest } from "../types/auth.js";
 const refreshTokenCookieOptions: CookieOptions = {
   httpOnly: true, // JavaScript (and therefore an XSS) cannot read the cookie
   secure: process.env.NODE_ENV === "production", // in dev (HTTP) must be false, otherwise the browser discards the cookie
-  sameSite: "strict", // not sent by cross-site requests: mitigate CSRF
+  sameSite: "none", // strict = not sent by cross-site requests: mitigate CSRF
   path: REFRESH_TOKEN_COOKIE_PATH, // sent only to auth routes
   maxAge: REFRESH_TOKEN_MAX_AGE_MS, // expiration aligned with the JWT
 };
