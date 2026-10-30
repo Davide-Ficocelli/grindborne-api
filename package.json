@@ -6,6 +6,9 @@
   "author": "Davide Ficocelli",
   "type": "module",
   "main": "dist/index.js",
+  "engines": {
+    "node": "26.13.0"
+  },
   "scripts": {
     "test": "newman run \"./tests/Grindborne API tests.postman_collection.json\"",
     "build": "tsc",
@@ -35,7 +38,12 @@
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
     "nanoid": "^5.1.14",
+    "node": "^26.13.0",
     "node-cron": "^4.5.0",
     "pg": "^8.20.0"
+  },
+  "allowScripts": {
+    "bcrypt@6.0.0": true,
+    "node@26.13.0": true
   }
 }
