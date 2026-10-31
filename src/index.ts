@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import pool from "./config/db.js";
+import { ALLOWED_ORIGINS } from "./config/globals.js";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
 import attributesRoutes from "./routes/attributesRoutes.js";
@@ -39,12 +40,6 @@ const baseUrlPrefix: string = "/grindborne/api/v1";
 //
 // The origin callback form is used (rather than a plain array) purely for
 // debuggability: we can log rejected origins during development.
-
-const allowedOrigins = [
-  "http://localhost:5173", // Vite dev server (default port)
-  // Add production frontend URL here when it's deployed, e.g.:
-];
-
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -55,7 +50,7 @@ app.use(
       // local testing.
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      if (ALLOWED_ORIGINS.includes(origin)) {
         return callback(null, true);
       }
 
@@ -67,7 +62,13 @@ app.use(
     },
     credentials: true, // REQUIRED for withCredentials: true to work
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    // X-CSRF-Token MUST be allowed explicitly. Without it, the CORS
+    // preflight for /auth/refresh and /auth/logout from the legitimate
+    // frontend will fail, and the actual request will never go through.
+    // Note: header names in this array are case-insensitive but must be
+    // listed literally; the browser treats X-CSRF-Token as needing a
+    // preflight because it is not a CORS-safelisted header.
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
   }),
 );
 

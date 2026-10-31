@@ -1,3 +1,5 @@
+// --- START SECURITY GLOBALS ---
+
 export const SALT_ROUNDS: number = 10;
 
 // Represents the expiration time of access tokens
@@ -31,6 +33,29 @@ export const REFRESH_TOKEN_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 // attach it only where needed (refresh + logout).
 // Must match the baseUrlPrefix of index.ts.
 export const REFRESH_TOKEN_COOKIE_PATH = "/grindborne/api/v1/auth";
+
+// Origins allowed both by CORS (for any request) and by the CSRF
+// middleware (for cookie-authenticated endpoints only).
+// Shared between index.ts and middlewares/verifyCsrf.ts to prevent drift:
+// an origin added to one but not the other would fail unpredictably
+// (CORS ok but CSRF reject, or vice versa).
+export const ALLOWED_ORIGINS: string[] = [
+  "http://localhost:5173", // Vite dev server
+  // Add the production frontend URL here once deployed, e.g.:
+  // "https://grindborne-frontend.onrender.com",
+];
+
+// Header name the client must echo on cookie-authenticated endpoints
+// (/auth/refresh, /auth/logout). The VALUE is irrelevant: what matters is
+// that the header EXISTS. Custom headers cannot be set by HTML forms
+// (browser refuses by spec), and cross-origin fetch with a custom header
+// triggers a CORS preflight that our strict CORS policy rejects.
+// That mechanism alone blocks CSRF without needing a secret.
+export const CSRF_HEADER_NAME = "x-csrf-token";
+
+// --- END SECURITY GLOBALS ---
+
+// --- START BUSINESS LOGIC GLOBALS ---
 
 // Represents in days the starting grace period before attributes start decaying
 export const STARTING_GRACE_PERIOD_IN_DAYS: number = 7;
@@ -103,5 +128,11 @@ export const DECAY_BASE_PERCENT = 0.2;
 // Represents the percent amount of remaining xp to next level to reach in order for an attribute to have its decay date renewed
 export const DECAY_DATE_RENEWAL_THRESHOLD = 0.5;
 
+// --- END BUSINESS LOGIC GLOBALS ---
+
+// --- START MISCELLANEOUS GLOBALS ---
+
 // Represents the time period after which all soft-deleted records get permanently destroyed
 export const RETENTION_PERIOD: string = "30 days";
+
+// --- END MISCELLANEOUS GLOBALS ---
