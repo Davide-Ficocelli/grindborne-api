@@ -1,5 +1,9 @@
 import jwt from "jsonwebtoken";
-import { type CookieOptions } from "express";
+import {
+  generateAccessToken,
+  setRefreshTokenCookie,
+  clearRefreshTokenCookie,
+} from "../shared/authHelpers.js";
 import { getUserByEmailModel } from "../models/usersModel.js";
 import {
   addRefreshTokenModel,
@@ -8,11 +12,8 @@ import {
 } from "../models/authModel.js";
 import handleResponse from "../utils/handleResponse.js";
 import {
-  ACCESS_TOKEN_EXPIRATION_TIME,
   REFRESH_TOKEN_EXPIRATION_TIME,
   REFRESH_TOKEN_COOKIE_NAME,
-  REFRESH_TOKEN_MAX_AGE_MS,
-  REFRESH_TOKEN_COOKIE_PATH,
 } from "../config/globals.js";
 import bcrypt from "bcrypt";
 import { randomUUID } from "crypto";
@@ -21,40 +22,7 @@ import { randomUUID } from "crypto";
 import { type Request, type Response, type NextFunction } from "express";
 import { type AuthPayload, type AuthRequest } from "../types/auth.js";
 
-// Shared options between set and cookie clear.
-// Decision: Centralize them into a single object because Express, for
-// delete a cookie (res.clearCookie), it requires EXACTLY the same ones
-// options used to set it (at least path, sameSite, secure). If they diverge,
-// The browser does not recognize the deletion and the cookie remains.
-// Keeping only one source of truth avoids this classic bug.
-const refreshTokenCookieOptions: CookieOptions = {
-  httpOnly: true, // JavaScript (and therefore an XSS) cannot read the cookie
-  secure: process.env.NODE_ENV === "production", // in dev (HTTP) must be false, otherwise the browser discards the cookie
-  sameSite: "none", // strict = not sent by cross-site requests: mitigate CSRF
-  path: REFRESH_TOKEN_COOKIE_PATH, // sent only to auth routes
-  maxAge: REFRESH_TOKEN_MAX_AGE_MS, // expiration aligned with the JWT
-};
-
-// Set the cookie with the refresh token. Used on login and refresh.
-function setRefreshTokenCookie(res: Response, token: string) {
-  res.cookie(REFRESH_TOKEN_COOKIE_NAME, token, refreshTokenCookieOptions);
-}
-
-// Clear the cookie. Used on logout and when refresh fails.
-// Note: res.clearCookie must receive the same options as the set
-// (especially path), otherwise the browser will not find the cookie to delete.
-function clearRefreshTokenCookie(res: Response) {
-  res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, refreshTokenCookieOptions);
-}
-
-const generateAccessToken = (user: object) =>
-  jwt.sign(
-    user,
-    process.env.ACCESS_TOKEN_SECRET as string,
-    { expiresIn: ACCESS_TOKEN_EXPIRATION_TIME } as jwt.SignOptions,
-  ); // Here it's possible to set an expiration time for the token in an object e. g. {expiresIn: "1h"} token doesn't expire in development
-
-export const logInUser = async (
+export const logInUserController = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -126,7 +94,7 @@ export const logInUser = async (
 };
 
 // Made this function async to handle the database deletion
-export const logOutUser = async (
+export const logOutUserController = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -165,43 +133,7 @@ export const logOutUser = async (
   }
 };
 
-// Function which authenticates the user token containing their id
-export const authenticateToken = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    // Getting the authorization header
-    const authHeader = req.headers["authorization"];
-    // Returning the token if it exists other wise undefined
-    const token = authHeader && authHeader.split(" ")[1];
-
-    // Sending back a failure status code if no token exists
-    if (!token) return handleResponse(res, false, 401, "Token not provided");
-
-    // Verify token validity
-    jwt.verify(
-      token,
-      process.env.ACCESS_TOKEN_SECRET as string,
-      (
-        err: jwt.VerifyErrors | null,
-        user: jwt.JwtPayload | string | undefined,
-      ) => {
-        // Returning status code if an error exist
-        if (err)
-          return handleResponse(res, false, 403, "Invalid or expired token"); // 403 = Token no longer valid
-        const payload = user as AuthPayload; // We know { id: ... } has been used in sign
-        (req as AuthRequest).user = payload;
-        next();
-      },
-    );
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const refreshToken = async (
+export const refreshTokenController = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -282,6 +214,42 @@ export const refreshToken = async (
     return handleResponse(res, true, 200, "Token refreshed successfully", {
       accessToken: newAccessToken,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Function which authenticates the user token containing their id
+export const authenticateToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // Getting the authorization header
+    const authHeader = req.headers["authorization"];
+    // Returning the token if it exists other wise undefined
+    const token = authHeader && authHeader.split(" ")[1];
+
+    // Sending back a failure status code if no token exists
+    if (!token) return handleResponse(res, false, 401, "Token not provided");
+
+    // Verify token validity
+    jwt.verify(
+      token,
+      process.env.ACCESS_TOKEN_SECRET as string,
+      (
+        err: jwt.VerifyErrors | null,
+        user: jwt.JwtPayload | string | undefined,
+      ) => {
+        // Returning status code if an error exist
+        if (err)
+          return handleResponse(res, false, 403, "Invalid or expired token"); // 403 = Token no longer valid
+        const payload = user as AuthPayload; // We know { id: ... } has been used in sign
+        (req as AuthRequest).user = payload;
+        next();
+      },
+    );
   } catch (err) {
     next(err);
   }
