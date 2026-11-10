@@ -26,7 +26,7 @@ export const getQuestsByUserIdModel = async (
   userId: string,
 ): Promise<QuestInDb[] | null> => {
   const result = await pool.query<QuestInDb>(
-    "SELECT quests.id, quests.users_id, quests.name, quests.description, quests.icon, quests.is_rewardable, quests.estimated_time, quests.actual_time, quests.is_tracked, quests.is_completed FROM quests JOIN users ON quests.users_id = users.id WHERE quests.users_id = $1",
+    "SELECT quests.id, quests.users_id, quests.name, quests.description, quests.icon, quests.is_rewardable, quests.estimated_time, quests.actual_time, quests.is_tracked, quests.is_completed FROM quests JOIN users ON quests.users_id = users.id WHERE quests.users_id = $1 AND quests.deleted_at IS NULL",
     [userId],
   );
   return result.rows.length ? result.rows : null;

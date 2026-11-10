@@ -78,12 +78,20 @@ export const getQuestByIdService = async (
 export const getQuestsByUserIdService = async (
   userId: string,
 ): Promise<ServiceValidation> => {
-  // Get quest by id
+  // Get quests by user id
   const userQuests = await getQuestsByUserIdModel(userId);
 
-  // If quests weren't found return an error message
-  if (!userQuests)
-    return { ok: false, status: 404, message: "Quests not found" };
+  // DECISION: same reasoning as getAttributesByUserIdService. An empty
+  // list means "this user has no quests yet", which is a perfectly valid
+  // state for a fresh account. Returning 404 would force every consumer
+  // to special-case it and would surface as a red error in the UI.
+  if (!userQuests || userQuests.length === 0)
+    return {
+      ok: true,
+      status: 200,
+      message: "User has no quests yet",
+      data: [],
+    };
 
   // Prevent IDOR
   const { isIdorDetected, status, message } = preventIdor(

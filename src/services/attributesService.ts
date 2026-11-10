@@ -71,15 +71,28 @@ export const getAttributesByUserIdService = async (
   // Get all attributes by user id
   const allUserAttributes = await getAttributesByUserIdModel(userId);
 
-  // Handle case in which user attributes are null
-  if (!allUserAttributes)
-    return { ok: false, status: 404, message: "User attributes not found" };
+  // DECISION: an empty list is a VALID result, not an error.
+  // A user who has not yet created any attribute is not in an
+  // exceptional state. Returning 404 here forced every consumer
+  // (PlayerStatusPage, QuestLogList, QuestForm) to special-case the
+  // "new user" scenario, and `useApi` treated it as a fatal error,
+  // hiding the entire page.
+  //
+  // The model returns `null` when there are no rows (historical sentinel);
+  // we normalize that to an empty array so the response shape stays
+  // consistent for the frontend (always a list).
+  if (!allUserAttributes || allUserAttributes.length === 0)
+    return {
+      ok: true,
+      status: 200,
+      message: "User has no attributes yet",
+      data: [],
+    };
 
   // Get attributes owner id
   const attributeOwnerId = allUserAttributes[0]?.users_id;
 
   // Prevent IDOR
-
   const { isIdorDetected, status, message } = preventIdor(
     userId,
     attributeOwnerId as string,
@@ -91,7 +104,7 @@ export const getAttributesByUserIdService = async (
   )
     return { ok: false, status: status ?? 0, message: message ?? "" };
 
-  // return all user attirubutes
+  // return all user attributes
   return {
     ok: true,
     status: 200,

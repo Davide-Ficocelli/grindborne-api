@@ -75,7 +75,8 @@ export const getAttributesByUserIdModel = async (
     attributes.decay_date
     FROM attributes
     JOIN users ON attributes.users_id = users.id
-    WHERE attributes.users_id = $1`,
+    WHERE attributes.users_id = $1
+      AND attributes.deleted_at IS NULL`,
     [userId],
   );
   return result.rows.length ? result.rows : null;
