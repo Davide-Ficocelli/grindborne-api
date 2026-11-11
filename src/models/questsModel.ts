@@ -11,11 +11,12 @@ import {
 // --- GENERAL CRUD MODEL FUNCTIONS ---
 
 // Gets a quest based on its id
+// FIX: added deleted_at IS NULL to ignore soft-deleted rows
 export const getQuestByIdModel = async (
   questId: string,
 ): Promise<QuestInDb | null> => {
   const result = await pool.query<QuestInDb>(
-    "SELECT * FROM quests WHERE id = $1",
+    "SELECT * FROM quests WHERE id = $1 AND deleted_at IS NULL",
     [questId],
   );
   return result.rows[0] ?? null;

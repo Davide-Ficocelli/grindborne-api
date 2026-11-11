@@ -4,6 +4,7 @@ import {
   updateAttributeService,
   getAllAttributesToQuestService,
   softDeleteAttributeService,
+  getAttributeByIdService,
 } from "../services/attributesService.js";
 import processServiceRequest from "../utils/processServiceRequest.js";
 
@@ -51,6 +52,30 @@ export const getAttributesByUserIdController = async (
 
   // Retrieves and saves all user's attributes
   return processServiceRequest(res, next, getAttributesByUserIdService(userId));
+};
+
+/**
+ * ADDED 11/11/2026: Controller for fetching a single attribute by ID;
+ * WHY: In the UI, an action bar for each attribute is displayed
+ * in the status page. Each action requires to aim at the exact attribute
+ * for it to perform the expected action. Until now, neither service,
+ * model, service function and route existed to allow this. Without this,
+ * an empty page would be shown upon clicking on any action. That's why
+ * this is being added now.
+ */
+export const getAttributeByIdController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  const userId: string = req.user.id;
+  const attributeId: string = req.params.id ? req.params.id.toString() : "";
+
+  return processServiceRequest(
+    res,
+    next,
+    getAttributeByIdService(userId, attributeId),
+  );
 };
 
 // Soft-deletes an attribute

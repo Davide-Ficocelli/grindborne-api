@@ -64,6 +64,30 @@ export const createNewAttributeService = async (
   };
 };
 
+export const getAttributeByIdService = async (
+  userId: string,
+  attributeId: string,
+): Promise<ServiceValidation> => {
+  const attribute = await getAttributeByIdModel(attributeId);
+
+  if (!attribute)
+    return { ok: false, status: 404, message: "Attribute not found" };
+
+  const { isIdorDetected, status, message } = preventIdor(
+    userId,
+    attribute.users_id as string,
+  );
+  if (isIdorDetected)
+    return { ok: false, status: status ?? 0, message: message ?? "" };
+
+  return {
+    ok: true,
+    status: 200,
+    message: "Attribute fetched successfully",
+    data: attribute,
+  };
+};
+
 // Gets all user attributes by user id
 export const getAttributesByUserIdService = async (
   userId: string,
@@ -114,6 +138,7 @@ export const getAttributesByUserIdService = async (
 };
 
 // Soft-deletes an attribute
+// FIX: Recalculate user level after deletion
 export const softDeleteAttributeService = async (
   userId: string,
   attributeId: string,
@@ -142,6 +167,18 @@ export const softDeleteAttributeService = async (
       status: 500,
       message: "Something went wrong while soft-deleting attribute",
     };
+
+  // Recalculate user level based on remaining attributes
+  const remainingAttributes = await getAttributesByUserIdModel(userId);
+
+  if (remainingAttributes && remainingAttributes.length > 0) {
+    const levels = extractUserAttributesLvlsHelper(remainingAttributes);
+    const newUserLvl = calculateUserLvlHelper(levels);
+    await assignNewUserLvlService(userId, newUserLvl);
+  } else {
+    // If no attributes left, reset to level 1
+    await assignNewUserLvlService(userId, 1);
+  }
 
   return {
     ok: true,

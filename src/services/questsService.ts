@@ -282,13 +282,15 @@ export const createNewQuestService = async (
   }
 
   // Populates the join table quests_attributes with both quests and attributes' ids
-  const { ok, status, message } = await addAttributesToQuestService(
-    (newQuest as QuestInDb).id,
-    attributes_ids,
-  );
+  // But only if the quest is rewardable
+  if (questObj.is_rewardable) {
+    const { ok, status, message } = await addAttributesToQuestService(
+      (newQuest as QuestInDb).id,
+      attributes_ids,
+    );
 
-  // Stop execution and return error message if something went wrong
-  if (!ok) return { ok, status, message };
+    if (!ok) return { ok, status, message };
+  }
 
   return {
     ok: true,
