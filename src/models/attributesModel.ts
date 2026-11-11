@@ -51,10 +51,14 @@ export const getAttributeByIdModel = async (
 };
 
 // Gets all attributes
+// FIX: added deleted_at IS NULL to prevent
+// soft-deleted attributes from being retrieved
 export const getAllAttributesModel = async (): Promise<
   AttributeInDb[] | null
 > => {
-  const result = await pool.query<AttributeInDb>(`SELECT * FROM attributes`);
+  const result = await pool.query<AttributeInDb>(
+    `SELECT * FROM attributes WHERE deleted_at IS NULL`,
+  );
   return result.rows.length ? result.rows : null;
 };
 
@@ -116,6 +120,7 @@ export const updateAttributeModel = async (
 // --- BUSINESS LOGIC MODEL METHODS ---
 
 // Gets all attributes involved in a specific quest
+// FIX: added attributes.deleted_at IS NULL to avoid pulling deleted attributes
 export const getAllAttributesToQuestModel = async (
   questId: string,
 ): Promise<AttributeInDb[] | null> => {
@@ -135,18 +140,20 @@ export const getAllAttributesToQuestModel = async (
     JOIN quests_attributes ON attributes.id = quests_attributes.attributes_id
     JOIN quests ON quests_attributes.quests_id = quests.id
     WHERE
-    quests_attributes.quests_id = $1`,
+    quests_attributes.quests_id = $1
+    AND attributes.deleted_at IS NULL`,
     [questId],
   );
   return result.rows.length ? result.rows : null;
 };
 
 // Assigns starting decay date to all attributes with xp
+// FIX Q5: added deleted_at IS NULL
 export const assignStartingDecayDateToAttributeModel = async (
   startingDecayDate: Date,
 ): Promise<AttributeInDb[] | null> => {
   const result = await pool.query<AttributeInDb>(
-    "UPDATE attributes SET decay_date = $1 WHERE decay_date IS NULL AND xp > 0 RETURNING *",
+    "UPDATE attributes SET decay_date = $1 WHERE decay_date IS NULL AND xp > 0 AND deleted_at IS NULL RETURNING *",
     [startingDecayDate],
   );
   return result.rows.length ? result.rows : null;

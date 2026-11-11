@@ -6,6 +6,7 @@ import {
   updateAttributeController,
   getAllAttributesToQuestController,
   softDeleteAttributeController,
+  getAttributeByIdController,
 } from "../controllers/attributesController.js";
 import {
   validateNewAttribute,
@@ -15,11 +16,19 @@ import {
 // Initialize and export express router for attributes routes
 const router = Router();
 
-// // Endpoint for all user attributes fetching
+// Endpoint for all user attributes fetching
 router.get(
   "/attributes",
   authenticateToken,
   getAttributesByUserIdController as RequestHandler,
+);
+
+// NEW 11/11/2026: Route to get a single attribute by ID
+// Must be AFTER the /attributes route to avoid matching "attributes" as an ID.
+router.get(
+  "/attributes/:id",
+  authenticateToken,
+  getAttributeByIdController as RequestHandler,
 );
 
 // Endpoint for user attribute creation
