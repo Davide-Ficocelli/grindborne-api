@@ -432,13 +432,21 @@ export const completeQuestService = async (
 
   // Validate quest
   let result;
-  // If is not rewardable then just mark the quest as completed and stop the tracking
+  // If is not rewardable then just mark the quest as completed and stop the tracking.
+  // The actual time is calculated here too: it only needs `tracked_at`, which
+  // always exists because only tracked quests can be completed.
   if (!is_rewardable) {
+    const actual_time = calculateDatesDiffHelper(
+      new Date(),
+      tracked_at as Date,
+    );
+
     result = await updateQuestModel(questId, {
       is_tracked: false,
       is_completed: true,
       completed_at: new Date(),
-      estimated_time: estimated_time as number,
+      estimated_time: estimated_time as number | null,
+      actual_time,
     });
 
     // Handle case in which result is null

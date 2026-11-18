@@ -181,6 +181,17 @@ export const validateQuestToBeCompletedHelper = async function (
       message: "Authenticated user could not be found",
     };
 
+  // Non-rewardable quests earn no XP, so they have no attributes and there is
+  // nothing XP-related to validate. Without this early return, the attributes
+  // lookup below answers 404 and a
+  // non-rewardable quest could never be completed.
+  if (!questToBeCompleted.is_rewardable)
+    return {
+      ok: true,
+      status: 202,
+      message: "Quest to be completed is valid",
+    };
+
   const {
     ok: userAttrsOk,
     status: userAttrsStatus,

@@ -23,11 +23,14 @@ export const getQuestByIdModel = async (
 };
 
 // Gets all quests based on user's id
+// NOTE: `is_failed` must be part of the SELECT list. The frontend uses it to
+// hide failed quests from the quest log and to decide which action buttons
+// to show; without it the field always arrives as undefined.
 export const getQuestsByUserIdModel = async (
   userId: string,
 ): Promise<QuestInDb[] | null> => {
   const result = await pool.query<QuestInDb>(
-    "SELECT quests.id, quests.users_id, quests.name, quests.description, quests.icon, quests.is_rewardable, quests.estimated_time, quests.actual_time, quests.is_tracked, quests.is_completed FROM quests JOIN users ON quests.users_id = users.id WHERE quests.users_id = $1 AND quests.deleted_at IS NULL",
+    "SELECT quests.id, quests.users_id, quests.name, quests.description, quests.icon, quests.is_rewardable, quests.estimated_time, quests.actual_time, quests.is_tracked, quests.is_completed, quests.is_failed FROM quests JOIN users ON quests.users_id = users.id WHERE quests.users_id = $1 AND quests.deleted_at IS NULL",
     [userId],
   );
   return result.rows.length ? result.rows : null;
